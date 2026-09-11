@@ -11,6 +11,7 @@ import {
   History,
   ShieldAlert,
   ArrowRight,
+  Cpu,
 } from 'lucide-react';
 import { DecisionType, DECISION_TYPE_LABELS, Decision } from '../../../domain/workflow';
 
@@ -134,6 +135,58 @@ export const DecisionTab: React.FC = () => {
           <strong style={{ fontSize: '14px', color: '#FFFFFF' }}>Dr. Edward Vance, MD</strong>
           <div style={{ fontSize: '11px', color: '#38BDF8' }}>Attending Physician · Lead Clinician</div>
         </div>
+      </div>
+
+      {/* Phase 9 Deterministic CDS Pre-Flight Check Banner */}
+      <div
+        style={{
+          background: '#F0F9FF',
+          border: '1px solid #BAE6FD',
+          borderRadius: '8px',
+          padding: '14px 18px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ background: '#0284C7', color: '#FFFFFF', padding: '6px', borderRadius: '6px', display: 'flex' }}>
+            <Cpu size={16} />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#0369A1' }}>
+                Deterministic CDS Pre-Flight Check
+              </span>
+              <span style={{ fontSize: '10px', fontWeight: 700, background: '#E0F2FE', color: '#0369A1', padding: '1px 6px', borderRadius: '8px' }}>
+                4 Checks Verified
+              </span>
+            </div>
+            <div style={{ fontSize: '11px', color: '#475569', marginTop: '2px' }}>
+              Modified Duke Criteria: <strong>Definite IE (2 Major met)</strong> · Renal: <strong>CrCl 68.0 mL/min</strong> · Allergy: <strong>Penicillin Anaphylaxis Flagged</strong> · DDI: <strong>Vancomycin + Gentamicin Synergy Monitored</strong>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setActiveCaseSubTab('rules')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            background: '#FFFFFF',
+            color: '#0284C7',
+            border: '1px solid #BAE6FD',
+            borderRadius: '4px',
+            padding: '6px 12px',
+            fontSize: '11px',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          View CDS Engine <ArrowRight size={12} />
+        </button>
       </div>
 
       {/* Safety Guardrail Alert if blocking */}

@@ -9,12 +9,14 @@ import {
   Shield,
   FileText,
   UserCheck,
+  Cpu,
+  ArrowRight,
 } from 'lucide-react';
 import { SafetyConcern, SafetyConcernSeverity } from '../../../domain/workflow';
 import { SafetyResolveModal } from '../../safety/SafetyResolveModal';
 
 export const SafetyTab: React.FC = () => {
-  const { safetyConcerns, activeCase } = useCase();
+  const { safetyConcerns, activeCase, setActiveCaseSubTab } = useCase();
   const [modalConcernId, setModalConcernId] = useState<string | null>(null);
   const [modalMode, setModalMode] = useState<'ACKNOWLEDGE' | 'RESOLVE'>('ACKNOWLEDGE');
   const [filterSeverity, setFilterSeverity] = useState<string>('ALL');
@@ -76,6 +78,58 @@ export const SafetyTab: React.FC = () => {
             <option value="INFORMATION">Information</option>
           </select>
         </div>
+      </div>
+
+      {/* Deterministic CDS Safety Guardrails Banner */}
+      <div
+        style={{
+          background: '#F0F9FF',
+          border: '1px solid #BAE6FD',
+          borderRadius: '8px',
+          padding: '14px 18px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ background: '#0284C7', color: '#FFFFFF', padding: '6px', borderRadius: '6px', display: 'flex' }}>
+            <Cpu size={16} />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#0369A1' }}>
+                Deterministic CDS Rule Engine Alerts Active
+              </span>
+              <span style={{ fontSize: '10px', fontWeight: 700, background: '#FEF3C7', color: '#92400E', padding: '1px 6px', borderRadius: '8px', border: '1px solid #FCD34D' }}>
+                Allergy & DDI Active
+              </span>
+            </div>
+            <div style={{ fontSize: '11px', color: '#475569', marginTop: '2px' }}>
+              Penicillin cross-reactivity alert active (anaphylaxis history). Drug interaction active between Vancomycin and Gentamicin (synergistic renal monitoring required).
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setActiveCaseSubTab('rules')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            background: '#FFFFFF',
+            color: '#0284C7',
+            border: '1px solid #BAE6FD',
+            borderRadius: '4px',
+            padding: '6px 12px',
+            fontSize: '11px',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          Open CDS Engine <ArrowRight size={12} />
+        </button>
       </div>
 
       {/* Concerns List */}

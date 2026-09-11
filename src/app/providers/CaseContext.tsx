@@ -58,7 +58,8 @@ export type CaseSubTab =
   | 'team'
   | 'review'
   | 'decision'
-  | 'safety';
+  | 'safety'
+  | 'rules';
 
 interface CaseContextType {
   activeView: MainView;

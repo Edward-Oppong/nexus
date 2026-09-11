@@ -12,10 +12,12 @@ import {
   AppRole,
   AppPermission,
   Organization,
+  OrganizationFhirConfig,
   Profile,
   OrganizationMembership,
   ROLE_PERMISSION_MATRIX,
   hasRolePermission,
+  authorize as domainAuthorize,
 } from '../../domain/auth';
 
 // ----------------------------------------------------------
@@ -48,6 +50,73 @@ export const DEMO_ORGANIZATIONS: Organization[] = [
   },
 ];
 
+// ----------------------------------------------------------
+// Demo FHIR Endpoint Configurations (Phase 8)
+// Per-organisation FHIR endpoint registry (mirrors organization_fhir_configs table)
+// ----------------------------------------------------------
+export const DEMO_FHIR_CONFIGS: OrganizationFhirConfig[] = [
+  {
+    id: 'fhir-cfg-001',
+    organizationId: 'c0000001-0000-0000-0000-000000000001',
+    name: 'Epic EHR — Teaching Hospital',
+    systemType: 'EHR',
+    protocol: 'FHIR_R4',
+    baseUrl: 'https://epic.nexus-hospital.demo/api/FHIR/R4',
+    trustLevel: 'AUTHORITATIVE',
+    isActive: true,
+    circuitBreakerStatus: 'CLOSED',
+    createdAt: '2026-01-15T08:00:00Z',
+  },
+  {
+    id: 'fhir-cfg-002',
+    organizationId: 'c0000001-0000-0000-0000-000000000001',
+    name: 'Mindray BeneVision — Bedside Devices',
+    systemType: 'DEVICE',
+    protocol: 'HL7_V2',
+    baseUrl: 'https://hl7.mindray.nexus-hospital.demo/mllp',
+    trustLevel: 'STANDARD',
+    isActive: true,
+    circuitBreakerStatus: 'CLOSED',
+    createdAt: '2026-02-01T10:00:00Z',
+  },
+  {
+    id: 'fhir-cfg-003',
+    organizationId: 'c0000001-0000-0000-0000-000000000001',
+    name: 'LabSystems LIS — Pathology',
+    systemType: 'LIS',
+    protocol: 'FHIR_R4',
+    baseUrl: 'https://lis.nexus-hospital.demo/fhir/r4',
+    trustLevel: 'AUTHORITATIVE',
+    isActive: true,
+    circuitBreakerStatus: 'HALF_OPEN',
+    createdAt: '2026-03-10T09:30:00Z',
+  },
+  {
+    id: 'fhir-cfg-004',
+    organizationId: 'c0000001-0000-0000-0000-000000000002',
+    name: 'Community EHR — Primary Care',
+    systemType: 'EHR',
+    protocol: 'FHIR_R4',
+    baseUrl: 'https://community-ehr.demo/fhir/r4',
+    trustLevel: 'STANDARD',
+    isActive: true,
+    circuitBreakerStatus: 'CLOSED',
+    createdAt: '2026-01-20T12:00:00Z',
+  },
+  {
+    id: 'fhir-cfg-005',
+    organizationId: 'c0000001-0000-0000-0000-000000000003',
+    name: 'Research Registry — Clinical Trials',
+    systemType: 'REGISTRY',
+    protocol: 'FHIR_R4',
+    baseUrl: 'https://registry.ai-research.demo/fhir/r4',
+    trustLevel: 'SUPPLEMENTARY',
+    isActive: false,
+    circuitBreakerStatus: 'OPEN',
+    createdAt: '2026-04-05T14:00:00Z',
+  },
+];
+
 export interface AuthContextType {
   user: User | null;
   profile: Profile | null;
@@ -57,7 +126,14 @@ export interface AuthContextType {
   permissions: AppPermission[];
   loading: boolean;
   isDemoMode: boolean;
+  /** Simple role-level permission check (no org scope). First line of UI defence. */
   can: (permission: AppPermission) => boolean;
+  /**
+   * Phase 8 / ARCHITECTURE §4: Org-scoped permission check.
+   * Validates active membership for targetOrganizationId + role permission.
+   * DB RLS is the final enforcement — this is the application-layer guard.
+   */
+  authorize: (permission: AppPermission, targetOrganizationId: string) => boolean;
   switchOrganization: (orgId: string) => void;
   switchDemoPersona: (role: AppRole, name?: string) => void;
   signIn: (email: string, password?: string) => Promise<{ error: Error | null }>;
@@ -104,6 +180,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return hasRolePermission(role, permission);
     },
     [role]
+  );
+
+  // Org-scoped permission check (Phase 8 / ARCHITECTURE §4)
+  const authorize = useCallback(
+    (permission: AppPermission, targetOrganizationId: string): boolean => {
+      return domainAuthorize(permission, targetOrganizationId, memberships);
+    },
+    [memberships]
   );
 
   // Switch active organization (Section 6C.15)
@@ -223,6 +307,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       loading,
       isDemoMode,
       can,
+      authorize,
       switchOrganization,
       switchDemoPersona,
       signIn,
@@ -238,6 +323,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       loading,
       isDemoMode,
       can,
+      authorize,
       switchOrganization,
       switchDemoPersona,
       signIn,

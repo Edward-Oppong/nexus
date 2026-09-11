@@ -1,6 +1,6 @@
 # Nexus Clinical Workstation — Authoritative System Architecture
 
-> **Version: 0.6.0** | Stack: React 18 + TypeScript 5 + Vite 6 + Supabase | FHIR: R4
+> **Version: 0.8.0** | Stack: React 18 + TypeScript 5 + Vite 6 + Supabase | FHIR: R4
 >
 > This is the architecture we build against. Not a design sketch — a production requirement.
 
@@ -594,7 +594,18 @@ The Intelligence Rail shows clinically contextual information only. It is a clin
 | Team | TeamTab.tsx | 6D | Care team and assignments |
 | Review | ReviewTab.tsx | 6G | AI output review queue |
 | Documents | DocumentsTab.tsx | 6H | Documents and FHIR integration hub |
+| Rules & CDS | RulesTab.tsx | 9 | Deterministic guideline scoring, dosing, DDIs, allergy cross-reactivity |
 | Summary | SummaryTab.tsx | 6G | Case summary output |
+
+### Administration Panel Tab Inventory (Phase 8)
+
+| Tab | File | Permission Required | Purpose |
+|-----|------|--------------------|---------|
+| Organisation Settings | OrgSettingsTab.tsx | `organization.manage` | Name, type, country, timezone |
+| Team Members | TeamMembersTab.tsx | `user.manage` | Member roster, roles, invitations |
+| FHIR Endpoints | FhirEndpointsTab.tsx | `organization.manage` | Org-scoped external system connections |
+| Audit Log | AuditLogTab.tsx | `audit.view` | Immutable event ledger viewer |
+| System Disclosure | SystemDisclosureTab.tsx | None (all authenticated) | AI model registry and provenance reference |
 
 ---
 
@@ -1275,6 +1286,8 @@ Recovery:  PROCESSING items older than 5 minutes re-queued by cron.
 |---------|------|---------|
 | v0.5.0 | 2026-09-11 | Initial architecture document |
 | v0.6.0 | 2026-09-11 | Major corrections from architecture audit. Authorization promoted to current requirement (not Phase 8). Role and permission model aligned to `src/domain/auth.ts` — clinician, nurse, laboratory, reviewer, organization_admin, platform_admin. Organization-aware authorization enforced at DB level. PostgreSQL as authoritative source of truth; CaseContext demoted to cache. Backend case state enforcement via `transition_case_status()` PostgreSQL function. NexusAssessment versioning added (ACTIVE / SUPERSEDED / REJECTED). Persistent idempotency and SyncQueue via Postgres `sync_events` table (replaces in-memory Set and SyncQueue). Corrected ClinicalFinding to FHIR Condition mapping — only condition-like findings; not all findings and not hypotheses. 7-step FHIR validation documented. Terminology service abstraction added — candidate match with confidence signal; no silent auto-conversion. FHIR Hub moved from Intelligence Rail to Documents tab. Performance targets replaced with P50/P95 measurement framework — no promises before staging measurement. Transactional audit pattern documented; outbox pattern for edge function mutations. AI retry hard-limited to maximum 2 attempts. PRELIMINARY vs REVIEW_REQUIRED distinction clarified. Database schema and RLS specification added. Failure modes F9 and F10 added. |
+| v0.7.0 | 2026-09-11 | Phase 8 — Multi-tenant Organisation Model implemented. `OrganizationFhirConfig` and `OrganizationInvitation` domain types added to `src/domain/auth.ts`. Org-scoped `authorize(permission, targetOrganizationId, memberships)` function added (ARCHITECTURE §4). `AuthProvider` extended with `authorize()` on context, `DEMO_FHIR_CONFIGS` (5 demo endpoints across 3 orgs), and import of domain `authorize` function. `AdministrationView` fully rebuilt as 5-tab workstation: Organisation Settings (`organization.manage`), Team Members (`user.manage`), FHIR Endpoints (`organization.manage`), Audit Log (`audit.view`), System Disclosure (all). Tab navigation shows lock icons for restricted panels; defaults to first accessible tab for current role. Demo data: 10 team members across 3 orgs, 15 audit events, 5 FHIR endpoint configs. Migration 025 adds `organization_fhir_configs` and `organization_invitations` tables with RLS, helper functions `user_is_member_of()` and `user_has_role_in_org()`, auto-update triggers, and demo seed data. No DELETE policies on either table — immutable record keeping. |
+| v0.8.0 | 2026-09-11 | Phase 9 — Clinical Decision Rules Engine implemented. Pure domain types defined in `src/domain/rules-engine.ts` separating deterministic CDS from generative reasoning. Deterministic library in `src/lib/rules-engine/`: guideline scoring (Modified Duke Criteria, CURB-65, Wells PE, qSOFA, Centor, CHA₂DS₂-VASc), renal dosing calculator (Cockcroft-Gault CrCl, CKD-EPI 2021, Mosteller BSA, Devine IBW/AdjBW, antimicrobial and anticoagulant protocols), RxNorm drug-drug interaction checker with pairwise severity grading (`CONTRAINDICATED`, `MAJOR`, `MODERATE`), and allergy cross-reactivity engine analyzing beta-lactam R1 side chains, sulfas, NSAIDs, and HIT. First-class `RulesTab.tsx` workstation integrated into `CaseWorkspaceView` and `CaseNav`. Pre-flight CDS validation integrated into `DecisionTab.tsx` and `SafetyTab.tsx`. Database migration `026_phase9_clinical_decision_rules.sql` created with RLS and audit records. |
 
 ---
 

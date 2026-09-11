@@ -16,6 +16,7 @@ import { ReviewTab } from './tabs/ReviewTab';
 import { DecisionTab } from './tabs/DecisionTab';
 import { SafetyTab } from './tabs/SafetyTab';
 import { DocumentsTab } from './tabs/DocumentsTab';
+import { RulesTab } from './tabs/RulesTab';
 import { SafetyBanner } from '../safety/SafetyBanner';
 
 export const CaseWorkspaceView: React.FC = () => {
@@ -47,6 +48,8 @@ export const CaseWorkspaceView: React.FC = () => {
         return <DecisionTab />;
       case 'safety':
         return <SafetyTab />;
+      case 'rules':
+        return <RulesTab />;
       default:
         return <ReasoningTab />;
     }

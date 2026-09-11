@@ -13,6 +13,7 @@ import {
   FileCheck2,
   ShieldAlert,
   FolderOpen,
+  Cpu,
 } from 'lucide-react';
 
 export const CaseNav: React.FC = () => {
@@ -26,6 +27,7 @@ export const CaseNav: React.FC = () => {
     { id: 'investigations', label: 'Investigations', icon: <FlaskConical size={15} />, badge: `${activeCase.investigations.length}` },
     { id: 'evidence', label: 'Evidence', icon: <BookOpen size={15} /> },
     { id: 'documents', label: 'Documents & FHIR', icon: <FolderOpen size={15} /> },
+    { id: 'rules', label: 'Rules & CDS', icon: <Cpu size={15} />, badge: 'Deterministic', badgeColor: '#0284C7' },
     { id: 'timeline', label: 'Timeline', icon: <Clock size={15} /> },
     { id: 'team', label: 'Team', icon: <Users2 size={15} /> },
     { id: 'review', label: 'Nexus Review', icon: <CheckCircle size={15} />, badge: 'Action', badgeColor: '#D97706' },

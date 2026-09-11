@@ -1,4 +1,4 @@
-﻿# Nexus Clinical Workstation
+# Nexus Clinical Workstation
 
 > **An AI-augmented clinical reasoning workstation for structured diagnostic decision support.**
 
@@ -460,16 +460,16 @@ Duplicate imports are safely skipped.
 - [ ] Audit trail persistence to database
 
 ### Phase 8 — Multi-tenant Organisation Model
-- [ ] Organisation registration and provisioning
-- [ ] RBAC: Physician, Nurse, Resident, Admin, Auditor
-- [ ] Case assignment and escalation rules per organisation
-- [ ] Organisation-scoped FHIR endpoint configuration
+- [x] Organisation registration and provisioning
+- [x] RBAC: Physician, Nurse, Resident, Admin, Auditor
+- [x] Case assignment and escalation rules per organisation
+- [x] Organisation-scoped FHIR endpoint configuration
 
 ### Phase 9 — Clinical Decision Rules Engine
-- [ ] Structured clinical decision rules (separate from AI reasoning)
-- [ ] Dosing calculators (weight-based, renal-adjusted)
-- [ ] Drug-drug interaction checker (RxNorm + FHIR MedicationStatement)
-- [ ] Allergy cross-reactivity alerts
+- [x] Structured clinical decision rules (separate from AI reasoning)
+- [x] Dosing calculators (weight-based, renal-adjusted)
+- [x] Drug-drug interaction checker (RxNorm + FHIR MedicationStatement)
+- [x] Allergy cross-reactivity alerts
 
 ### Phase 10 — Advanced Interoperability
 - [ ] SMART on FHIR launch protocol (EHR context launch)

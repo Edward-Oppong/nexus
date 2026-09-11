@@ -1,6 +1,7 @@
 // ============================================================
 // src/domain/auth.ts
-// Phase 6C Canonical Role, Permission, Organization, and Profile Types
+// Phase 6C–8: Canonical Role, Permission, Organization, and Profile Types
+// Phase 8 adds: OrganizationFhirConfig, authorize() (org-scoped check)
 // ============================================================
 
 export type AppRole =
@@ -52,6 +53,39 @@ export interface Organization {
   countryCode?: string;
   timezone?: string;
   isActive: boolean;
+}
+
+/**
+ * Phase 8: Organisation-scoped FHIR endpoint configuration.
+ * Each organisation may register one or more external FHIR servers.
+ * Stored in organization_fhir_configs table (migration 025).
+ */
+export interface OrganizationFhirConfig {
+  id: string;
+  organizationId: string;
+  name: string;
+  systemType: 'EHR' | 'LIS' | 'RIS' | 'PACS' | 'DEVICE' | 'PHARMACY' | 'REGISTRY' | 'RESEARCH_DB' | 'MANUAL_UPLOAD' | 'OTHER';
+  protocol: 'FHIR_R4' | 'HL7_V2' | 'DICOM' | 'CSV' | 'PDF' | 'MANUAL' | 'API' | 'OTHER';
+  baseUrl?: string;
+  trustLevel: 'AUTHORITATIVE' | 'STANDARD' | 'SUPPLEMENTARY' | 'UNVERIFIED';
+  isActive: boolean;
+  circuitBreakerStatus: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+  createdAt: string;
+}
+
+/**
+ * Phase 8: Pending organisation invitation.
+ * Stored in organization_invitations table (migration 025).
+ */
+export interface OrganizationInvitation {
+  id: string;
+  organizationId: string;
+  email: string;
+  role: AppRole;
+  invitedByUserId: string;
+  status: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'REVOKED';
+  expiresAt: string;
+  createdAt: string;
 }
 
 export interface Profile {
@@ -168,4 +202,30 @@ export const ROLE_PERMISSION_MATRIX: Record<AppRole, AppPermission[]> = {
 export function hasRolePermission(role: AppRole, permission: AppPermission): boolean {
   const permissions = ROLE_PERMISSION_MATRIX[role];
   return permissions ? permissions.includes(permission) : false;
+}
+
+/**
+ * Phase 8 / ARCHITECTURE §4: Organisation-scoped permission check.
+ *
+ * Checks:
+ *  1. The user has an active OrganizationMembership for targetOrganizationId
+ *  2. That membership's role includes the requested permission
+ *
+ * The application-layer authorize() is the first line of defence.
+ * PostgreSQL RLS is the final enforcement point (cannot be bypassed).
+ *
+ * @param permission - The permission being checked
+ * @param targetOrganizationId - The org the action is being performed in
+ * @param memberships - User's current OrganizationMembership array
+ */
+export function authorize(
+  permission: AppPermission,
+  targetOrganizationId: string,
+  memberships: Array<{ organizationId: string; role: AppRole; isActive: boolean }>
+): boolean {
+  const membership = memberships.find(
+    (m) => m.organizationId === targetOrganizationId && m.isActive
+  );
+  if (!membership) return false;
+  return hasRolePermission(membership.role, permission);
 }

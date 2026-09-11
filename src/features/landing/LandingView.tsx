@@ -448,35 +448,19 @@ export const LandingView: React.FC = () => {
         </div>
       </header>
 
-      {/* ── HERO SECTION: Asymmetric Editorial Canvas with Seamless Gradient Blend ── */}
+      {/* ── HERO SECTION: Asymmetric Editorial Canvas with Natural Photographic Visibility ── */}
       <section
         style={{
           position: 'relative',
           width: '100%',
-          minHeight: '620px',
+          minHeight: '660px',
           display: 'flex',
           alignItems: 'center',
           overflow: 'hidden',
           borderBottom: '1px solid #E2E8F0',
         }}
       >
-        {/* Background Photo (Right-Anchored Clinicians at Workstation) */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            bottom: 0,
-            width: '65%',
-            backgroundImage: 'url("/clinical-story.jpg")',
-            backgroundSize: 'cover',
-            backgroundPosition: 'right 25%',
-            backgroundRepeat: 'no-repeat',
-            pointerEvents: 'none',
-          }}
-        />
-
-        {/* Seamless Horizontal Scrim Blend (Pure White on Left -> Fades into Photo on Right) */}
+        {/* Full-width Background Photo - Clinicians in Clinical Setting */}
         <div
           style={{
             position: 'absolute',
@@ -484,12 +468,53 @@ export const LandingView: React.FC = () => {
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'linear-gradient(to right, #F8FAFC 0%, #F8FAFC 44%, rgba(248, 250, 252, 0.75) 58%, rgba(248, 250, 252, 0.15) 80%, rgba(248, 250, 252, 0) 100%)',
+            backgroundImage: 'url("/clinical-story.jpg")',
+            backgroundSize: 'cover',
+            backgroundPosition: 'right 30%',
+            backgroundRepeat: 'no-repeat',
+            pointerEvents: 'none',
+            filter: 'contrast(1.05) saturate(1.08) brightness(0.98)',
+          }}
+        />
+
+        {/* Soft, Transparent Ambient Gradient Scrim (No heavy white blocks; photo remains visible everywhere) */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'linear-gradient(90deg, rgba(248, 250, 252, 0.76) 0%, rgba(248, 250, 252, 0.52) 38%, rgba(248, 250, 252, 0.18) 68%, rgba(248, 250, 252, 0.02) 100%)',
             pointerEvents: 'none',
           }}
         />
 
-        {/* Left-Aligned Editorial Narrative Column */}
+        {/* Top & Bottom subtle vignettes to anchor the editorial frame */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '80px',
+            background: 'linear-gradient(to bottom, rgba(248, 250, 252, 0.4), transparent)',
+            pointerEvents: 'none',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: '70px',
+            background: 'linear-gradient(to top, rgba(248, 250, 252, 0.5), transparent)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Editorial Narrative Content - Pure Typography Floating Over Scene (NO background div containers) */}
         <div
           style={{
             position: 'relative',
@@ -497,10 +522,11 @@ export const LandingView: React.FC = () => {
             maxWidth: '1280px',
             width: '100%',
             margin: '0 auto',
-            padding: '48px 48px',
+            padding: '56px 48px',
           }}
         >
-          <div style={{ maxWidth: '620px' }}>
+          <div style={{ maxWidth: '640px' }}>
+            {/* Minimal Tagline Badge - Transparent with crisp border, no opaque container */}
             <div
               style={{
                 display: 'inline-flex',
@@ -508,62 +534,70 @@ export const LandingView: React.FC = () => {
                 gap: '8px',
                 padding: '4px 12px',
                 borderRadius: '20px',
-                background: '#FFFFFF',
-                border: '1px solid #CBD5E1',
+                border: '1px solid rgba(15, 23, 42, 0.25)',
+                background: 'rgba(255, 255, 255, 0.45)',
+                backdropFilter: 'blur(8px)',
                 fontSize: '11px',
                 fontFamily: 'var(--font-mono)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.06em',
                 color: '#0F172A',
                 fontWeight: 700,
-                marginBottom: '16px',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                marginBottom: '20px',
+                textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)',
               }}
             >
               <HeartPulse size={13} color="#DC2626" />
               WHO SMART · ISO 14971 · HUMAN-IN-THE-LOOP CDS
             </div>
 
+            {/* Wordmark Title - Razor-sharp with subtle diffuse text illumination, NO background div */}
             <h1
               style={{
-                fontSize: 'clamp(64px, 8vw, 100px)',
+                fontSize: 'clamp(68px, 8.5vw, 108px)',
                 fontWeight: 900,
                 letterSpacing: '-0.07em',
                 lineHeight: 0.88,
-                color: '#0F172A',
+                color: '#070D18',
                 margin: '0 0 16px',
                 fontFamily: 'var(--font-display)',
+                textShadow: '0 1px 3px rgba(255, 255, 255, 0.95), 0 0 24px rgba(255, 255, 255, 0.85), 0 0 45px rgba(255, 255, 255, 0.6)',
               }}
             >
               nexus
             </h1>
 
+            {/* Subtitle - Vivid cobalt with diffuse shadow for instant readability */}
             <div
               style={{
                 fontSize: '13px',
-                color: '#0284C7',
-                letterSpacing: '0.08em',
+                color: '#0369A1',
+                letterSpacing: '0.09em',
                 textTransform: 'uppercase',
                 fontFamily: 'var(--font-mono)',
-                fontWeight: 700,
-                marginBottom: '14px',
+                fontWeight: 800,
+                marginBottom: '16px',
+                textShadow: '0 1px 2px rgba(255, 255, 255, 0.9), 0 0 14px rgba(255, 255, 255, 0.75)',
               }}
             >
               Clinical Workstation & Reasoning Architecture
             </div>
 
+            {/* Narrative Paragraph - High contrast slate floating cleanly over the clinical setting */}
             <p
               style={{
                 fontSize: '17px',
-                color: '#334155',
-                lineHeight: 1.55,
-                margin: '0 0 28px',
-                fontWeight: 500,
+                color: '#1E293B',
+                lineHeight: 1.6,
+                margin: '0 0 32px',
+                fontWeight: 600,
+                textShadow: '0 1px 2px rgba(255, 255, 255, 0.95), 0 0 16px rgba(255, 255, 255, 0.8), 0 0 32px rgba(255, 255, 255, 0.5)',
               }}
             >
               Where multidisciplinary medical intuition meets deterministic clinical guardrails. Designed for high-stakes inpatient encounters to structure observations, surface diagnostic uncertainty, and prevent catastrophic contraindications.
             </p>
 
+            {/* Action Buttons */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
               <button
                 onClick={() => {
@@ -582,7 +616,7 @@ export const LandingView: React.FC = () => {
                   fontWeight: 700,
                   cursor: 'pointer',
                   border: 'none',
-                  boxShadow: '0 4px 14px rgba(15, 23, 42, 0.2)',
+                  boxShadow: '0 4px 16px rgba(15, 23, 42, 0.3)',
                   transition: 'transform 0.15s ease',
                 }}
                 onMouseEnter={(e) => {
@@ -603,17 +637,37 @@ export const LandingView: React.FC = () => {
                   gap: '8px',
                   padding: '13px 24px',
                   borderRadius: '6px',
-                  background: '#FFFFFF',
-                  border: '1px solid #CBD5E1',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(15, 23, 42, 0.25)',
                   color: '#0F172A',
                   fontSize: '14px',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   cursor: 'pointer',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
                 }}
               >
                 Explore Synthetic Case #10482 (SBE)
               </button>
+            </div>
+
+            {/* Live Clinical Storyline Inset - Micro story context floating directly under actions */}
+            <div
+              style={{
+                marginTop: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                fontSize: '11px',
+                fontFamily: 'var(--font-mono)',
+                color: '#334155',
+                fontWeight: 600,
+                letterSpacing: '0.03em',
+                textShadow: '0 1px 2px rgba(255, 255, 255, 0.9)',
+              }}
+            >
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#059669', display: 'inline-block' }} />
+              <span>LIVE STORY · 42F INPATIENT · FEVER OF UNKNOWN ORIGIN · BED 4B · S. VIRIDANS IDENTIFIED</span>
             </div>
           </div>
         </div>
@@ -653,7 +707,7 @@ export const LandingView: React.FC = () => {
           >
             How Nexus Operates Inside the Encounter
           </h2>
-          <p style={{ margin: 0, fontSize: '15px', color: '#64748B', maxWidth: '620px', margin: '0 auto' }}>
+          <p style={{ fontSize: '15px', color: '#64748B', maxWidth: '620px', margin: '0 auto' }}>
             Scrub through the five foundational dimensions of the clinical reasoning architecture.
           </p>
         </div>
