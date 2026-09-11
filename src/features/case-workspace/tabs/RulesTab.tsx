@@ -153,7 +153,7 @@ export const RulesTab: React.FC = () => {
     [patientKnownAllergies, testAntimicrobial]
   );
 
-  const getSeverityBadgeColor = (sev: InteractionSeverity | 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL') => {
+  const getSeverityBadgeColor = (sev: InteractionSeverity | 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL' | 'NONE') => {
     switch (sev) {
       case 'CONTRAINDICATED':
       case 'CRITICAL':
@@ -163,6 +163,8 @@ export const RulesTab: React.FC = () => {
         return { bg: '#FEF3C7', text: '#92400E', border: '#FCD34D' };
       case 'MODERATE':
         return { bg: '#E0F2FE', text: '#0369A1', border: '#BAE6FD' };
+      case 'NONE':
+        return { bg: '#F8FAFC', text: '#64748B', border: '#CBD5E1' };
       default:
         return { bg: '#F0FDF4', text: '#166534', border: '#BBF7D0' };
     }
