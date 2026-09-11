@@ -479,10 +479,10 @@ Duplicate imports are safely skipped.
 - [x] Offline-first sync for low-connectivity environments (IndexedDB + service worker)
 
 ### Phase 11 — AI Governance & Model Management
-- [ ] Model version registry — track which model generated each assessment
-- [ ] A/B assessment comparison — two providers side by side
-- [ ] Human feedback loop — clinician corrections feed model fine-tuning
-- [ ] Explainability panel — per-finding contribution to hypothesis ranking
+- [x] Model version registry — track which model generated each assessment
+- [x] A/B assessment comparison — two providers side by side
+- [x] Human feedback loop — clinician corrections feed model fine-tuning
+- [x] Explainability panel — per-finding contribution to hypothesis ranking
 
 ### Phase 12 — Regulatory & Compliance
 - [ ] MDCG 2021-6 (AI in medical devices) compliance checklist

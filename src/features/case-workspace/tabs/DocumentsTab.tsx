@@ -146,12 +146,12 @@ export const DocumentsTab: React.FC = () => {
 
       const caseRecordObj: any = {
         id: activeCase.overview.id,
-        title: activeCase.overview.title,
+        title: `Clinical Case ${activeCase.overview.id}`,
         patientId: activeCase.overview.patient.id,
         status: activeCase.overview.state,
         priority: activeCase.overview.priority,
-        assignedTo: activeCase.overview.leadClinician,
-        createdAt: activeCase.overview.admissionDate,
+        assignedTo: activeCase.overview.assignedClinician,
+        createdAt: activeCase.overview.lastUpdate,
         updatedAt: new Date().toISOString(),
       };
 

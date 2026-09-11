@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useCase } from '../../../app/providers/CaseContext';
 import { useDrawer } from '../../../app/providers/DrawerContext';
 import { usePersona } from '../../../app/providers/PersonaContext';
@@ -13,18 +13,30 @@ import {
   ShieldAlert,
   Info,
   Layers,
+  BrainCircuit,
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  TrendingUp,
+  TrendingDown,
 } from 'lucide-react';
 import { CandidateHypothesis } from '../../../domain/hypothesis';
 import { NexusAssessmentPanel } from '../../../components/intelligence/NexusAssessmentPanel';
+import { computeHypothesisExplainability } from '../../../lib/intelligence/governance/explainability-engine';
 
 export const ReasoningTab: React.FC = () => {
-  const { activeCase, setActiveCaseSubTab, requestInvestigation } = useCase();
+  const { activeCase, setActiveCaseSubTab, requestInvestigation, setActiveView } = useCase();
   const { openEvidenceDrawer } = useDrawer();
   const { currentPersona } = usePersona();
   const [selectedHypothesisId, setSelectedHypothesisId] = useState<string>('hyp-1');
+  const [showExplainability, setShowExplainability] = useState<boolean>(false);
 
   const { hypotheses, findings, uncertainty, informationGaps } = activeCase;
   const activeHypothesis = hypotheses.find((h) => h.id === selectedHypothesisId) || hypotheses[0];
+
+  const explainability = useMemo(() => {
+    return computeHypothesisExplainability(activeCase, activeHypothesis.id);
+  }, [activeCase, activeHypothesis.id]);
 
   const getFindingLabel = (id: string) => {
     return findings.find((f) => f.id === id)?.label || id;
@@ -287,6 +299,110 @@ export const ReasoningTab: React.FC = () => {
                 ))}
               </div>
             </div>
+          </div>
+
+          {/* Phase 11: Point-of-Care Feature Attribution & Sensitivity Simulation */}
+          <div style={{ marginTop: '16px', borderTop: '1px solid #E2E8F0', paddingTop: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <button
+                onClick={() => setShowExplainability(!showExplainability)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: '#2563EB',
+                }}
+              >
+                <BrainCircuit size={15} />
+                <span>{showExplainability ? 'Hide Feature Attribution & Explainability' : 'Show Feature Attribution & Explainability Weights'}</span>
+                {showExplainability ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+
+              <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'var(--font-mono)' }}>
+                Likelihood: {explainability.qualitativeLikelihood}
+              </span>
+            </div>
+
+            {showExplainability && (
+              <div style={{ marginTop: '14px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '6px', padding: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Sparkles size={14} style={{ color: '#6366F1' }} />
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#0F172A' }}>
+                      Shapley-Proxy Clinical Feature Attribution
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setActiveView('ai-governance')}
+                    className="btn btn-xs btn-outline"
+                    style={{ fontSize: '11px', padding: '2px 8px' }}
+                  >
+                    AI Governance Console &rarr;
+                  </button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px', marginBottom: '14px' }}>
+                  {explainability.attributions.slice(0, 4).map((attr) => {
+                    const isPos = attr.direction === 'POSITIVE_SUPPORT';
+                    return (
+                      <div
+                        key={attr.findingId}
+                        style={{
+                          background: '#FFFFFF',
+                          border: '1px solid #E2E8F0',
+                          borderRadius: '4px',
+                          padding: '8px 10px',
+                          fontSize: '11px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                          <span style={{ fontWeight: 600, color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }} title={attr.findingLabel}>
+                            {attr.findingLabel}
+                          </span>
+                          <span
+                            style={{
+                              fontWeight: 700,
+                              fontFamily: 'var(--font-mono)',
+                              color: isPos ? '#16A34A' : '#DC2626',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '2px',
+                            }}
+                          >
+                            {isPos ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+                            {attr.attributionPercentage}%
+                          </span>
+                        </div>
+                        <div style={{ color: '#64748B', fontSize: '10px', lineHeight: 1.3 }}>
+                          {attr.counterfactualImpact}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {explainability.counterfactuals.length > 0 && (
+                  <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '4px', padding: '10px 12px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: '#1E40AF', marginBottom: '4px' }}>
+                      Counterfactual Sensitivity Simulation
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#1E3A8A', lineHeight: 1.4 }}>
+                      <strong>{explainability.counterfactuals[0].findingModified}: </strong>
+                      {explainability.counterfactuals[0].predictedHypothesisRankShift}
+                    </div>
+                    <div style={{ fontSize: '10px', color: '#3B82F6', marginTop: '4px', fontStyle: 'italic' }}>
+                      {explainability.counterfactuals[0].clinicalRationale}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </section>

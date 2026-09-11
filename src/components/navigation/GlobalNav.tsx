@@ -15,6 +15,7 @@ import {
   Sliders,
   HelpCircle,
   FileCheck2,
+  BrainCircuit,
 } from 'lucide-react';
 
 export const GlobalNav: React.FC = () => {
@@ -49,6 +50,7 @@ export const GlobalNav: React.FC = () => {
     { id: 'investigations', label: 'Investigations', icon: <FlaskConical size={17} />, count: 2 },
     { id: 'tasks', label: 'Tasks', icon: <CheckSquare size={17} />, count: openTasksCount },
     { id: 'evidence-catalog', label: 'Evidence', icon: <BookOpen size={17} /> },
+    { id: 'ai-governance', label: 'AI Governance', icon: <BrainCircuit size={17} /> },
     { id: 'administration', label: 'Administration', icon: <Sliders size={17} /> },
   ];
 

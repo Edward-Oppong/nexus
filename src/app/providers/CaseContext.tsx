@@ -44,7 +44,8 @@ export type MainView =
   | 'tasks'
   | 'evidence-catalog'
   | 'administration'
-  | 'review-queue';
+  | 'review-queue'
+  | 'ai-governance';
 
 export type CaseSubTab =
   | 'summary'
