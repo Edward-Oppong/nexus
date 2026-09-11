@@ -135,16 +135,32 @@ export const DocumentsTab: React.FC = () => {
   const handleExportFhirBundle = () => {
     setIsExporting(true);
     setTimeout(() => {
-      const bundle = buildCaseFhirBundle(
-        activeCase.overview.id,
-        activeCase.overview.patient.id,
-        'org-kbth-001',
-        {
-          caseOverview: activeCase.overview,
-          findings: activeCase.findings,
-          investigations: activeCase.investigations,
-        }
-      );
+      const patientObj: any = {
+        id: activeCase.overview.patient.id,
+        syntheticIdentifier: activeCase.overview.patient.syntheticIdentifier,
+        age: activeCase.overview.patient.age,
+        gender: activeCase.overview.patient.gender,
+        encounterNumber: activeCase.overview.patient.encounterNumber,
+        encounterType: activeCase.overview.patient.encounterType,
+      };
+
+      const caseRecordObj: any = {
+        id: activeCase.overview.id,
+        title: activeCase.overview.title,
+        patientId: activeCase.overview.patient.id,
+        status: activeCase.overview.state,
+        priority: activeCase.overview.priority,
+        assignedTo: activeCase.overview.leadClinician,
+        createdAt: activeCase.overview.admissionDate,
+        updatedAt: new Date().toISOString(),
+      };
+
+      const bundle = buildCaseFhirBundle({
+        patient: patientObj,
+        caseRecord: caseRecordObj,
+        findings: activeCase.findings,
+        investigations: activeCase.investigations,
+      });
       setExportedJson(JSON.stringify(bundle, null, 2));
       setIsExporting(false);
       showToast('FHIR R4 Bundle synthesized successfully!');
@@ -426,7 +442,7 @@ export const DocumentsTab: React.FC = () => {
                           {doc.title}
                         </div>
                         <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
-                          {doc.documentClass} · {Math.round(doc.fileSizeBytes / 1024)} KB · Uploaded by {doc.uploadedBy}
+                          {doc.documentClass} · {Math.round((doc.fileSizeBytes || 0) / 1024)} KB · Uploaded by {doc.uploadedBy}
                         </div>
                       </div>
                     </div>
