@@ -1,0 +1,63 @@
+:root {
+  /* Color Palette - Swiss/Nordic Clinical Restraint */
+  --bg-app: #F8FAFC;
+  --bg-surface: #FFFFFF;
+  --bg-subtle: #F1F5F9;
+  --bg-hover: #E2E8F0;
+  --bg-elevated: #FFFFFF;
+
+  /* Text & Hierarchy */
+  --text-primary: #0F172A;
+  --text-secondary: #334155;
+  --text-muted: #64748B;
+  --text-dim: #94A3B8;
+  --text-inverse: #FFFFFF;
+
+  /* Borders & Hairlines */
+  --border-subtle: #E2E8F0;
+  --border-medium: #CBD5E1;
+  --border-strong: #94A3B8;
+  --border-focus: #0F172A;
+
+  /* Semantic Clinical Accents (Always combined with non-color icons/text) */
+  --status-review-bg: #FEF3C7;
+  --status-review-text: #92400E;
+  --status-review-border: #FCD34D;
+
+  --status-safety-bg: #FEE2E2;
+  --status-safety-text: #991B1B;
+  --status-safety-border: #FCA5A5;
+
+  --status-verified-bg: #D1FAE5;
+  --status-verified-text: #065F46;
+  --status-verified-border: #6EE7B7;
+
+  --status-info-bg: #EFF6FF;
+  --status-info-text: #1E40AF;
+  --status-info-border: #93C5FD;
+
+  --status-neutral-bg: #F1F5F9;
+  --status-neutral-text: #334155;
+  --status-neutral-border: #CBD5E1;
+
+  /* Nexus Simulated AI Indicator */
+  --nexus-tag-bg: #0F172A;
+  --nexus-tag-text: #F8FAFC;
+
+  /* Typography */
+  --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Spacing */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  /* Shadows - Minimal diffused elevation */
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -1px rgba(15, 23, 42, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.07), 0 4px 6px -2px rgba(15, 23, 42, 0.04);
+  --shadow-drawer: -4px 0 24px rgba(15, 23, 42, 0.08);
+}

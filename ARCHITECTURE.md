@@ -1,0 +1,1283 @@
+# Nexus Clinical Workstation — Authoritative System Architecture
+
+> **Version: 0.6.0** | Stack: React 18 + TypeScript 5 + Vite 6 + Supabase | FHIR: R4
+>
+> This is the architecture we build against. Not a design sketch — a production requirement.
+
+This document is the authoritative technical reference for the Nexus Clinical Workstation. It covers the full system topology, every layer of the stack, database schema, authorization model, data flow, clinical safety mechanisms, and integration boundaries.
+
+---
+
+## Table of Contents
+
+1. [System Overview](#1-system-overview)
+2. [Layer Architecture](#2-layer-architecture)
+3. [Domain Model Layer](#3-domain-model-layer)
+4. [Authorization, Roles and Permissions](#4-authorization-roles-and-permissions)
+5. [Database Schema and RLS](#5-database-schema-and-rls)
+6. [Case State Machine](#6-case-state-machine)
+7. [Clinical Workspace Design](#7-clinical-workspace-design)
+8. [Intelligence and Reasoning Layer](#8-intelligence-and-reasoning-layer)
+9. [Safety and Provenance System](#9-safety-and-provenance-system)
+10. [FHIR R4 Interoperability Layer](#10-fhir-r4-interoperability-layer)
+11. [Edge Function Architecture](#11-edge-function-architecture)
+12. [Data Flow — Persistence Model](#12-data-flow--persistence-model)
+13. [Dependency Graph](#13-dependency-graph)
+14. [Security Model](#14-security-model)
+15. [Performance Targets](#15-performance-targets)
+16. [Failure Modes Reference](#16-failure-modes-reference)
+17. [Changelog](#17-changelog)
+
+---
+
+## 1. System Overview
+
+```
++----------------------------------------------------------+
+|                    BROWSER / CLIENT                      |
+|  React 18 SPA  --  Vite 6  --  TypeScript 5 strict      |
+|                                                          |
+|  Case Header (global case context bar)                   |
+|  +-----------------+------------------+----------------+ |
+|  | Case Nav        | Clinical         | Intelligence   | |
+|  | (Zone B)        | Workspace (C)    | Rail (Zone D)  | |
+|  +-----------------+------------------+----------------+ |
++-------------------------------+--------------------------+
+                                | HTTPS / WSS
++-------------------------------v--------------------------+
+|                    SUPABASE BACKEND                      |
+|  Auth (JWT)  |  PostgreSQL (RLS)  |  Realtime (WS)       |
+|                                                          |
+|  Deno Edge Functions:                                    |
+|   audit-event    contradiction-check   nexus-review      |
+|   integration-export   integration-import                |
+|   integration-sync     process-document                  |
+|   evidence-search      extract-findings                  |
++-------------------------------+--------------------------+
+                                |
++-------------------------------v--------------------------+
+|                  EXTERNAL SYSTEMS                        |
+|  EHR/LHIMS (FHIR R4)  LIS/Lab  PACS/Imaging  Devices    |
++----------------------------------------------------------+
+```
+
+---
+
+## 2. Layer Architecture
+
+Nexus is a strict layered architecture. No upward imports. Lower layers never import from higher layers.
+
+```
++-----------------------------------------------------+  Layer 5
+|         UI / Features / Components                 |  React components, tabs, panels
++-----------------------------------------------------+  Layer 4
+|       Application State and Providers              |  React Context, CaseContext
++-----------------------------------------------------+  Layer 3
+|     Intelligence / Interoperability                 |  reasoning-orchestrator, mappers
++-----------------------------------------------------+  Layer 2
+|              Domain Model                          |  src/domain/* — PURE TYPES ONLY
++-----------------------------------------------------+  Layer 1
+|         Infrastructure / Supabase                  |  supabase client, edge functions
++-----------------------------------------------------+
+```
+
+### Layer Import Rules
+
+| Layer | Contents | May Import From |
+|-------|----------|-----------------|
+| Domain | `src/domain/*` | Nothing (pure types) |
+| Infrastructure | `src/lib/supabase/` | Domain only |
+| Intelligence | `src/lib/intelligence/` | Domain + Infrastructure |
+| Interoperability | `src/lib/interoperability/` | Domain + Infrastructure |
+| Application | `src/app/providers/` | All lib layers |
+| Features | `src/features/` | Application + lib layers |
+| UI Components | `src/components/` | Domain only |
+
+### CaseContext is NOT the source of truth
+
+`CaseContext` is a query/state orchestration layer — a cache of the database state for the UI.
+Every mutation follows this path:
+
+```
+UI action
+  -> Application mutation
+  -> Supabase RPC / Edge Function (JWT)
+  -> PostgreSQL + RLS (write)
+  -> audit_event (same transaction)
+  -> timeline_event
+  -> query invalidation
+  -> CaseContext refreshes
+  -> UI re-renders
+```
+
+The database is authoritative. CaseContext reads from it.
+
+---
+
+## 3. Domain Model Layer
+
+All canonical types live in `src/domain/`. Framework-free TypeScript interfaces only.
+No React, no Supabase, no FHIR coupling in this layer.
+
+### Entity Relationship
+
+```
+Organization
+    |
+    +--< OrganizationMembership (user + role per org)
+    |
+    +--< Case
+              |
+              +--- Patient
+              +--- Encounter
+              +--< ClinicalFinding
+              |         +--- ProvenanceRecord
+              |         +--- SafetyIssue (conditional)
+              +--< CandidateHypothesis
+              |         +--- ProvenanceRecord
+              |         +--- HypothesisFindingLink[]
+              |         +--- InformationGap[]
+              +--< InvestigationOrder
+              |         +--- ProvenanceRecord
+              +--< ClinicalDocument
+              |         +--- ProvenanceRecord
+              +--< NexusAssessment (versioned; one ACTIVE at a time)
+              |         +--- AssessmentEvidenceSource[]
+              |         +--- DetectedContradiction[]
+              |         +--- QualitativeUncertainty
+              |         +--- supersedes_assessment_id (nullable)
+              +--< TimelineEvent (immutable log)
+              +--< AuditEvent (immutable ledger)
+```
+
+### Key Type Definitions
+
+**CaseStatus (13 states):**
+`DRAFT`, `ACTIVE`, `ANALYZING`, `PRELIMINARY`, `REVIEW_REQUIRED`, `CLINICIAN_REVIEW`,
+`DECISION_RECORDED`, `RESOLVED`, `UNCERTAIN`, `CONTRADICTORY`, `SAFETY_REVIEW`,
+`INSUFFICIENT_DATA`, `OUT_OF_SCOPE`
+
+**CanonicalHypothesisStatus — no numeric probability, ever:**
+`CANDIDATE`, `SUPPORTED`, `CONTRADICTED`, `INSUFFICIENT_DATA`, `DISMISSED`
+
+**ProvenanceType (6 types):**
+`HUMAN_ENTERED`, `DEVICE_MEASURED`, `IMPORTED`, `AI_EXTRACTED`, `AI_GENERATED`, `CLINICIAN_VERIFIED`
+
+---
+
+## 4. Authorization, Roles and Permissions
+
+Authorization is a **current architecture requirement**, not a Phase 8 concern.
+
+### Model
+
+```
+User
+  -> OrganizationMembership (userId + organizationId + role)
+  -> Role -> Permission matrix
+  -> authorize(permission, targetOrganizationId)
+```
+
+Authorization is always organization-scoped. A user with a role in Org A cannot satisfy
+permission checks for Org B. The database is the final enforcement point via RLS.
+
+### Roles (defined in `src/domain/auth.ts`)
+
+| Role | Description |
+|------|-------------|
+| `clinician` | Attending physician — full clinical authority |
+| `nurse` | Clinical support — data entry and observation |
+| `laboratory` | Lab staff — result entry only; no clinical decision access |
+| `reviewer` | Clinical reviewer — read + review authority |
+| `organization_admin` | Org management only — **no clinical decision authority** |
+| `platform_admin` | Platform-level only — no clinical access |
+
+> **Critical rule:** `organization_admin` does not receive clinical access. Admin is segregated from clinical decision authority by design.
+
+### Permission Set
+
+```
+case.view, case.create, case.edit, case.close
+finding.view, finding.create, finding.edit, finding.verify
+investigation.view, investigation.request
+investigation.result.create, investigation.result.verify
+nexus.view, nexus.review, nexus.accept, nexus.edit, nexus.reject
+decision.view, decision.create, decision.amend
+safety.view, safety.resolve
+task.view, task.create, task.update
+team.view, team.manage
+user.view, user.manage
+organization.view, organization.manage
+audit.view
+```
+
+### Role-Permission Matrix
+
+| Permission | clinician | nurse | lab | reviewer | org_admin | platform_admin |
+|---|---|---|---|---|---|---|
+| case.view | Y | Y | Y | Y | Y | |
+| case.create | Y | | | | Y | |
+| case.edit | Y | | | | Y | |
+| case.close | | | | | Y | |
+| finding.create | Y | Y | | | | |
+| finding.verify | Y | | | Y | | |
+| investigation.request | Y | | | | | |
+| investigation.result.create | | | Y | | | |
+| investigation.result.verify | Y | | | Y | | |
+| nexus.view | Y | Y | | Y | | |
+| nexus.review | Y | | | Y | | |
+| nexus.accept | Y | | | Y | | |
+| nexus.reject | Y | | | Y | | |
+| decision.create | Y | | | Y | | |
+| safety.resolve | Y | | | Y | | |
+| team.manage | | | | | Y | |
+| user.manage | | | | | Y | Y |
+| organization.manage | | | | | Y | Y |
+| audit.view | | | | Y | Y | Y |
+
+### Authorization Check Pattern
+
+```typescript
+// Always organization-scoped — never permission alone
+authorize(permission: AppPermission, targetOrganizationId: string): boolean
+
+// Checks:
+// 1. User has active OrganizationMembership for targetOrganizationId
+// 2. That membership's role includes the requested permission
+// 3. RLS enforces this at DB level as the final guard
+```
+
+---
+
+## 5. Database Schema and RLS
+
+### organizations
+
+```sql
+CREATE TABLE organizations (
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name             TEXT NOT NULL,
+  organization_type TEXT,
+  country_code     CHAR(2),
+  timezone         TEXT DEFAULT 'UTC',
+  is_active        BOOLEAN NOT NULL DEFAULT true,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+### profiles
+
+```sql
+CREATE TABLE profiles (
+  id               UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  full_name        TEXT NOT NULL,
+  email            TEXT NOT NULL,
+  profession       TEXT,
+  license_identifier TEXT,
+  avatar_url       TEXT,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+### organization_memberships
+
+```sql
+CREATE TABLE organization_memberships (
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id  UUID NOT NULL REFERENCES organizations(id),
+  user_id          UUID NOT NULL REFERENCES auth.users(id),
+  role             TEXT NOT NULL CHECK (role IN (
+                     'clinician','nurse','laboratory','reviewer',
+                     'organization_admin','platform_admin')),
+  is_active        BOOLEAN NOT NULL DEFAULT true,
+  joined_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(organization_id, user_id)
+);
+```
+
+### cases
+
+```sql
+CREATE TABLE cases (
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id  UUID NOT NULL REFERENCES organizations(id),
+  patient_id       UUID REFERENCES patients(id),
+  case_number      TEXT NOT NULL UNIQUE,
+  title            TEXT NOT NULL,
+  status           TEXT NOT NULL DEFAULT 'DRAFT',
+  priority         TEXT NOT NULL DEFAULT 'ROUTINE',
+  opened_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+  closed_at        TIMESTAMPTZ,
+  created_by       UUID NOT NULL REFERENCES auth.users(id),
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+### nexus_assessments (versioned)
+
+```sql
+CREATE TABLE nexus_assessments (
+  id                       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  case_id                  UUID NOT NULL REFERENCES cases(id),
+  version                  INTEGER NOT NULL DEFAULT 1,
+  status                   TEXT NOT NULL DEFAULT 'ACTIVE'
+                             CHECK (status IN ('ACTIVE','SUPERSEDED','REJECTED')),
+  supersedes_assessment_id UUID REFERENCES nexus_assessments(id),
+  model_name               TEXT NOT NULL,
+  model_version            TEXT NOT NULL,
+  provenance_type          TEXT NOT NULL DEFAULT 'AI_GENERATED',
+  verification_status      TEXT NOT NULL DEFAULT 'UNVERIFIED',
+  clinical_summary         TEXT,
+  raw_output               JSONB,
+  generated_at             TIMESTAMPTZ NOT NULL DEFAULT now(),
+  reviewed_at              TIMESTAMPTZ,
+  reviewed_by              UUID REFERENCES auth.users(id),
+  UNIQUE(case_id, version)
+);
+-- Only one ACTIVE assessment per case — enforced by trigger or application constraint
+```
+
+### sync_events (persistent idempotency + queue)
+
+Replaces both the in-memory `Set<string>` and the in-memory `SyncQueue`. Survives edge function restarts.
+
+```sql
+CREATE TABLE sync_events (
+  id                     UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id        UUID NOT NULL REFERENCES organizations(id),
+  integration_source_id  TEXT NOT NULL,
+  external_resource_type TEXT NOT NULL,
+  external_resource_id   TEXT NOT NULL,
+  idempotency_key        TEXT NOT NULL,
+  operation              TEXT NOT NULL CHECK (operation IN ('IMPORT','EXPORT','SYNC')),
+  status                 TEXT NOT NULL DEFAULT 'QUEUED'
+                           CHECK (status IN (
+                             'QUEUED','PROCESSING','SUCCEEDED',
+                             'FAILED','RETRYING','DEAD_LETTER')),
+  attempt_count          INTEGER NOT NULL DEFAULT 0,
+  last_attempted_at      TIMESTAMPTZ,
+  succeeded_at           TIMESTAMPTZ,
+  error_detail           TEXT,
+  payload                JSONB,
+  created_at             TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at             TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX sync_events_idempotency_idx ON sync_events(idempotency_key);
+```
+
+Queue states: `QUEUED` → `PROCESSING` → `SUCCEEDED` / `FAILED` → `RETRYING` → `DEAD_LETTER`
+
+Job claims use `SELECT ... FOR UPDATE SKIP LOCKED` (atomic, prevents double-processing).
+`PROCESSING` items older than 5 minutes are re-queued by a cron job.
+
+### audit_events (immutable)
+
+```sql
+CREATE TABLE audit_events (
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id  UUID NOT NULL REFERENCES organizations(id),
+  case_id          UUID REFERENCES cases(id),
+  actor_user_id    UUID REFERENCES auth.users(id),
+  action           TEXT NOT NULL,
+  resource_type    TEXT NOT NULL,
+  resource_id      TEXT,
+  detail           JSONB,
+  recorded_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+ALTER TABLE audit_events ENABLE ROW LEVEL SECURITY;
+-- INSERT: allowed for service role
+-- SELECT: allowed for audit.view permission holders only (via RLS)
+-- UPDATE / DELETE: no policies defined = blocked
+```
+
+### Row Level Security Pattern
+
+```sql
+-- Example: cases table
+ALTER TABLE cases ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY cases_org_isolation ON cases FOR ALL
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM organization_memberships
+      WHERE user_id = auth.uid() AND is_active = true
+    )
+  );
+```
+
+RLS must exist on every table containing clinical data. No exceptions.
+
+### Backend Case State Transition Enforcement
+
+The TypeScript `validateCaseTransition()` enforces UX and application logic.
+The PostgreSQL function is the final authority — a client cannot bypass it.
+
+```sql
+CREATE OR REPLACE FUNCTION transition_case_status(
+  p_case_id UUID,
+  p_target_status TEXT,
+  p_actor_user_id UUID
+) RETURNS void AS $$
+DECLARE
+  v_current_status TEXT;
+  v_allowed TEXT[];
+BEGIN
+  SELECT status INTO v_current_status FROM cases WHERE id = p_case_id FOR UPDATE;
+
+  v_allowed := CASE v_current_status
+    WHEN 'DRAFT'             THEN ARRAY['ACTIVE']
+    WHEN 'ACTIVE'            THEN ARRAY['ANALYZING','INSUFFICIENT_DATA','CONTRADICTORY','SAFETY_REVIEW','OUT_OF_SCOPE']
+    WHEN 'ANALYZING'         THEN ARRAY['PRELIMINARY','CONTRADICTORY','INSUFFICIENT_DATA','ACTIVE']
+    WHEN 'PRELIMINARY'       THEN ARRAY['REVIEW_REQUIRED','CONTRADICTORY','INSUFFICIENT_DATA']
+    WHEN 'REVIEW_REQUIRED'   THEN ARRAY['CLINICIAN_REVIEW','SAFETY_REVIEW','INSUFFICIENT_DATA']
+    WHEN 'CLINICIAN_REVIEW'  THEN ARRAY['DECISION_RECORDED','REVIEW_REQUIRED','ACTIVE']
+    WHEN 'DECISION_RECORDED' THEN ARRAY['RESOLVED','CLINICIAN_REVIEW']
+    WHEN 'RESOLVED'          THEN ARRAY['ACTIVE']
+    WHEN 'UNCERTAIN'         THEN ARRAY['ACTIVE','REVIEW_REQUIRED','CLINICIAN_REVIEW']
+    WHEN 'CONTRADICTORY'     THEN ARRAY['SAFETY_REVIEW','CLINICIAN_REVIEW','ACTIVE']
+    WHEN 'SAFETY_REVIEW'     THEN ARRAY['CLINICIAN_REVIEW','ACTIVE']
+    WHEN 'INSUFFICIENT_DATA' THEN ARRAY['ACTIVE','CLINICIAN_REVIEW']
+    WHEN 'OUT_OF_SCOPE'      THEN ARRAY['ACTIVE']
+    ELSE ARRAY[]::TEXT[]
+  END;
+
+  IF NOT (p_target_status = ANY(v_allowed)) THEN
+    RAISE EXCEPTION 'Illegal case transition: % -> %', v_current_status, p_target_status;
+  END IF;
+
+  UPDATE cases SET status = p_target_status, updated_at = now() WHERE id = p_case_id;
+
+  -- Audit in the SAME transaction. If audit fails, status update rolls back.
+  INSERT INTO audit_events (organization_id, case_id, actor_user_id, action, resource_type, resource_id, detail)
+  SELECT organization_id, p_case_id, p_actor_user_id,
+         'status_transition', 'case', p_case_id::text,
+         jsonb_build_object('from', v_current_status, 'to', p_target_status)
+  FROM cases WHERE id = p_case_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+---
+
+## 6. Case State Machine
+
+Application layer: `src/lib/case-state-machine.ts` — UX enforcement
+Database layer: `transition_case_status()` PostgreSQL function — final authority
+
+### Transition Table
+
+| From | Allowed Transitions To |
+|------|------------------------|
+| DRAFT | ACTIVE |
+| ACTIVE | ANALYZING, INSUFFICIENT_DATA, CONTRADICTORY, SAFETY_REVIEW, OUT_OF_SCOPE |
+| ANALYZING | PRELIMINARY, CONTRADICTORY, INSUFFICIENT_DATA, ACTIVE |
+| PRELIMINARY | REVIEW_REQUIRED, CONTRADICTORY, INSUFFICIENT_DATA |
+| REVIEW_REQUIRED | CLINICIAN_REVIEW, SAFETY_REVIEW, INSUFFICIENT_DATA |
+| CLINICIAN_REVIEW | DECISION_RECORDED, REVIEW_REQUIRED, ACTIVE |
+| DECISION_RECORDED | RESOLVED, CLINICIAN_REVIEW |
+| RESOLVED | ACTIVE (re-open under formal review) |
+| UNCERTAIN | ACTIVE, REVIEW_REQUIRED, CLINICIAN_REVIEW |
+| CONTRADICTORY | SAFETY_REVIEW, CLINICIAN_REVIEW, ACTIVE |
+| SAFETY_REVIEW | CLINICIAN_REVIEW, ACTIVE |
+| INSUFFICIENT_DATA | ACTIVE, CLINICIAN_REVIEW |
+| OUT_OF_SCOPE | ACTIVE |
+
+### PRELIMINARY vs REVIEW_REQUIRED — Explicit Distinction
+
+| State | Meaning |
+|-------|---------|
+| `PRELIMINARY` | Assessment generated and persisted. Not yet placed into formal review queue. Assessment is visible but no clinician action has been initiated. |
+| `REVIEW_REQUIRED` | Formal review queue has been created. At least one unreviewed AI finding exists. Clinician action is actively required. |
+
+The workflow explicitly performs both transitions:
+
+```
+nexus-review generates and persists assessment
+  |
+  v
+case -> PRELIMINARY  (assessment exists, not yet in review)
+  |
+  v
+system creates review queue items
+  |
+  v
+case -> REVIEW_REQUIRED  (review initiated, clinician action needed)
+```
+
+### State Clinical Meanings
+
+| State | Clinical Meaning |
+|-------|-----------------|
+| DRAFT | Case initialised, not yet active in clinical intake |
+| ACTIVE | Active clinical assessment underway; data gathering in progress |
+| ANALYZING | Nexus reasoning evaluating findings and biomarker trends |
+| PRELIMINARY | Initial assessment generated; not yet in formal review queue |
+| REVIEW_REQUIRED | Review queue created; clinician action actively required |
+| CLINICIAN_REVIEW | Attending clinician actively reviewing candidate hypotheses |
+| DECISION_RECORDED | Authoritative clinical decision recorded by physician |
+| RESOLVED | Encounter concluded; management plan executed |
+| UNCERTAIN | Diagnostic ambiguity; competing hypotheses similar plausibility |
+| CONTRADICTORY | Conflicting findings require human reconciliation |
+| SAFETY_REVIEW | Urgent red flag requiring immediate clinician sign-off |
+| INSUFFICIENT_DATA | Missing requisite baseline information |
+| OUT_OF_SCOPE | Requires tertiary specialisation outside current protocol |
+
+### State Invariants (database-enforced)
+
+| State | Required Condition |
+|-------|--------------------|
+| REVIEW_REQUIRED | At least one unreviewed AI finding in review queue |
+| SAFETY_REVIEW | At least one SafetyIssue with severity=High and status=Active |
+| DECISION_RECORDED | Named clinician has accepted or overridden a hypothesis |
+| RESOLVED | All High-severity safety issues are Resolved or Acknowledged |
+
+---
+
+## 7. Clinical Workspace Design
+
+### Layout
+
+The case header is a global context bar, not a zone. The workspace is a 3-zone layout.
+
+```
+Case Header — patient identity | case status | priority | care team
++------------------+---------------------------+----------------------+
+| Case Navigation  | Clinical Workspace        | Intelligence Rail    |
+| (Zone B)         | (Zone C — active tab)     | (Zone D)             |
+|                  |                           |                      |
+| Clinical Data    |                           | Case state           |
+| Findings         |                           | Why review needed    |
+| Investigations   | (Active tab content)      | Hypotheses           |
+| Hypotheses       |                           | Evidence summary     |
+| Evidence         |                           | Uncertainty          |
+| Reasoning        |                           | Information gaps     |
+| Decision         |                           | Safety alerts        |
+| Safety           |                           | Ask Nexus            |
+| Timeline         |                           |                      |
+| Team             |                           |                      |
+| Review           |                           |                      |
+| Documents        |                           |                      |
+| Summary          |                           |                      |
++------------------+---------------------------+----------------------+
+```
+
+### Intelligence Rail Scope
+
+The Intelligence Rail shows clinically contextual information only. It is a clinical tool, not a developer console.
+
+**Contents:**
+- Current case state and reason for current state
+- Active hypotheses (qualitative status only — no numbers)
+- Supporting evidence summary
+- Qualitative uncertainty assessment
+- Missing information and information gaps
+- Active safety alerts
+- Ask Nexus trigger
+
+**FHIR Hub and integration controls belong in the Documents tab**, not the Intelligence Rail.
+
+### Tab Inventory
+
+| Tab | File | Phase | Purpose |
+|-----|------|-------|---------|
+| Clinical Data | ClinicalDataTab.tsx | 6B | History, vitals, medications, allergies |
+| Findings | FindingsTab.tsx | 6C | Clinical findings with provenance badges |
+| Investigations | InvestigationsTab.tsx | 6C | Ordered investigations and results |
+| Reasoning | ReasoningTab.tsx | 6F | Candidate hypotheses, qualitative status |
+| Evidence | EvidenceTab.tsx | 6F | Supporting clinical evidence |
+| Decision | DecisionTab.tsx | 6G | Clinical decision recording |
+| Safety | SafetyTab.tsx | 6G | Safety issues lifecycle |
+| Timeline | TimelineTab.tsx | 6D | Chronological clinical events |
+| Team | TeamTab.tsx | 6D | Care team and assignments |
+| Review | ReviewTab.tsx | 6G | AI output review queue |
+| Documents | DocumentsTab.tsx | 6H | Documents and FHIR integration hub |
+| Summary | SummaryTab.tsx | 6G | Case summary output |
+
+---
+
+## 8. Intelligence and Reasoning Layer
+
+### Component Map
+
+```
+src/lib/intelligence/
++-- context-builder.ts         — Structured clinical context for reasoning
++-- data-quality-service.ts    — Pre-reasoning deterministic quality checks
++-- evidence-service.ts        — Evidence retrieval and ranking
++-- nexus-assessment-schema.ts — AI output schema validation
++-- reasoning-orchestrator.ts  — Main pipeline
++-- reasoning-provider.ts      — AI provider abstraction
+```
+
+### Orchestration Pipeline
+
+```
+ClinicalCase Data
+  |
+  v
+[1] Data Quality Check (deterministic — runs before any AI call)
+  |
+  v
+[2] Evidence Retrieval (local knowledge base + PubMed edge function)
+  |
+  v
+[3] Context Builder (token budget enforcement)
+  |
+  v
+[4] Reasoning Provider (AI model call — abstracted behind interface)
+  |
+  v
+[5] Schema Validation (validateAssessmentOutput)
+  |  Attempt 1: fail -> Attempt 2 (corrective prompt) -> fail -> STOP
+  v
+[6] Grounding Check (validateGrounding)
+  |  All findingIds must exist in case; all evidenceIds in library
+  v
+[7] Persist + State Transition (PostgreSQL transaction)
+  |
+  v
+NexusAssessment (provenanceType: AI_GENERATED, verificationStatus: UNVERIFIED)
+```
+
+### AI Retry — Hard Maximum of 2 Attempts
+
+```
+Attempt 1 -> validation/grounding failure
+               |
+               v
+Attempt 2 (corrective system prompt) -> failure
+               |
+               v
+STOP. Never retry further.
+Case -> REVIEW_REQUIRED
+Intelligence status: UNAVAILABLE
+```
+
+Never retry until the model produces something acceptable. Two attempts only.
+
+### Assessment Versioning
+
+A case accumulates assessments as new data arrives:
+
+```
+Assessment v1 (status: ACTIVE)
+  |
+  | New lab results / findings / clinician corrections
+  v
+Assessment v2 generated
+  v1 -> SUPERSEDED  (retained for audit)
+  v2 -> ACTIVE (supersedes_assessment_id = v1.id)
+```
+
+Only one assessment per case is `ACTIVE`. All prior assessments are retained.
+
+### Provider Abstraction
+
+```typescript
+interface ReasoningProvider {
+  name: string;
+  generate(prompt: string, systemPrompt: string): Promise<string>;
+}
+// Supported: OpenAI GPT, Vertex AI, Mock provider
+// The orchestrator never knows which model is active
+```
+
+### Qualitative Uncertainty — No Numbers
+
+```typescript
+interface QualitativeUncertainty {
+  dataCompleteness: 'High' | 'Moderate' | 'Low';
+  dataCompletenessReason: string;
+  evidenceConsistency: 'High' | 'Moderate' | 'Conflicting';
+  evidenceConsistencyReason: string;
+  modelApplicability: 'High' | 'Moderate' | 'Limited';
+  modelApplicabilityReason: string;
+  overallState: 'REQUIRES REVIEW' | 'CONTRADICTORY' | 'INSUFFICIENT DATA' | 'STABLE';
+  primaryReason: string;
+}
+```
+
+### Data Quality Pre-Check
+
+Before any AI reasoning call:
+
+```
+runDataQualityChecks({ findings, investigations, informationGaps })
+
+Checks:
+  completeness — mandatory fields present?
+  recency      — timestamps within acceptable window?
+  consistency  — cross-referenced IDs resolve?
+
+If completenessScore = 'Low':
+  pipeline halts immediately
+  case flagged INSUFFICIENT_DATA
+  no AI call is made
+```
+
+---
+
+## 9. Safety and Provenance System
+
+### Provenance Record
+
+```typescript
+interface ProvenanceRecord {
+  id: string;
+  provenanceType: ProvenanceType;
+  sourceSystem?: string;    // e.g. 'Epic EHR', 'Mindray BeneVision'
+  sourceReference?: string;
+  actorUserId?: string;
+  modelName?: string;       // Required for AI types
+  modelVersion?: string;    // Required for AI types (regulatory audit)
+  capturedAt?: string;
+  notes?: string;
+  createdAt: string;
+}
+```
+
+### UI Provenance Badge Rules
+
+| provenanceType | UI Display | Can progress case? |
+|----------------|------------|-------------------|
+| HUMAN_ENTERED | None (trusted baseline) | Yes |
+| DEVICE_MEASURED | Device icon | Yes (after QA check) |
+| IMPORTED | Import icon | Yes (after clinician review) |
+| AI_EXTRACTED | Yellow AI badge + UNVERIFIED | No — requires CLINICIAN_VERIFIED |
+| AI_GENERATED | Orange AI badge + UNVERIFIED | No — requires CLINICIAN_VERIFIED |
+| CLINICIAN_VERIFIED | Green checkmark | Yes |
+
+### Safety Issue Lifecycle
+
+```
+Detected (AI or rule-based)
+  status: Active - Review Required
+  provenanceType: AI_GENERATED
+  |
+  v
+Acknowledged (clinician confirms awareness)
+  acknowledgedBy: userId
+  acknowledgedAt: timestamp
+  |
+  v
+Resolved (clinician signs off)
+  clinicalNote: required
+  |
+  v
+Archived (audit trail — immutable)
+```
+
+### Auto-Escalation Triggers
+
+| Trigger | Immediate Effect |
+|---------|-----------------|
+| SafetyIssue severity=High created | Case -> SAFETY_REVIEW (DB enforced) |
+| Two+ contradictory findings on same body system | Case -> CONTRADICTORY |
+| HIGH PRIORITY info gap unresolved > 24h | System alert (no auto-transition) |
+| Contradicted hypothesis still Pending Review | Case -> REVIEW_REQUIRED |
+
+---
+
+## 10. FHIR R4 Interoperability Layer
+
+### Core Principle
+
+> The Nexus internal model is NEVER stored as FHIR.
+> FHIR translation happens ONLY at the boundary.
+
+### Integration Architecture
+
+```
+EXTERNAL SYSTEMS
+  +-- EHR / LHIMS     (FHIR R4 REST)
+  +-- LIS / Lab       (HL7 v2 / FHIR DiagnosticReport)
+  +-- PACS / Imaging  (DICOMweb / FHIR ImagingStudy)
+  +-- Bedside Devices (HL7 v2 / FHIR Observation)
+       |
+       v
+  [Connector Layer]           src/lib/interoperability/connectors/
+       |
+       v
+  [7-Step FHIR Validation]    src/lib/interoperability/fhir/validators.ts
+       |
+       v
+  [Terminology Service]       src/lib/interoperability/normalization/
+  |  Candidate match only — not authoritative auto-conversion
+       v
+  [FHIR Mappers]              src/lib/interoperability/mappers/
+  |  Pure functions — no side effects, no API calls
+       v
+  [Sync Pipeline]             src/lib/interoperability/sync/
+  |  Idempotency: Postgres sync_events
+  |  Queue: Postgres sync_events status
+       v
+  [Nexus Domain Layer]  — no FHIR coupling
+       v
+  [UI / Clinical Workspace]
+```
+
+### Corrected ClinicalFinding FHIR Mapping
+
+The previous strategy of mapping all ClinicalFindings to `Condition` was too broad.
+
+```
+ClinicalFinding
+  |
+  +-- condition-like (symptoms, signs, diagnoses)          -> FHIR Condition
+  |
+  +-- observation-like (measurements, vitals, lab values)  -> FHIR Observation
+  |
+  +-- history narrative (past conditions)                  -> FHIR Condition
+  |     clinicalStatus: resolved / inactive
+  |
+  +-- AI interpretation / nexus reasoning artifact         -> NOT mapped to FHIR
+        (remains Nexus-domain internal — not for external systems)
+```
+
+A `CandidateHypothesis` is NOT automatically mapped to FHIR Condition.
+It becomes a Condition only after:
+1. Clinician accepts it (`clinicalReviewStatus: 'Accepted'`)
+2. A clinical decision is formally recorded
+
+### Mapper Inventory
+
+| FHIR Resource | Nexus Domain Type | Mapper File | Notes |
+|---------------|-------------------|-------------|-------|
+| Patient | Patient | mappers/patient.ts | |
+| Encounter | Encounter | mappers/encounter.ts | |
+| Condition | ClinicalFinding (condition-like only) | mappers/condition.ts | Not all findings |
+| Observation | Observation / ClinicalFinding (obs-like) | mappers/observation.ts | |
+| DiagnosticReport | DiagnosticReport | mappers/diagnostic-report.ts | |
+| DocumentReference | ClinicalDocument | mappers/document-reference.ts | |
+| Practitioner | Practitioner | mappers/practitioner.ts | |
+| CareTeam | CareTeam | mappers/care-team.ts | |
+| Task | InvestigationOrder | mappers/task.ts | |
+| ServiceRequest | InvestigationOrder | mappers/service-request.ts | |
+| AuditEvent | AuditEntry | mappers/audit-event.ts | |
+| Provenance | ProvenanceRecord | mappers/provenance.ts | |
+
+### 7-Step FHIR Validation
+
+```
+[1] JSON / schema validity
+      Is the resource valid JSON with required FHIR fields?
+
+[2] FHIR resource validity
+      Is resourceType a known FHIR R4 type?
+      Are required fields for that type present?
+
+[3] Profile / conformance check
+      Does the resource conform to declared meta.profile?
+      Note: full conformance validation deferred to a FHIR validator library in production
+
+[4] Terminology validation
+      Are system URIs from the canonical registry (version.ts)?
+      Are codes non-empty?
+      Candidate check only — not authoritative code validation
+
+[5] Reference validation
+      Do contained references resolve within the bundle?
+
+[6] Business-rule validation
+      e.g. Observation must have value or dataAbsentReason
+      e.g. Condition must have a subject reference
+
+[7] Organization / source authorization
+      Does the source system have permission to import to this organization?
+```
+
+Steps 1–2 block on failure. Steps 3–7 log warnings and flag for review where appropriate.
+Full conformance validation (step 3) is designed to be delegated to a FHIR validator library (e.g. HAPI Validator) in production.
+
+### Terminology Service Abstraction
+
+Free text is never silently converted to a coded concept without a confidence and ambiguity signal.
+
+```typescript
+interface TerminologyService {
+  searchConcept(text: string, system: 'SNOMED' | 'LOINC' | 'ICD10' | 'RXNORM'):
+    Promise<ConceptMatch[]>;
+  validateCode(system: string, code: string):
+    Promise<{ valid: boolean; display?: string }>;
+  mapConcept(sourceSystem: string, sourceCode: string, targetSystem: string):
+    Promise<ConceptMap | null>;
+}
+
+interface ConceptMatch {
+  code: string;
+  display: string;
+  system: string;
+  confidence: 'HIGH' | 'MODERATE' | 'LOW' | 'AMBIGUOUS';
+  requiresVerification: boolean; // Always true for AI-matched concepts
+}
+```
+
+The terminology service must not hard-code US-centric coding strategies.
+The architecture supports WHO SMART-aligned multi-context deployments.
+
+### Persistent Idempotency
+
+```typescript
+// Before (session-scoped, lost on restart):
+const processedKeys = new Set<string>();
+
+// After (Postgres-backed, survives restarts):
+async function isAlreadyProcessed(key: string): Promise<boolean> {
+  const { data } = await supabase
+    .from('sync_events')
+    .select('id')
+    .eq('idempotency_key', key)
+    .eq('status', 'SUCCEEDED')
+    .single();
+  return !!data;
+}
+```
+
+### Retry and Circuit Breaker Parameters
+
+| Parameter | Default | Notes |
+|-----------|---------|-------|
+| maxRetries | 3 | Hard cap — never auto-retry indefinitely |
+| baseDelayMs | 1,000 ms | Initial backoff |
+| maxDelayMs | 10,000 ms | Hard cap |
+| jitter | +/- 20% | Prevents thundering herd |
+| failureThreshold | 3 failures | Opens circuit |
+| cooldownMs | 60,000 ms | Reset window |
+
+### FHIR System URIs
+
+All code system URIs are centralised in `src/lib/interoperability/fhir/version.ts`.
+Never use inline URI strings — always import from that file.
+
+---
+
+## 11. Edge Function Architecture
+
+All edge functions are Deno 1.x runtimes on Supabase's edge network.
+
+### Function Inventory
+
+| Function | Trigger | Description |
+|----------|---------|-------------|
+| `audit-event` | Every clinical write | Writes immutable AuditEvent |
+| `contradiction-check` | On finding added | Semantic + rule-based contradiction detection |
+| `evidence-search` | On hypothesis created | PubMed / knowledge base retrieval |
+| `extract-findings` | Manual or auto | AI extraction from raw clinical text |
+| `integration-export` | On demand | Compiles and pushes case as FHIR Bundle |
+| `integration-import` | Webhook / manual | Receives and validates inbound FHIR Bundle |
+| `integration-sync` | Scheduled / on demand | Bidirectional sync orchestrator |
+| `nexus-review` | On demand | Full AI reasoning pipeline |
+| `process-document` | On document upload | OCR + AI extraction |
+
+### Transactional Audit Pattern
+
+For critical mutations (state transitions, decision recording, safety resolution):
+
+```
+PREFERRED — PostgreSQL function (status transitions):
+  BEGIN;
+    UPDATE cases SET status = ... WHERE id = ...;
+    INSERT INTO audit_events (...) VALUES (...);
+  COMMIT;
+  -- If audit insert fails, status update rolls back.
+
+ALTERNATIVE — Outbox pattern (edge function mutations):
+  INSERT INTO outbox_events (mutation_type, payload, audit_payload);
+  -- Background worker processes both writes atomically.
+
+NEVER:
+  await updateCaseStatus(...);
+  await writeAuditEvent(...);  // If this fails, audit is silently lost.
+```
+
+### Function Dependency Map
+
+```
+nexus-review
+  +-- AI provider (external API — via Supabase secret)
+  +-- evidence-search -> PubMed (external)
+  +-- contradiction-check
+  +-- audit-event (via DB transaction)
+
+integration-sync
+  +-- integration-import -> External EHR / LIS / PACS
+  +-- integration-export -> External EHR / LIS
+  +-- audit-event
+
+process-document
+  +-- extract-findings (AI)
+  +-- audit-event
+```
+
+### Auth Flow
+
+```
+Client sends Supabase JWT
+  -> Edge Function verifies JWT with service role key (Supabase secret)
+  -> Function executes with verified user context
+  -> External API calls use Supabase secrets only
+  -> Results + audit events written to PostgreSQL
+```
+
+---
+
+## 12. Data Flow — Persistence Model
+
+### Clinician Creates a Finding
+
+```
+Clinician submits finding in FindingsTab
+  -> Application mutation called
+  -> Edge Function / Supabase RPC (JWT verified)
+  -> PostgreSQL (RLS validates user + organization)
+       findings row inserted
+       ProvenanceRecord row { provenanceType: HUMAN_ENTERED, actor_user_id }
+       timeline_event row inserted
+       audit_event row inserted (same transaction)
+  -> Query invalidation (Realtime or explicit re-fetch)
+  -> CaseContext refreshes from DB (cache update)
+  -> UI re-renders
+```
+
+### AI Reasoning Run
+
+```
+Clinician triggers Run Analysis in ReasoningTab
+  -> nexus-review edge function { caseId, authToken }
+     [1] Load full case context from PostgreSQL
+     [2] runDataQualityChecks() -- if Low: INSUFFICIENT_DATA, stop
+     [3] retrieveEvidenceForCase()
+     [4] buildReasoningContext()
+     [5] provider.generate()
+     [6] validateAssessmentOutput() -- max 2 attempts; then STOP
+     [7] validateGrounding()
+  -> PostgreSQL transaction:
+       INSERT nexus_assessments (status: ACTIVE, version: N+1)
+       UPDATE nexus_assessments SET status = SUPERSEDED WHERE id = prior_id
+       INSERT findings (AI_GENERATED, UNVERIFIED)
+       INSERT hypothesis links + provenance records
+       CALL transition_case_status(caseId, 'PRELIMINARY', actorId)
+  -> COMMIT
+  -> Query invalidation
+  -> UI: UNVERIFIED badges on all AI findings
+  -> system creates review queue items
+  -> CALL transition_case_status(caseId, 'REVIEW_REQUIRED', actorId)
+```
+
+### FHIR Import Flow
+
+```
+FHIR Bundle received (webhook or DocumentsTab upload)
+  -> integration-import edge function (JWT + org authorization)
+     [1] 7-step FHIR validation per resource
+     [2] Per resource:
+           idempotencyKey = SHA-256(source::type::id)
+           SELECT FROM sync_events WHERE idempotency_key = key
+           If SUCCEEDED: skip (recordsSkipped++)
+           If not found: INSERT sync_event (status: PROCESSING)
+     [3] fromFhir*() mapper (pure function — no side effects)
+     [4] INSERT to Nexus domain tables
+     [5] UPDATE sync_event SET status = SUCCEEDED
+     [6] INSERT audit_event (same transaction as steps 4 + 5)
+  -> COMMIT
+  -> ImportPipelineResult returned
+```
+
+---
+
+## 13. Dependency Graph
+
+### Production Dependencies
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| react | ^18.3.1 | UI framework |
+| react-dom | ^18.3.1 | DOM rendering |
+| @supabase/supabase-js | ^2.116.0 | DB, auth, edge functions, realtime |
+| lucide-react | ^1.16.0 | Clinical UI iconography |
+
+### Dev Dependencies
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| typescript | ^5.6.3 | Type system (strict mode) |
+| vite | ^6.0.1 | Build tool and dev server |
+| @vitejs/plugin-react | ^4.3.4 | React fast refresh |
+| @types/react | ^18.3.12 | React type definitions |
+| @types/react-dom | ^18.3.1 | ReactDOM type definitions |
+
+No runtime AI SDK in the browser. All AI calls are made from edge functions.
+API keys never reach the client bundle.
+
+---
+
+## 14. Security Model
+
+### Authentication
+
+- Supabase Auth (JWT) — all API calls require a valid session token
+- Session tokens expire per Supabase configuration (default: 1 hour + refresh token)
+- Edge functions verify JWT using Supabase service role key (never exposed to client)
+
+### Authorization
+
+- RLS on all PostgreSQL tables with clinical data — no exceptions
+- Authorization is always organization-scoped: user + permission + target_organization_id
+- `organization_admin` is segregated from clinical decision authority
+- Application-layer `authorize()` check: first line of defence
+- Database RLS: final enforcement — cannot be bypassed by client code
+
+### API Key Management
+
+- AI provider keys: Supabase edge function secrets only
+- External system credentials: Supabase secrets only
+- FHIR server tokens: injected into `FhirClient` at edge function runtime
+- No secrets in the client bundle. No exceptions.
+
+### Audit Integrity
+
+- `audit_events` table: INSERT-only — no UPDATE, no DELETE permitted
+- Critical mutation + audit event in the same DB transaction
+- For edge function mutations: outbox pattern ensures eventual consistency
+
+---
+
+## 15. Performance Targets
+
+Performance promises are not made before the backend is measured in staging under real PostgreSQL + RLS + network load.
+
+### Measurement Framework
+
+| Metric | Definition | Aspirational Target |
+|--------|------------|---------------------|
+| Initial shell render | First paint of app chrome | P95 < 1.5s |
+| First meaningful clinical content | First case data visible | P95 < 3s |
+| Full case hydration | All tabs loaded, no spinners | P95 < 5s |
+| Tab switch (loaded tab) | Visibility toggle | P95 < 100ms |
+| Nexus assessment | Reasoning start to result | P95 < 30s (AI provider dominates) |
+| FHIR import (< 100 resources) | Received to domain records written | P95 < 3s |
+| FHIR import (1,000 resources) | Received to domain records written | P95 < 15s |
+| Audit event write | AuditEvent persisted | P95 < 500ms |
+
+Targets are aspirational until validated in staging. Do not treat as hard SLAs prior to measurement.
+
+### Known Bottlenecks
+
+| Bottleneck | Current Mitigation | Future Resolution |
+|------------|-------------------|-------------------|
+| AI reasoning latency (8–25s) | Progress indicator; 60s timeout | Streaming responses (Phase 11) |
+| Large FHIR bundles (> 1,000) | Not yet paginated | Chunked paginated processing |
+| Assessment re-analysis | Full pipeline re-runs | Incremental delta-context (Phase 11) |
+| RLS query overhead | Indexed foreign keys | Query plan analysis in staging |
+
+---
+
+## 16. Failure Modes Reference
+
+### F1 — Reasoning provider unreachable
+```
+Trigger:   nexus-review returns 5xx or times out (> 60s)
+Effect:    Case stays at current state. No data modified.
+           Analysis unavailable banner in ReasoningTab.
+Recovery:  Manual retry by clinician. Max 2 attempts enforced.
+```
+
+### F2 — FHIR import validation failure
+```
+Trigger:   Inbound resource fails 7-step FHIR validation
+Effect:    Resource rejected. recordsFailed increments.
+           sync_event status = FAILED.
+           Error: { resourceType, id, validationStep, message }
+Recovery:  Inspect error in DocumentsTab.
+           Fix source system and re-import.
+           Postgres idempotency prevents double-write on retry.
+```
+
+### F3 — External connector circuit opened
+```
+Trigger:   DegradedModeManager: failureCount >= 3 for endpoint
+Effect:    Calls blocked for 60s. UI: connector = DEGRADED.
+Recovery:  Automatic half-open probe after cooldown.
+           Success: circuit resets. Failure: cooldown restarts.
+```
+
+### F4 — AI extraction produces ungrounded findings
+```
+Trigger:   validateGrounding() finds findingId not in CaseContext
+Effect:    Assessment rejected wholesale. No findings written.
+           Attempt 2 with corrective system prompt.
+           If attempt 2 fails: STOP. Case -> REVIEW_REQUIRED.
+Recovery:  Clinician manually enters findings.
+           Never retry beyond attempt 2 automatically.
+```
+
+### F5 — Illegal state transition
+```
+Trigger:   transition_case_status() RAISE EXCEPTION (DB-level)
+Effect:    Transaction rolled back. Status unchanged.
+Recovery:  UI enforces valid transitions via validateCaseTransition().
+           DB function is the final guard.
+```
+
+### F6 — Duplicate import (idempotency collision)
+```
+Trigger:   sync_events.idempotency_key already exists + status = SUCCEEDED
+Effect:    Resource silently skipped. recordsSkipped increments.
+Recovery:  None needed — expected correct behaviour.
+           Re-importing the same bundle is always safe.
+```
+
+### F7 — RESOLVED transition with active High safety issue
+```
+Trigger:   DECISION_RECORDED -> RESOLVED with SafetyIssue severity=High + Active
+Effect:    Transition blocked by DB transition_case_status() function.
+Recovery:  Clinician must Acknowledge or Resolve all High-severity issues first.
+```
+
+### F8 — Reasoning context exceeds token budget
+```
+Trigger:   Combined findings + evidence exceeds provider token window
+Effect:    Context builder truncates by priority (low-priority findings dropped).
+           Warning: Context truncated: N findings omitted.
+           Reasoning proceeds on reduced context.
+Recovery:  Clinician flags critical findings as HIGH PRIORITY.
+           Future: split reasoning across calls (Phase 11).
+```
+
+### F9 — Audit event write fails (edge function path)
+```
+Trigger:   audit-event edge function fails after clinical mutation committed
+Effect:    Clinical action exists with no corresponding audit event.
+           This is a data integrity issue for critical mutations.
+Recovery:  For critical mutations: use DB-level transaction.
+           (transition_case_status includes audit write in same transaction)
+           For edge function mutations: implement outbox pattern.
+           Never use fire-and-forget async audit calls for critical actions.
+```
+
+### F10 — SyncQueue item lost on restart
+```
+Trigger:   Edge function restart while processing an in-memory queue item
+Effect:    Previously: QUEUED / PROCESSING items were lost.
+           Now: resolved by Postgres-backed sync_events table.
+Recovery:  PROCESSING items older than 5 minutes re-queued by cron.
+           DEAD_LETTER items require manual investigation.
+```
+
+---
+
+## 17. Changelog
+
+| Version | Date | Summary |
+|---------|------|---------|
+| v0.5.0 | 2026-09-11 | Initial architecture document |
+| v0.6.0 | 2026-09-11 | Major corrections from architecture audit. Authorization promoted to current requirement (not Phase 8). Role and permission model aligned to `src/domain/auth.ts` — clinician, nurse, laboratory, reviewer, organization_admin, platform_admin. Organization-aware authorization enforced at DB level. PostgreSQL as authoritative source of truth; CaseContext demoted to cache. Backend case state enforcement via `transition_case_status()` PostgreSQL function. NexusAssessment versioning added (ACTIVE / SUPERSEDED / REJECTED). Persistent idempotency and SyncQueue via Postgres `sync_events` table (replaces in-memory Set and SyncQueue). Corrected ClinicalFinding to FHIR Condition mapping — only condition-like findings; not all findings and not hypotheses. 7-step FHIR validation documented. Terminology service abstraction added — candidate match with confidence signal; no silent auto-conversion. FHIR Hub moved from Intelligence Rail to Documents tab. Performance targets replaced with P50/P95 measurement framework — no promises before staging measurement. Transactional audit pattern documented; outbox pattern for edge function mutations. AI retry hard-limited to maximum 2 attempts. PRELIMINARY vs REVIEW_REQUIRED distinction clarified. Database schema and RLS specification added. Failure modes F9 and F10 added. |
+
+---
+
+*This document is the architecture Nexus builds against.*
+*Every significant design change must be reflected here before implementation begins.*
+*All AI outputs require human review. No clinical decision should be made on AI output alone.*
