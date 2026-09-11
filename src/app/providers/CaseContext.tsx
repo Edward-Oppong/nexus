@@ -45,7 +45,8 @@ export type MainView =
   | 'evidence-catalog'
   | 'administration'
   | 'review-queue'
-  | 'ai-governance';
+  | 'ai-governance'
+  | 'regulatory-compliance';
 
 export type CaseSubTab =
   | 'summary'

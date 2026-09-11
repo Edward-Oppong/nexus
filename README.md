@@ -485,10 +485,10 @@ Duplicate imports are safely skipped.
 - [x] Explainability panel — per-finding contribution to hypothesis ranking
 
 ### Phase 12 — Regulatory & Compliance
-- [ ] MDCG 2021-6 (AI in medical devices) compliance checklist
-- [ ] FDA PCCP (Predetermined Change Control Plan) documentation
-- [ ] GDPR / POPIA data residency controls
-- [ ] Audit export in FHIR AuditEvent format for regulators
+- [x] MDCG 2021-6 (AI in medical devices) compliance checklist
+- [x] FDA PCCP (Predetermined Change Control Plan) documentation
+- [x] GDPR / POPIA data residency controls
+- [x] Audit export in FHIR AuditEvent format for regulators
 
 ### Near-term Backlog
 - [ ] Idempotency key persistence across sessions

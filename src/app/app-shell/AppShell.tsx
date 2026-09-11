@@ -15,6 +15,7 @@ import { EvidenceTab } from '../../features/case-workspace/tabs/EvidenceTab';
 import { InvestigationsTab } from '../../features/case-workspace/tabs/InvestigationsTab';
 import { AdministrationView } from '../../features/administration/AdministrationView';
 import { AiGovernanceView } from '../../features/ai-governance/AiGovernanceView';
+import { RegulatoryComplianceView } from '../../features/regulatory-compliance/RegulatoryComplianceView';
 
 import { FindingProvenanceDrawer } from '../../components/drawers/FindingProvenanceDrawer';
 import { EvidenceDrawer } from '../../components/drawers/EvidenceDrawer';
@@ -143,6 +144,8 @@ export const AppShell: React.FC = () => {
         return <AdministrationView />;
       case 'ai-governance':
         return <AiGovernanceView />;
+      case 'regulatory-compliance':
+        return <RegulatoryComplianceView />;
       default:
         return <CaseWorkspaceView />;
     }
