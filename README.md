@@ -472,11 +472,11 @@ Duplicate imports are safely skipped.
 - [x] Allergy cross-reactivity alerts
 
 ### Phase 10 — Advanced Interoperability
-- [ ] SMART on FHIR launch protocol (EHR context launch)
-- [ ] CDA / C-CDA document import (common in legacy African HIS)
-- [ ] IHE XDS.b document exchange
-- [ ] WHO SMART Base profile compliance (FHIR R4 IG)
-- [ ] Offline-first sync for low-connectivity environments (IndexedDB + service worker)
+- [x] SMART on FHIR launch protocol (EHR context launch)
+- [x] CDA / C-CDA document import (common in legacy African HIS)
+- [x] IHE XDS.b document exchange
+- [x] WHO SMART Base profile compliance (FHIR R4 IG)
+- [x] Offline-first sync for low-connectivity environments (IndexedDB + service worker)
 
 ### Phase 11 — AI Governance & Model Management
 - [ ] Model version registry — track which model generated each assessment

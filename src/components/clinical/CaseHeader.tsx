@@ -1,12 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCase } from '../../app/providers/CaseContext';
 import { usePersona } from '../../app/providers/PersonaContext';
-import { ArrowLeft, AlertTriangle, Plus, FileText, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, Plus, FileText, CheckCircle2, ShieldAlert, Wifi, WifiOff } from 'lucide-react';
+import { offlineSyncEngine } from '../../lib/interoperability/advanced/offline-sync-engine';
 
 export const CaseHeader: React.FC = () => {
   const { activeCase, setActiveView, setActiveCaseSubTab } = useCase();
   const { currentPersona } = usePersona();
   const { patient, state, priority, id } = activeCase.overview;
+
+  const [networkStatus, setNetworkStatus] = useState(() => offlineSyncEngine.getStatus());
+
+  useEffect(() => {
+    return offlineSyncEngine.subscribeNetworkStatus(setNetworkStatus);
+  }, []);
 
   const getStatusBadge = () => {
     switch (state) {
@@ -88,6 +95,49 @@ export const CaseHeader: React.FC = () => {
 
         {/* Action Buttons with Role Permission Checks */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Phase 10 Offline-First Network Status Badge */}
+          <div
+            onClick={() => {
+              if (networkStatus.pendingMutationCount > 0) {
+                offlineSyncEngine.replayQueuedMutations();
+              }
+            }}
+            title={
+              networkStatus.isOnline
+                ? `Online (${networkStatus.connectionTier.toUpperCase()} · ${networkStatus.rttMs}ms RTT · ${networkStatus.downlinkMbps} Mbps)`
+                : 'Offline mode — local mutations stored in Outbox'
+            }
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '11px',
+              fontWeight: 600,
+              padding: '4px 8px',
+              borderRadius: '12px',
+              background: networkStatus.isOnline ? '#F0FDF4' : '#FEF2F2',
+              color: networkStatus.isOnline ? '#166534' : '#991B1B',
+              border: `1px solid ${networkStatus.isOnline ? '#BBF7D0' : '#FCA5A5'}`,
+              cursor: 'pointer',
+            }}
+          >
+            {networkStatus.isOnline ? <Wifi size={12} color="#16A34A" /> : <WifiOff size={12} color="#DC2626" />}
+            <span>{networkStatus.isOnline ? `${networkStatus.connectionTier.toUpperCase()}` : 'Offline'}</span>
+            {networkStatus.pendingMutationCount > 0 && (
+              <span
+                style={{
+                  fontSize: '9px',
+                  fontWeight: 700,
+                  background: '#DC2626',
+                  color: '#FFFFFF',
+                  padding: '1px 5px',
+                  borderRadius: '10px',
+                }}
+              >
+                {networkStatus.pendingMutationCount} queued
+              </span>
+            )}
+          </div>
           {currentPersona.allowedActions.canRequestInvestigations && (
             <button
               onClick={() => setActiveCaseSubTab('investigations')}
