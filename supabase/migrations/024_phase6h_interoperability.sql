@@ -291,7 +291,7 @@ create policy "external_sources_manage_admin"
     organization_id in (
       select organization_id from public.organization_memberships
       where profile_id = auth.uid() and status = 'ACTIVE'
-        and role in ('ADMIN', 'OWNER')
+        and role in ('organization_admin', 'platform_admin')
     )
   );
 

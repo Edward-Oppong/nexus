@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
 import { useCase, MainView } from '../../app/providers/CaseContext';
-import { usePersona } from '../../app/providers/PersonaContext';
 import { useDrawer } from '../../app/providers/DrawerContext';
 import { useAuth } from '../../features/authentication/AuthProvider';
-import { OrganizationSwitcher } from '../../features/authentication/OrganizationSwitcher';
-import { Shield } from 'lucide-react';
 import {
   LayoutDashboard,
   FolderKanban,
@@ -17,65 +14,206 @@ import {
   FileCheck2,
   BrainCircuit,
   ShieldCheck,
+  AlertCircle,
+  LogOut,
 } from 'lucide-react';
 
+interface NavItemConfig {
+  id: MainView;
+  label: string;
+  icon: React.ReactNode;
+  count?: number;
+  isUrgentAlert?: boolean;
+}
+
 export const GlobalNav: React.FC = () => {
-  const { activeView, setActiveView, pendingReviewCount, tasks } = useCase();
-  const { currentPersona, allPersonas, setPersonaById } = usePersona();
+  const { activeView, setActiveView, pendingReviewCount, tasks, activeCase, casesList } = useCase();
   const { openShortcuts } = useDrawer();
-  const { role } = useAuth();
+  const { role, profile, signOut } = useAuth();
+  const isAdmin = role === 'organization_admin' || role === 'platform_admin';
+
+  const displayName = profile?.fullName || (isAdmin ? 'System Administrator' : 'Dr. Sarah Chen');
+  const displayTitle = profile?.profession || (isAdmin ? 'Health System Administrator' : 'Consultant Acute Physician');
+  const avatarInitials = displayName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join('') || 'NX';
 
   const openTasksCount = tasks.filter((t) => t.status !== 'COMPLETED').length;
   const [collapsed, setCollapsed] = useState(false);
   const W = collapsed ? 48 : 240;
 
-  const navItems: Array<{
-    id: MainView;
-    label: string;
-    icon: React.ReactNode;
-    count?: number;
-    badgeBg?: string;
-    badgeColor?: string;
-  }> = [
+  // Group 1: Shift-Critical Clinical Work
+  const clinicalWorkGroup: NavItemConfig[] = [
     { id: 'overview', label: 'Overview', icon: <LayoutDashboard size={17} /> },
-    { id: 'cases', label: 'Cases', icon: <FolderKanban size={17} />, count: 4 },
+    { id: 'cases', label: 'Cases', icon: <FolderKanban size={17} />, count: casesList.length },
     {
       id: 'review-queue',
       label: 'Needs Review',
       icon: <FileCheck2 size={17} />,
       count: pendingReviewCount,
-      badgeBg: '#FEF3C7',
-      badgeColor: '#B45309',
+      isUrgentAlert: true,
     },
-    { id: 'patients', label: 'Patients', icon: <Users size={17} /> },
-    { id: 'investigations', label: 'Investigations', icon: <FlaskConical size={17} />, count: 2 },
+    {
+      id: 'investigations',
+      label: 'Investigations',
+      icon: <FlaskConical size={17} />,
+      count: activeCase.investigations.filter((i) => i.status !== 'Result available').length,
+    },
     { id: 'tasks', label: 'Tasks', icon: <CheckSquare size={17} />, count: openTasksCount },
+  ];
+
+  // Group 2: Reference & Lookup
+  const referenceGroup: NavItemConfig[] = [
+    { id: 'patients', label: 'Patients', icon: <Users size={17} /> },
     { id: 'evidence-catalog', label: 'Evidence', icon: <BookOpen size={17} /> },
+  ];
+
+  // Group 3: Governance & Operations
+  const governanceGroup: NavItemConfig[] = [
     { id: 'ai-governance', label: 'AI Governance', icon: <BrainCircuit size={17} /> },
     { id: 'regulatory-compliance', label: 'Compliance', icon: <ShieldCheck size={17} /> },
     { id: 'administration', label: 'Administration', icon: <Sliders size={17} /> },
   ];
 
+  const renderNavGroup = (items: NavItemConfig[]) => {
+    return items.map((item) => {
+      const isActive =
+        activeView === item.id ||
+        (item.id === 'cases' && activeView === 'case-workspace');
+
+      return (
+        <button
+          key={item.id}
+          onClick={() => setActiveView(item.id)}
+          title={collapsed ? `${item.label}${item.count ? ` (${item.count})` : ''}` : undefined}
+          aria-label={item.label}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: collapsed ? 'center' : 'space-between',
+            padding: collapsed ? '8px 0' : '7px 10px',
+            marginLeft: collapsed ? '4px' : '0',
+            marginRight: collapsed ? '4px' : '0',
+            width: collapsed ? '40px' : '100%',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: isActive ? 600 : 500,
+            color: isActive ? '#0F172A' : '#475569',
+            backgroundColor: isActive ? '#F1F5F9' : 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            textAlign: 'left',
+            transition: 'background-color 0.12s ease',
+            position: 'relative',
+            flexShrink: 0,
+            fontFamily: 'inherit',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: collapsed ? 0 : '10px',
+            }}
+          >
+            <span
+              style={{
+                color: isActive ? '#0F172A' : '#64748B',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              {item.icon}
+            </span>
+            {!collapsed && item.label}
+          </div>
+
+          {/* Differentiated Badge System */}
+          {!collapsed && item.count !== undefined && item.count > 0 && (
+            item.isUrgentAlert ? (
+              /* Urgent Safety / Contradiction Review Badge */
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  backgroundColor: '#FEF2F2',
+                  color: '#991B1B',
+                  border: '1px solid #FCA5A5',
+                  padding: '1px 6px',
+                  borderRadius: '4px',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                <AlertCircle size={10} color="#B91C1C" />
+                <span>{item.count}</span>
+              </span>
+            ) : (
+              /* Quiet Informational Count Pill */
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 500,
+                  backgroundColor: isActive ? '#E2E8F0' : '#F1F5F9',
+                  color: '#475569',
+                  padding: '1px 6px',
+                  borderRadius: '10px',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {item.count}
+              </span>
+            )
+          )}
+
+          {/* Collapsed Rail Dot: ONLY the urgent flag shows an alert dot */}
+          {collapsed && item.isUrgentAlert && item.count !== undefined && item.count > 0 && (
+            <span
+              aria-label={`${item.count} urgent items`}
+              style={{
+                position: 'absolute',
+                top: '5px',
+                right: '5px',
+                width: '7px',
+                height: '7px',
+                borderRadius: '50%',
+                backgroundColor: '#DC2626',
+                border: '1.5px solid #FFFFFF',
+              }}
+            />
+          )}
+        </button>
+      );
+    });
+  };
+
   return (
     <nav
-      aria-label="Global application navigation"
+      aria-label="Global clinical workstation navigation"
       style={{
         width: `${W}px`,
         minWidth: `${W}px`,
-        background: '#FFFFFF',
+        backgroundColor: '#FFFFFF',
         borderRight: '1px solid #E2E8F0',
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
         flexShrink: 0,
-        transition: 'width 0.22s cubic-bezier(0.4,0,0.2,1), min-width 0.22s cubic-bezier(0.4,0,0.2,1)',
+        transition: 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
         overflow: 'hidden',
       }}
     >
-      {/* ── Brand Header ─────────────────────────────────── */}
+      {/* ── Brand Header (No monospace tagline) ───────────── */}
       <div
         style={{
-          padding: collapsed ? '16px 0' : '18px 20px',
+          padding: collapsed ? '16px 0' : '16px 18px',
           borderBottom: '1px solid #F1F5F9',
           display: 'flex',
           alignItems: 'center',
@@ -83,21 +221,21 @@ export const GlobalNav: React.FC = () => {
           flexShrink: 0,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
-          {/* Logo mark — clicking it when collapsed expands the sidebar */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Hexagonal Logo Mark */}
           <div
-            title={collapsed ? 'Expand sidebar' : 'NEXUS Clinical Workstation'}
+            title={collapsed ? 'Click to expand sidebar' : 'Nexus Workstation'}
             onClick={collapsed ? () => setCollapsed(false) : undefined}
             style={{
-              width: '22px',
-              height: '22px',
-              background: '#0F172A',
+              width: '24px',
+              height: '24px',
+              backgroundColor: '#0F172A',
               color: '#FFFFFF',
-              borderRadius: '4px',
+              borderRadius: '5px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '12px',
+              fontSize: '13px',
               fontWeight: 700,
               flexShrink: 0,
               cursor: collapsed ? 'pointer' : 'default',
@@ -106,40 +244,26 @@ export const GlobalNav: React.FC = () => {
             ⬡
           </div>
 
-          {/* Wordmark — hidden when collapsed, routes to landing on click */}
+          {/* Wordmark (Expanded only, routes to landing) */}
           {!collapsed && (
             <div
               onClick={() => setActiveView('landing')}
-              title="Return to Nexus Overview & Landing Page"
-              style={{ overflow: 'hidden', whiteSpace: 'nowrap', cursor: 'pointer' }}
+              title="Return to Nexus Landing Page"
+              style={{
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontWeight: 700,
+                fontSize: '15px',
+                letterSpacing: '-0.02em',
+                color: '#0F172A',
+              }}
             >
-              <div
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontWeight: 700,
-                  fontSize: '15px',
-                  letterSpacing: '-0.02em',
-                  color: '#0F172A',
-                }}
-              >
-                NEXUS
-              </div>
-              <div
-                style={{
-                  fontSize: '10px',
-                  color: '#64748B',
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase' as const,
-                  fontFamily: 'var(--font-mono)',
-                }}
-              >
-                Clinical Workstation
-              </div>
+              Nexus
             </div>
           )}
         </div>
 
-        {/* Collapse button — visible only in expanded state */}
+        {/* Collapse Button (Double-chevron left) */}
         {!collapsed && (
           <button
             onClick={() => setCollapsed(true)}
@@ -149,25 +273,24 @@ export const GlobalNav: React.FC = () => {
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              padding: '3px',
+              padding: '4px',
               borderRadius: '4px',
               color: '#94A3B8',
               display: 'flex',
               alignItems: 'center',
               flexShrink: 0,
-              transition: 'color 0.15s, background 0.15s',
+              transition: 'color 0.15s ease',
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLButtonElement).style.color = '#475569';
-              (e.currentTarget as HTMLButtonElement).style.background = '#F1F5F9';
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#F1F5F9';
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLButtonElement).style.color = '#94A3B8';
-              (e.currentTarget as HTMLButtonElement).style.background = 'none';
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent';
             }}
           >
-            {/* Double-chevron left */}
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+            <svg width="14" height="14" viewBox="0 0 15 15" fill="none">
               <path d="M9 3L5 7.5L9 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M13 3L9 7.5L13 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -175,148 +298,50 @@ export const GlobalNav: React.FC = () => {
         )}
       </div>
 
-      {/* ── Org Switcher (expanded only) ─────────────────── */}
-      {!collapsed && (
-        <div
-          style={{
-            padding: '8px 12px',
-            borderBottom: '1px solid #F1F5F9',
-            background: '#FAFAFA',
-            flexShrink: 0,
-          }}
-        >
-          <div
-            style={{
-              fontSize: '9px',
-              fontWeight: 700,
-              textTransform: 'uppercase' as const,
-              letterSpacing: '0.05em',
-              color: '#64748B',
-              marginBottom: '4px',
-            }}
-          >
-            Tenant Context
-          </div>
-          <OrganizationSwitcher />
-        </div>
-      )}
-
-      {/* ── Primary Navigation ───────────────────────────── */}
+      {/* ── Grouped Clinical Navigation ───────────────────── */}
       <div
         style={{
-          padding: collapsed ? '12px 0' : '16px 12px',
+          padding: collapsed ? '10px 0' : '14px 10px',
           flex: 1,
           display: 'flex',
-          flexDirection: 'column' as const,
+          flexDirection: 'column',
           gap: '2px',
-          overflowY: 'auto' as const,
-          overflowX: 'hidden' as const,
+          overflowY: 'auto',
+          overflowX: 'hidden',
         }}
       >
-        {!collapsed && (
-          <div
-            style={{
-              fontSize: '10px',
-              fontWeight: 600,
-              textTransform: 'uppercase' as const,
-              letterSpacing: '0.06em',
-              color: '#94A3B8',
-              padding: '0 8px 6px',
-            }}
-          >
-            Workspace
-          </div>
-        )}
+        {/* Group 1: Shift-Critical Clinical Work */}
+        {renderNavGroup(clinicalWorkGroup)}
 
-        {navItems.map((item) => {
-          const isActive =
-            activeView === item.id ||
-            (item.id === 'cases' && activeView === 'case-workspace');
+        {/* Quiet Hairline Separator */}
+        <div
+          style={{
+            height: '1px',
+            backgroundColor: '#F1F5F9',
+            margin: collapsed ? '8px 6px' : '8px 4px',
+          }}
+        />
 
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveView(item.id)}
-              title={collapsed ? item.label : undefined}
-              aria-label={item.label}
+        {/* Group 2: Reference & Lookup */}
+        {renderNavGroup(referenceGroup)}
+
+        {/* Group 3: Governance & Operations (Admin Only) */}
+        {isAdmin && (
+          <>
+            {/* Quiet Hairline Separator */}
+            <div
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: collapsed ? 'center' : 'space-between',
-                padding: collapsed ? '9px 0' : '8px 10px',
-                marginLeft: collapsed ? '4px' : '0',
-                marginRight: collapsed ? '4px' : '0',
-                width: collapsed ? '40px' : '100%',
-                borderRadius: '6px',
-                fontSize: '13px',
-                fontWeight: isActive ? 600 : 500,
-                color: isActive ? '#0F172A' : '#475569',
-                background: isActive ? '#F1F5F9' : 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                textAlign: 'left' as const,
-                transition: 'all 0.1s ease',
-                position: 'relative' as const,
-                flexShrink: 0,
+                height: '1px',
+                backgroundColor: '#F1F5F9',
+                margin: collapsed ? '8px 6px' : '8px 4px',
               }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: collapsed ? 0 : '10px',
-                }}
-              >
-                <span
-                  style={{
-                    color: isActive ? '#0F172A' : '#64748B',
-                    display: 'flex',
-                    flexShrink: 0,
-                  }}
-                >
-                  {item.icon}
-                </span>
-                {!collapsed && item.label}
-              </div>
-
-              {/* Badge — expanded only */}
-              {!collapsed && item.count ? (
-                <span
-                  style={{
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    background: item.badgeBg || (isActive ? '#E2E8F0' : '#F1F5F9'),
-                    color: item.badgeColor || '#334155',
-                    padding: '1px 6px',
-                    borderRadius: '10px',
-                    fontFamily: 'var(--font-mono)',
-                  }}
-                >
-                  {item.count}
-                </span>
-              ) : null}
-
-              {/* Dot indicator — collapsed with count */}
-              {collapsed && item.count ? (
-                <span
-                  style={{
-                    position: 'absolute' as const,
-                    top: '6px',
-                    right: '5px',
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    background: item.badgeColor || '#334155',
-                    border: '1.5px solid #FFFFFF',
-                  }}
-                />
-              ) : null}
-            </button>
-          );
-        })}
+            />
+            {renderNavGroup(governanceGroup)}
+          </>
+        )}
       </div>
 
-      {/* ── Expand button (collapsed only) ──────────────── */}
+      {/* ── Expand button (Collapsed state rail only) ─────── */}
       {collapsed && (
         <div style={{ padding: '6px 4px', flexShrink: 0 }}>
           <button
@@ -335,19 +360,18 @@ export const GlobalNav: React.FC = () => {
               borderRadius: '6px',
               cursor: 'pointer',
               color: '#94A3B8',
-              transition: 'color 0.15s, background 0.15s',
+              transition: 'all 0.15s ease',
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLButtonElement).style.color = '#475569';
-              (e.currentTarget as HTMLButtonElement).style.background = '#F1F5F9';
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#F1F5F9';
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLButtonElement).style.color = '#94A3B8';
-              (e.currentTarget as HTMLButtonElement).style.background = 'none';
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent';
             }}
           >
-            {/* Double-chevron right — expand */}
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+            <svg width="14" height="14" viewBox="0 0 15 15" fill="none">
               <path d="M6 3L10 7.5L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M2 3L6 7.5L2 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -355,8 +379,8 @@ export const GlobalNav: React.FC = () => {
         </div>
       )}
 
-      {/* ── Shortcuts button ─────────────────────────────── */}
-      <div style={{ padding: collapsed ? '4px 4px' : '8px 12px', flexShrink: 0 }}>
+      {/* ── Shortcuts Button (Low-emphasis utility) ──────── */}
+      <div style={{ padding: collapsed ? '4px 4px' : '6px 10px', flexShrink: 0 }}>
         {!collapsed ? (
           <button
             onClick={openShortcuts}
@@ -366,24 +390,26 @@ export const GlobalNav: React.FC = () => {
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '6px 10px',
-              background: '#F8FAFC',
+              backgroundColor: '#F8FAFC',
               border: '1px solid #E2E8F0',
               borderRadius: '6px',
               fontSize: '11px',
               color: '#64748B',
               cursor: 'pointer',
+              fontFamily: 'inherit',
             }}
           >
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <HelpCircle size={13} /> Shortcuts
+              <HelpCircle size={13} />
+              <span>Shortcuts</span>
             </span>
             <kbd
               style={{
-                background: '#FFFFFF',
+                backgroundColor: '#FFFFFF',
                 border: '1px solid #CBD5E1',
                 padding: '1px 5px',
                 borderRadius: '3px',
-                fontFamily: 'var(--font-mono)',
+                fontFamily: 'var(--font-mono, monospace)',
                 fontSize: '10px',
               }}
             >
@@ -402,7 +428,7 @@ export const GlobalNav: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: '#F8FAFC',
+              backgroundColor: '#F8FAFC',
               border: '1px solid #E2E8F0',
               borderRadius: '6px',
               cursor: 'pointer',
@@ -414,68 +440,25 @@ export const GlobalNav: React.FC = () => {
         )}
       </div>
 
-      {/* ── User / Persona Section ───────────────────────── */}
+      {/* ── Clinician Profile & Persona Footer ─────────────── */}
       <div
         style={{
-          padding: collapsed ? '10px 4px' : '14px 16px',
+          padding: collapsed ? '10px 4px' : '12px 14px',
           borderTop: '1px solid #E2E8F0',
-          background: '#FAFAFA',
+          backgroundColor: '#FAFAFA',
           flexShrink: 0,
         }}
       >
         {!collapsed ? (
           <>
-            <div style={{ marginBottom: '8px' }}>
-              <label
-                htmlFor="demo-persona-select"
-                style={{
-                  fontSize: '10px',
-                  fontWeight: 600,
-                  textTransform: 'uppercase' as const,
-                  letterSpacing: '0.04em',
-                  color: '#64748B',
-                  display: 'block',
-                  marginBottom: '4px',
-                }}
-              >
-                Demo Persona Switcher
-              </label>
-              <select
-                id="demo-persona-select"
-                aria-label="Demo Persona Switcher"
-                value={currentPersona.id}
-                onChange={(e) => setPersonaById(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '5px 8px',
-                  fontSize: '11px',
-                  borderRadius: '4px',
-                  border: '1px solid #CBD5E1',
-                  background: '#FFFFFF',
-                  color: '#0F172A',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                }}
-              >
-                {allPersonas.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.roleDisplay} ({p.name})
-                  </option>
-                ))}
-              </select>
-              <div style={{ fontSize: '9px', color: '#94A3B8', marginTop: '3px', lineHeight: 1.2 }}>
-                Prototype demonstration mechanism; does not represent production authorization.
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '9px', marginTop: '10px' }}>
+            {/* Clinician Identity Prominent */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
               <div
                 style={{
-                  width: '30px',
-                  height: '30px',
+                  width: '32px',
+                  height: '32px',
                   borderRadius: '50%',
-                  background: '#0F172A',
+                  backgroundColor: '#0F172A',
                   color: '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
@@ -485,7 +468,7 @@ export const GlobalNav: React.FC = () => {
                   flexShrink: 0,
                 }}
               >
-                {currentPersona.avatarInitials}
+                {avatarInitials}
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div
@@ -495,83 +478,85 @@ export const GlobalNav: React.FC = () => {
                     color: '#0F172A',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap' as const,
+                    whiteSpace: 'nowrap',
                   }}
                 >
-                  {currentPersona.name}
+                  {displayName}
                 </div>
-                <div style={{ fontSize: '10px', color: '#64748B' }}>{currentPersona.title}</div>
+                <div
+                  style={{
+                    fontSize: '10px',
+                    color: '#64748B',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {displayTitle}
+                </div>
               </div>
-            </div>
 
-            <div
-              style={{
-                marginTop: '10px',
-                paddingTop: '8px',
-                borderTop: '1px solid #E2E8F0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
+              {/* Subdued Role Tag */}
               <span
                 style={{
-                  fontSize: '10px',
-                  fontFamily: 'var(--font-mono)',
-                  padding: '2px 6px',
-                  borderRadius: '4px',
-                  background: role === 'organization_admin' ? '#FEF3C7' : '#E0F2FE',
+                  fontSize: '9px',
+                  padding: '2px 5px',
+                  borderRadius: '3px',
+                  backgroundColor: role === 'organization_admin' ? '#FEF3C7' : '#E0F2FE',
                   color: role === 'organization_admin' ? '#92400E' : '#0369A1',
-                  fontWeight: 700,
-                  textTransform: 'uppercase' as const,
-                  letterSpacing: '0.04em',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
                 }}
               >
-                ROLE: {role}
+                {role === 'organization_admin' ? 'Admin' : role === 'reviewer' ? 'Reviewer' : role === 'nurse' ? 'Nurse' : role === 'laboratory' ? 'Laboratory' : 'Clinician'}
               </span>
-              <span style={{ fontSize: '10px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Shield size={12} style={{ color: '#059669' }} /> RLS Guarded
-              </span>
-            </div>
 
-            <div style={{ marginTop: '6px', textAlign: 'right' as const }}>
+              {/* Sign Out Action Button */}
               <button
                 type="button"
-                onClick={() => setActiveView('login')}
+                onClick={() => signOut()}
+                title="Sign out of workstation"
+                aria-label="Sign out"
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '10px',
-                  color: '#0284c7',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '26px',
+                  height: '26px',
+                  borderRadius: '5px',
+                  border: '1px solid #E2E8F0',
+                  backgroundColor: '#FFFFFF',
+                  color: '#64748B',
                   cursor: 'pointer',
-                  padding: '2px 0',
-                  textDecoration: 'underline',
-                  fontFamily: 'inherit',
+                  flexShrink: 0,
+                  transition: 'all 0.15s ease',
+                  padding: 0,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#FEF2F2';
+                  e.currentTarget.style.borderColor = '#FCA5A5';
+                  e.currentTarget.style.color = '#DC2626';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#FFFFFF';
+                  e.currentTarget.style.borderColor = '#E2E8F0';
+                  e.currentTarget.style.color = '#64748B';
                 }}
               >
-                Sign in with credentials →
+                <LogOut size={13} />
               </button>
             </div>
           </>
         ) : (
-          /* Collapsed: avatar only */
-          <div
-            title={`${currentPersona.name} — ${currentPersona.title}`}
-            style={{
-              width: '40px',
-              height: '32px',
-              marginLeft: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+          /* Collapsed State: Avatar + Sign Out Button */
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
             <div
+              title={`${displayName} — ${displayTitle}`}
               style={{
                 width: '28px',
                 height: '28px',
                 borderRadius: '50%',
-                background: '#0F172A',
+                backgroundColor: '#0F172A',
                 color: '#FFFFFF',
                 display: 'flex',
                 alignItems: 'center',
@@ -580,8 +565,38 @@ export const GlobalNav: React.FC = () => {
                 fontWeight: 600,
               }}
             >
-              {currentPersona.avatarInitials}
+              {avatarInitials}
             </div>
+            <button
+              type="button"
+              onClick={() => signOut()}
+              title="Sign out of workstation"
+              aria-label="Sign out"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '28px',
+                height: '24px',
+                borderRadius: '5px',
+                border: 'none',
+                backgroundColor: 'transparent',
+                color: '#94A3B8',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                padding: 0,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#FEF2F2';
+                e.currentTarget.style.color = '#DC2626';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = '#94A3B8';
+              }}
+            >
+              <LogOut size={13} />
+            </button>
           </div>
         )}
       </div>

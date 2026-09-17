@@ -1,6 +1,6 @@
 # Nexus Clinical Workstation — Authoritative System Architecture
 
-> **Version: 0.11.0** | Stack: React 18 + TypeScript 5 + Vite 6 + Supabase | FHIR: R4
+> **Version: 1.1.0 (Intelligence Architecture)** | Stack: React 18 + TypeScript 5 + Vite 6 + Supabase | FHIR: R4
 >
 > This is the architecture we build against. Not a design sketch — a production requirement.
 
@@ -566,16 +566,29 @@ Case Header — patient identity | case status | priority | care team
 
 ### Intelligence Rail Scope
 
-The Intelligence Rail shows clinically contextual information only. It is a clinical tool, not a developer console.
+The Intelligence Rail is a contextual clinical workspace, not a chatbot sidebar. It is a **Nexus Intelligence & Review Rail**. Panels are mounted and unmounted automatically via a **Context Dispatch Matrix** based on the clinician's active center tab. A manual filter override (`AUTO / SIGNALS / REVIEW / EVIDENCE`) is available in the rail header.
 
-**Contents:**
-- Current case state and reason for current state
-- Active hypotheses (qualitative status only — no numbers)
-- Supporting evidence summary
-- Qualitative uncertainty assessment
-- Missing information and information gaps
-- Active safety alerts
-- Ask Nexus trigger
+**Panel inventory:**
+
+| Panel | Component | Purpose |
+|-------|-----------|----------|
+| Case Signals | `CaseSignalsPanel` | Deterministic flags: safety alerts, unverified findings, pending tests |
+| Hypotheses | `HypothesesRailPanel` | Top-3 candidates — qualitative status, supporting/contradicting counts. No % |
+| Evidence | `EvidenceRailPanel` | MedCPT-reranked guideline excerpts. Rerankable on demand |
+| Uncertainty | `UncertaintyRailPanel` | `primaryReason`, evidence consistency, pending test conditioning |
+| Quick Review | `QuickReviewRailPanel` | In-rail Accept / Edit / Reject with immediate audit trail |
+| Ask Nexus | `AskNexusRailPanel` | Secondary grounded case query input (collapsible, bottom) |
+
+**Context Dispatch Matrix:**
+
+| Active Center Tab | Mounted Panels (top → bottom) |
+|---|---|
+| `summary` (default) | Case Signals → Hypotheses → Evidence → Ask Nexus |
+| `documents` | Quick Review → Case Signals → Evidence |
+| `investigations` | Case Signals → Uncertainty → Hypotheses |
+| `findings` | Quick Review → Uncertainty → Hypotheses |
+| `reasoning` | Hypotheses → Evidence → Uncertainty → Ask Nexus |
+| `safety` / `rules` | Case Signals → Uncertainty → Ask Nexus |
 
 **FHIR Hub and integration controls belong in the Documents tab**, not the Intelligence Rail.
 
@@ -611,16 +624,97 @@ The Intelligence Rail shows clinically contextual information only. It is a clin
 
 ## 8. Intelligence and Reasoning Layer
 
+### Architecture Principle
+
+Nexus does **not** build `Frontend → LLM → Answer`. It builds:
+
+```
+ClinicalCase
+    |
+    v
+[Context Builder — Controlled Context Package]
+    |        |        |
+Patient  Clinical  Documents
+data     rules
+    |
+    v
+[Evidence Layer — MedCPT two-stage retrieval]
+    |
+    v
+[AI Reasoning — MedGemma with system rules]
+    |
+    v
+[Schema / Grounding Validation — hard rejection]
+    |
+    v
+[NexusAssessment — provenance-tagged, UNVERIFIED]
+    |
+    v
+[Human Review — clinician adjudicates every finding]
+```
+
+### 18 Non-Negotiable System Rules
+
+Defined in `src/domain/contracts/intelligence-contracts.ts` as `NEXUS_SYSTEM_RULES`. Enforced by schema validation at every output step.
+
+| # | Rule (abbreviated) |
+|---|---|
+| 1 | AI cannot directly mutate clinical records |
+| 2 | Every AI output must carry ContractProvenance |
+| 3 | No numeric probability in any output |
+| 4 | Uncertainty expressed via QualitativeUncertainty only |
+| 5 | Hard rejection for `87% probability / risk / certainty` patterns |
+| 6 | All contextFindingIds must exist in the active case |
+| 7 | All contextEvidenceIds must exist in the evidence library |
+| 8 | NER spans carry character-accurate start/end offsets |
+| 9 | Model name and version required in every ProvenanceRecord |
+| 10 | No `definitive diagnosis is` / `diagnosed with certainty` declarations |
+| 11 | Clinician review required before any AI finding enters clinical record |
+| 12 | Safety issues are deterministic rule outputs — not AI-generated |
+| 13 | Evidence rerankScore represents retrieval relevance only |
+| 14 | Extraction outputs are CandidateFindingProposals — not findings |
+| 15 | Classification confidence is a model signal — not a clinical probability |
+| 16 | Context buckets: KNOWN / INFERRED / UNKNOWN — never collapsed |
+| 17 | AI retry hard limit: maximum 2 attempts, then STOP |
+| 18 | All audit events written in the same transaction as the mutation |
+
+### Specialized Model Stack
+
+Defined in `src/lib/intelligence/governance/model-registry.ts`. These are **engineering candidates evaluated against clinical AI literature** — not clinical validation claims.
+
+| Registry ID | HF Model ID | Role | Status |
+|---|---|---|---|
+| `medbert-clinical-ner` | `ribhu/medbert-clinical-ner` | Clinical NER (SYMPTOM, DISEASE, MEDICATION, PROCEDURE, ANATOMY, LAB_VALUE) | ACTIVE |
+| `clinicalbert-doc-classifier` | `ParamDev/clinicalbert-medical-doc-classifier` | Document type classification | ACTIVE |
+| `bioclinicalbert-finding-classifier` | `emilyalsentzer/Bio_ClinicalBERT-ft` | Finding severity/urgency | ACTIVE |
+| `medcpt-query-encoder` | `ncbi/MedCPT-Query-Encoder` | Dense query embedding (pgvector) | ACTIVE |
+| `medcpt-article-encoder` | `ncbi/MedCPT-Article-Encoder` | Evidence article indexing | ACTIVE |
+| `medcpt-cross-encoder` | `ncbi/MedCPT-Cross-Encoder` | Two-stage cross-encoder reranking | ACTIVE |
+| `biomed-reranker` | `NYSgpt/biomed-reranker` | Challenger reranker | CHALLENGER |
+| `medgemma-4b-it` | `google/medgemma-4b-it` | Document summarization | ACTIVE |
+| `medgemma-27b-text-it` | `google/medgemma-27b-text-it` | Case synthesis + assessment | ACTIVE |
+
+No model receives un-controlled clinical data. All inputs pass through the Context Builder first.
+
 ### Component Map
 
 ```
+src/domain/contracts/
++-- intelligence-contracts.ts   — 18 System Rules, all pipeline contracts as TypeScript types
+
 src/lib/intelligence/
-+-- context-builder.ts         — Structured clinical context for reasoning
-+-- data-quality-service.ts    — Pre-reasoning deterministic quality checks
-+-- evidence-service.ts        — Evidence retrieval and ranking
-+-- nexus-assessment-schema.ts — AI output schema validation
-+-- reasoning-orchestrator.ts  — Main pipeline
-+-- reasoning-provider.ts      — AI provider abstraction
++-- context-builder.ts          — Controlled Context Package with EpistemicContextBuckets
++-- data-quality-service.ts     — Pre-reasoning deterministic quality checks
++-- evidence-service.ts         — Evidence retrieval and ranking
++-- nexus-assessment-schema.ts  — AI output schema validation (hardened grounding)
++-- reasoning-orchestrator.ts   — Main pipeline
++-- reasoning-provider.ts       — AI provider abstraction
++-- governance/
+|   +-- model-registry.ts       — Specialized HF model registry with operational constraints
++-- services/
+    +-- extraction-service.ts        — MedBERT NER adapter (character-accurate spans)
+    +-- classification-service.ts    — Document + finding classification adapters
+    +-- evidence-ranking-service.ts  — MedCPT two-stage retrieval pipeline
 ```
 
 ### Orchestration Pipeline
@@ -632,22 +726,34 @@ ClinicalCase Data
 [1] Data Quality Check (deterministic — runs before any AI call)
   |
   v
-[2] Evidence Retrieval (local knowledge base + PubMed edge function)
+[2] NER Extraction (medbert-clinical-ner — character-accurate spans)
+  |  Output: CandidateFindingProposal[] — never written directly
+  v
+[3] Document Classification (clinicalbert-doc-classifier)
+  |  Output: processingStrategy — LAB / IMAGING / CLINICAL_NOTE
+  v
+[4] Evidence Retrieval — Two-Stage MedCPT Pipeline
+  |  Stage 1: Dense pgvector match (top 50)
+  |  Stage 2: MedCPT Cross-Encoder reranking (top N)
+  |  rerankScore = retrieval relevance — never a diagnostic probability
+  v
+[5] Context Builder — Controlled Context Package
+  |  Buckets: KNOWN / INFERRED / UNKNOWN (never collapsed)
+  |  Token budget enforced; low-priority items truncated
+  v
+[6] Reasoning Provider (MedGemma — abstracted behind interface)
   |
   v
-[3] Context Builder (token budget enforcement)
-  |
-  v
-[4] Reasoning Provider (AI model call — abstracted behind interface)
-  |
-  v
-[5] Schema Validation (validateAssessmentOutput)
+[7] Schema Validation (validateAssessmentOutput)
+  |  Rule 5: Reject any numeric probability/risk/certainty pattern
+  |  Rule 10: Reject definitive diagnosis declarations
   |  Attempt 1: fail -> Attempt 2 (corrective prompt) -> fail -> STOP
   v
-[6] Grounding Check (validateGrounding)
-  |  All findingIds must exist in case; all evidenceIds in library
+[8] Grounding Check (validateGrounding) — HARD ERRORS
+  |  All supportingFindingIds must exist in the active case
+  |  All evidenceIds must exist in the evidence library
   v
-[7] Persist + State Transition (PostgreSQL transaction)
+[9] Persist + State Transition (PostgreSQL transaction)
   |
   v
 NexusAssessment (provenanceType: AI_GENERATED, verificationStatus: UNVERIFIED)
@@ -1290,7 +1396,9 @@ Recovery:  PROCESSING items older than 5 minutes re-queued by cron.
 | v0.8.0 | 2026-09-11 | Phase 9 — Clinical Decision Rules Engine implemented. Pure domain types defined in `src/domain/rules-engine.ts` separating deterministic CDS from generative reasoning. Deterministic library in `src/lib/rules-engine/`: guideline scoring (Modified Duke Criteria, CURB-65, Wells PE, qSOFA, Centor, CHA₂DS₂-VASc), renal dosing calculator (Cockcroft-Gault CrCl, CKD-EPI 2021, Mosteller BSA, Devine IBW/AdjBW, antimicrobial and anticoagulant protocols), RxNorm drug-drug interaction checker with pairwise severity grading (`CONTRAINDICATED`, `MAJOR`, `MODERATE`), and allergy cross-reactivity engine analyzing beta-lactam R1 side chains, sulfas, NSAIDs, and HIT. First-class `RulesTab.tsx` workstation integrated into `CaseWorkspaceView` and `CaseNav`. Pre-flight CDS validation integrated into `DecisionTab.tsx` and `SafetyTab.tsx`. Database migration `026_phase9_clinical_decision_rules.sql` created with RLS and audit records. |
 | v0.9.0 | 2026-09-11 | Phase 10 — Advanced Interoperability implemented. Domain types added to `src/domain/interoperability-advanced.ts`. SMART on FHIR v1/v2 launch protocol engine (`smart-launcher.ts`) with EHR context simulation (`iss`, `launch`, patient/encounter scopes). Real XML HL7 CDA R2 / C-CDA Continuity of Care Document parser (`cda-parser.ts`) extracting Allergies, Problem List, Vitals, and Medications directly into case findings. Cross-Enterprise Document Sharing IHE XDS.b engine (`ihe-xds.ts`) implementing ITI-18 Registry Stored Query and ITI-43 Document Retrieval. WHO SMART Guidelines Base profile validator (`who-smart-validator.ts`) enforcing ICD-11, SNOMED GPS, and DAK compliance. Offline-first sync engine (`offline-sync-engine.ts`) with reactive network connectivity monitor and transactional Outbox queue replaying mutations on reconnect. Rebuilt `DocumentsTab.tsx` with 5 interoperability consoles and added reactive network/sync status pill in `CaseHeader.tsx`. Database migration `027_phase10_advanced_interoperability.sql` created with RLS and audit tables. |
 | v0.10.0 | 2026-09-11 | Phase 11 — AI Governance & Model Management implemented. Pure domain types defined in `src/domain/ai-governance.ts`. Model Version Registry (`model-registry.ts`) tracking MedQA, MMLU-Clinical, hallucination rate, context window, and deployment status. Side-by-side A/B assessment comparison engine (`ab-comparison-engine.ts`) with multi-dimensional concordance scoring and clinician preference adjudication. Human feedback curation engine (`feedback-curator.ts`) capturing clinician corrections with error taxonomy (`HALLUCINATED_FINDING`, `UNSUPPORTED_LEAP`, `OVERCONFIDENCE`) and generating DPO JSONL export pairs. Explainability engine (`explainability-engine.ts`) computing Shapley-proxy feature attributions, positive/negative directional influence, and counterfactual sensitivity simulations. First-class 4-console `AiGovernanceView.tsx` workstation integrated into `AppShell`, `GlobalNav`, and `CaseContext`. Point-of-care feature attribution drawer integrated into `ReasoningTab.tsx`. Database migration `028_phase11_ai_governance.sql` created with RLS and seed models. |
-| v0.11.0 | 2026-09-11 | Phase 12 — Regulatory & Compliance Architecture implemented. Pure domain types defined in `src/domain/regulatory-compliance.ts`. MDCG 2021-6 & EU AI Act automated auditor (`mdcg-auditor.ts`) evaluating 9 SaMD clauses across human oversight, accuracy benchmarks, transparency IFU, and cybersecurity. FDA Predetermined Change Control Plan (PCCP) engine (`fda-pccp-tracker.ts`) enforcing Authorized Modification Protocol (AMP) boundaries and distinguishing permissible adjustments from mandatory 510(k) triggers. Data residency sovereignty manager (`data-residency-manager.ts`) enforcing regional jurisdiction controls (EU GDPR eu-central-1, South Africa POPIA af-south-1, Ghana DPA accra-edge-01, US HIPAA us-east-1), patient AI consent scopes, and Data Subject Rights (DSR) lifecycle fulfillment. Tamper-evident regulatory audit exporter (`regulatory-audit-exporter.ts`) compiling immutable clinical events into standardized FHIR R4 AuditEvent collection Bundles sealed with cryptographic SHA-256 checksums. Dedicated 4-console `RegulatoryComplianceView.tsx` workstation integrated into `AppShell`, `GlobalNav`, and `CaseContext`. Database migration `029_phase12_regulatory_compliance.sql` created with RLS and seed regulatory data. |
+| v0.11.0 | 2026-09-11 | Phase 12 — Regulatory & Compliance Architecture implemented. Pure domain types defined in `src/domain/regulatory-compliance.ts`. MDCG 2021-6 & EU AI Act automated auditor (`mdcg-auditor.ts`) evaluating 9 SaMD clauses across human oversight, accuracy benchmarks, transparency IFU, and cybersecurity. FDA Predetermined Change Control Plan (PCCP) engine (`fda-pccp-tracker.ts`) enforcing Authorized Modification Protocol (AMP) boundaries and distinguishing permissible adjustments from mandatory 510(k) triggers. Data residency sovereignty manager (`data-residency-manager.ts`) enforcing regional jurisdiction controls (EU GDPR eu-central-1, South Africa POPIA af-south-1, Ghana DPA accra-edge-01, US HIPAA us-east-1), patient AI consent scopes, and Data Subject Rights (DSR) lifecycle fulfillment. Tamper-evident regulatory audit exporter (`regulatory-audit-exporter.ts`) compiling immutable clinical events into standardized FHIR R4 AuditEvent collection Bundles sealed with cryptographic SHA-256 checksums. Dedicated 4-console `RegulatoryComplianceView.tsx` workstation integrated into `AppShell` and `GlobalNav`. Database migration `029_phase12_regulatory_compliance.sql` created with RLS, audit policies, and production seed data. |
+| v1.0.0 | 2026-09-12 | Phase 13 — Enterprise Production Hardening, DICOM PACS Imaging, HL7 v2.x Hospital Messaging & Clinical Knowledge Graph (Production GA). Pure domain types defined in `src/domain/knowledge-graph.ts`, `src/domain/dicom.ts`, and `src/domain/hl7v2.ts`. Unified Medical Language System (UMLS) and SNOMED CT ontological pathfinder (`clinical-knowledge-graph.ts`) tracing pathophysiological trajectories connecting findings to candidate hypotheses. DICOMweb procedural multi-slice imaging client (`dicom-client.ts`) with synthetic TEE cardiac echo study, Window/Level contrast presets, zoom/pan transform matrix, and interactive caliper distance measurement overlay. HL7 v2.5.1 ER7 messaging engine (`hl7v2-parser.ts`) supporting `ADT^A01` (Admit), `ADT^A08` (Update), and `ORU^R01` (Observation Results) with automatic clinical finding ingestion. Real-time multi-clinician collaboration engine (`realtime-collaboration.ts`) with presence awareness, contradiction event broadcasting, cross-session persistent idempotency cache, and FHIR Bundle pagination helper. UI workstation extensions: `DicomViewerModal.tsx` in `InvestigationsTab.tsx`, `KnowledgeGraphDrawer.tsx` in `ReasoningTab.tsx`, HL7 v2.x console with interactive ER7 ingestion in `DocumentsTab.tsx`, and real-time presence avatars stack in `CaseHeader.tsx`. Database migration `030_phase13_production_hardening.sql` created with RLS, audit policies, and production seed data. |
+| v1.1.0 | 2026-09-17 | Intelligence Architecture Formalization. New principle: Nexus builds Case → Context Builder → Evidence Layer → AI Reasoning → Schema/Grounding Validation → Human Review — never Frontend → LLM → Answer. **18 Non-Negotiable System Rules** formalized in `src/domain/contracts/intelligence-contracts.ts` as a typed constant array — covering provenance, grounding, numeric probability prohibition, NER span accuracy, model versioning, and audit atomicity. **Specialized model stack registered** in `src/lib/intelligence/governance/model-registry.ts`: 9 Hugging Face models across NER (ribhu/medbert-clinical-ner), document classification (ParamDev/clinicalbert-medical-doc-classifier), finding classification (emilyalsentzer/Bio_ClinicalBERT-ft), two-stage evidence retrieval (ncbi/MedCPT-Query-Encoder + Article-Encoder + Cross-Encoder; NYSgpt/biomed-reranker as CHALLENGER), and synthesis (google/medgemma-4b-it + medgemma-27b-text-it). **Three modular service adapters** added in `src/lib/intelligence/services/`: `extraction-service.ts` (NER with character-accurate SourceSpans), `classification-service.ts` (document processing strategy + finding severity), `evidence-ranking-service.ts` (pgvector dense retrieval → Cross-Encoder reranking). **Assessment schema hardened**: Rule 5 (numeric probability regex — hard rejection), Rule 10 (definitive diagnosis declarations — hard rejection), grounding violations upgraded from warnings to hard errors. **Contextual Intelligence & Review Rail**: six panel components (`CaseSignalsPanel`, `HypothesesRailPanel`, `EvidenceRailPanel`, `UncertaintyRailPanel`, `QuickReviewRailPanel`, `AskNexusRailPanel`) and refactored `IntelligenceRail.tsx` with Context Dispatch Matrix mounting 2–4 relevant panels per active center tab. Manual override filter (`AUTO / SIGNALS / REVIEW / EVIDENCE`). Build: ✓ 2025 modules, 0 TypeScript errors. |
 
 ---
 

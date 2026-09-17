@@ -548,6 +548,197 @@ export const SYNTHETIC_CASE_10482: FullSyntheticCase = {
   },
 };
 
+// ── Full Case Registry (used by openCaseById to switch active case) ──────────────────
+// Only case 10482 has a full synthetic dataset. All others get lightweight stubs
+// with enough data to render all workspace tabs without crashing.
+const makeSynthStub = (overview: CaseOverview, chiefComplaint: string, hpi: string): FullSyntheticCase => ({
+  overview,
+  chiefComplaint,
+  historyOfPresentIllness: hpi,
+  vitalSigns: [
+    { parameter: 'Heart Rate', value: '88', unit: 'bpm', recordedBy: 'Nurse', recordedAt: '08:00', sourceDevice: 'Bedside Monitor', status: 'Normal' },
+    { parameter: 'Temperature', value: '37.2', unit: '°C', recordedBy: 'Nurse', recordedAt: '08:00', sourceDevice: 'Thermometer', status: 'Normal' },
+    { parameter: 'Blood Pressure', value: '130/82', unit: 'mmHg', recordedBy: 'Nurse', recordedAt: '08:00', sourceDevice: 'NIBP', status: 'Normal' },
+    { parameter: 'Oxygen Saturation', value: '97', unit: '% on room air', recordedBy: 'Nurse', recordedAt: '08:00', sourceDevice: 'Pulse Oximeter', status: 'Normal' },
+  ],
+  pastMedicalHistory: ['No significant prior medical history documented.'],
+  findings: [
+    {
+      id: `f-stub-1-${overview.id}`,
+      label: 'Chief complaint consistent with presentation',
+      category: 'symptom' as const,
+      sourceDisplay: 'Clinical triage note',
+      statusDisplay: 'Documented',
+      provenance: {
+        sourceContext: 'Triage intake',
+        recordedBy: overview.assignedClinician,
+        recordedAt: 'Admission',
+        provenanceType: 'Human-entered',
+        verificationStatus: 'Unverified' as const,
+      },
+    },
+  ],
+  hypotheses: [
+    {
+      id: `hyp-stub-1-${overview.id}`,
+      title: 'Primary working diagnosis pending full evaluation',
+      statusDetail: 'Awaiting investigation results',
+      status: 'Uncertain' as const,
+      supportingFindingIds: [`f-stub-1-${overview.id}`],
+      contradictingFindingIds: [],
+      informationGapIds: [`gap-stub-1-${overview.id}`],
+      evidenceIds: [],
+      rationale: 'Clinical assessment ongoing; additional data required.',
+      nexusAssessment: 'Pending full evaluation',
+      clinicalReviewStatus: 'Pending Review' as const,
+    },
+  ],
+  uncertainty: {
+    dataCompleteness: 'Low',
+    dataCompletenessReason: 'Initial admission data only; awaiting laboratory tests.',
+    evidenceConsistency: 'Moderate',
+    evidenceConsistencyReason: 'Differential pending full clinical workup.',
+    modelApplicability: 'High',
+    modelApplicabilityReason: 'Standard acute medical presentation.',
+    overallState: 'INSUFFICIENT DATA',
+    primaryReason: 'Awaiting laboratory results and full examination.',
+  },
+  informationGaps: [
+    {
+      id: `gap-stub-1-${overview.id}`,
+      testName: 'Full blood count & metabolic panel',
+      whyItMatters: 'Baseline haematological and metabolic assessment required.',
+      priority: 'HIGH PRIORITY' as const,
+      affectedHypotheses: [`hyp-stub-1-${overview.id}`],
+      status: 'Requested' as const,
+    },
+  ],
+  investigations: [
+    {
+      id: `inv-stub-1-${overview.id}`,
+      caseId: overview.id,
+      testName: 'Full blood count',
+      category: 'Laboratory' as const,
+      priority: 'Routine' as const,
+      requestedBy: overview.assignedClinician,
+      requestedAt: 'Admission',
+      clinicalIndication: 'Baseline haematological assessment',
+      status: 'Requested' as const,
+    },
+  ],
+  timeline: [
+    {
+      id: `evt-stub-1-${overview.id}`,
+      time: 'Admission',
+      actor: 'CLINICIAN' as const,
+      actorName: overview.assignedClinician,
+      eventType: 'REVIEWED' as const,
+      title: 'Case opened and initial assessment recorded',
+      description: 'Clinical case opened. Triage notes recorded.',
+      isNexusSimulated: false,
+    },
+  ],
+  safetyIssues: overview.safetyIssueCount > 0
+    ? [{
+        id: `safe-stub-1-${overview.id}`,
+        title: 'Allergy conflict flagged on admission',
+        details: 'Documented allergy conflict — pharmacist review required before prescribing.',
+        reason: 'Patient reported drug allergy; cross-check with medication order needed.',
+        severity: 'High' as const,
+        status: 'Active - Review Required' as const,
+        affectedHypotheses: [`hyp-stub-1-${overview.id}`],
+        recommendedStep: 'Verify allergy history with patient before prescribing.',
+        detectedAt: 'Admission',
+      }]
+    : [],
+  clinicalDecision: {
+    caseId: overview.id,
+    isRecorded: false,
+    decisionMakerName: '',
+    decisionMakerRole: '',
+    assessment: '',
+    primaryDecision: '',
+    rationale: '',
+    supportingFindings: [],
+    supportingInvestigations: [],
+    supportingEvidence: [],
+    followUpPlan: '',
+    legalDisclaimerAcknowledged: false,
+  },
+  nexusAssessment: undefined,
+});
+
+// Build stub full cases for all non-10482 list entries
+const STUB_10001 = makeSynthStub(
+  {
+    id: '10001',
+    patient: { id: 'syn-pat-10001', syntheticIdentifier: 'Arthur Pendleton', age: 63, gender: 'Male', encounterNumber: '#E-10001', encounterType: 'Emergency evaluation', encounterDate: '10 Sep 2026', allergiesCount: 0, activeMedicationsCount: 3, allergies: [], medications: [] },
+    state: 'ANALYZING', priority: 'high', assignedClinician: 'Dr. Sarah Chen, MD', assignedTeam: ['Dr. Sarah Chen, MD (Lead)', 'Prof. Marcus Vance (Reviewer)'], lastUpdate: '12 min ago', safetyIssueCount: 0, gapsCount: 2, hypothesesCount: 2,
+  },
+  'Acute-onset chest pain radiating to left arm with diaphoresis',
+  '63-year-old male presenting to the emergency department with sudden-onset crushing central chest pain radiating to the left arm, associated with profuse sweating and mild dyspnoea. Onset approximately 45 minutes before arrival. No prior cardiac history. ECG in triage demonstrated ST changes in leads II, III, and aVF. Troponin sample drawn on arrival and pending.'
+);
+
+const STUB_10002 = makeSynthStub(
+  {
+    id: '10002',
+    patient: { id: 'syn-pat-10002', syntheticIdentifier: 'Beatriz Moreno-Silva', age: 40, gender: 'Female', encounterNumber: '#E-10002', encounterType: 'Inpatient admission', encounterDate: '09 Sep 2026', allergiesCount: 1, activeMedicationsCount: 4, allergies: [], medications: [] },
+    state: 'CONTRADICTORY', priority: 'high', assignedClinician: 'Dr. Sarah Chen, MD', assignedTeam: ['Dr. Sarah Chen, MD (Lead)', 'David Kim, MLS (Lab)'], lastUpdate: '35 min ago', safetyIssueCount: 2, gapsCount: 1, hypothesesCount: 3,
+  },
+  'Progressive confusion and word-finding difficulty over 48 hours',
+  '40-year-old female admitted via neurology referral with a 48-hour history of progressive confusion, expressive aphasia, and two self-limiting seizures witnessed by her partner. Background of SLE managed with hydroxychloroquine. MRI brain obtained earlier today shows T2/FLAIR signal abnormality in the left temporal lobe. Differential includes lupus cerebritis vs. CNS infection vs. metabolic encephalopathy. Laboratory results partially contradictory — CSF pending.'
+);
+
+const STUB_10003 = makeSynthStub(
+  {
+    id: '10003',
+    patient: { id: 'syn-pat-10003', syntheticIdentifier: 'Chukwuemeka Okonkwo', age: 69, gender: 'Male', encounterNumber: '#E-10003', encounterType: 'Outpatient encounter', encounterDate: '08 Sep 2026', allergiesCount: 2, activeMedicationsCount: 5, allergies: [], medications: [] },
+    state: 'INSUFFICIENT_DATA', priority: 'normal', assignedClinician: 'Dr. Sarah Chen, MD', assignedTeam: ['Dr. Sarah Chen, MD (Lead)', 'Elena Rostova, RN (Nurse)'], lastUpdate: '2 hr ago', safetyIssueCount: 0, gapsCount: 4, hypothesesCount: 1,
+  },
+  'Weight loss of 12 kg over 6 months and persistent fatigue',
+  '69-year-old male attending the outpatient clinic with 6 months of unintentional weight loss totalling approximately 12 kg, constitutional fatigue, and mild dyspepsia. Bowel habit has changed. No haemoptysis or haematuria. Examination reveals mild epigastric tenderness on deep palpation. Awaiting CT abdomen/pelvis, upper GI endoscopy, and extended blood panel. Differential is broad and data insufficient at this stage.'
+);
+
+const STUB_10481 = makeSynthStub(
+  {
+    id: '10481',
+    patient: { id: 'syn-pat-00481', syntheticIdentifier: 'Synthetic Patient B', age: 58, gender: 'Male', encounterNumber: '#00481', encounterType: 'Inpatient admission', encounterDate: '09 Sep 2026', allergiesCount: 0, activeMedicationsCount: 5, allergies: [], medications: [] },
+    state: 'ACTIVE', priority: 'normal', assignedClinician: 'Dr. Edward Vance, MD', assignedTeam: ['Dr. Edward Vance, MD', 'Sarah Chen, RN'], lastUpdate: '22 min ago', safetyIssueCount: 0, gapsCount: 2, hypothesesCount: 2,
+  },
+  'Worsening breathlessness on exertion and bilateral leg oedema',
+  '58-year-old male with known ischaemic cardiomyopathy (LVEF 35%) admitted with a 5-day history of progressive exertional dyspnoea now limiting to minimal activity, orthopnoea, and bilateral pitting oedema to the knees. Dry weight on last clinic visit was 82 kg; current weight is 87.4 kg. On optimal medical therapy including bisoprolol, ramipril, and furosemide. Chest X-ray demonstrates cardiomegaly and pulmonary venous congestion.'
+);
+
+const STUB_10479 = makeSynthStub(
+  {
+    id: '10479',
+    patient: { id: 'syn-pat-00479', syntheticIdentifier: 'Synthetic Patient C', age: 67, gender: 'Female', encounterNumber: '#00479', encounterType: 'Emergency evaluation', encounterDate: '08 Sep 2026', allergiesCount: 3, activeMedicationsCount: 8, allergies: [], medications: [] },
+    state: 'SAFETY_REVIEW', priority: 'urgent', assignedClinician: 'Dr. Emil Kowalski, MD', assignedTeam: ['Dr. Emil Kowalski, MD', 'Chioma Okafor, PharmD'], lastUpdate: '45 min ago', safetyIssueCount: 2, gapsCount: 1, hypothesesCount: 3,
+  },
+  'Acute hypoglycaemia with altered consciousness in a known diabetic',
+  '67-year-old female known insulin-dependent type 2 diabetic brought to the emergency department by ambulance following a witnessed collapse at home. Blood glucose on arrival 1.8 mmol/L. GCS 12/15 on arrival, improving with IV dextrose. Multiple complex drug interactions flagged on medication reconciliation — pharmacist safety review required. History of prior hypoglycaemic episodes. Three documented allergies including sulphonamides and two beta-blocker preparations.'
+);
+
+const STUB_10477 = makeSynthStub(
+  {
+    id: '10477',
+    patient: { id: 'syn-pat-00477', syntheticIdentifier: 'Synthetic Patient D', age: 34, gender: 'Male', encounterNumber: '#00477', encounterType: 'Outpatient encounter', encounterDate: '08 Sep 2026', allergiesCount: 1, activeMedicationsCount: 2, allergies: [], medications: [] },
+    state: 'ANALYZING', priority: 'normal', assignedClinician: 'Dr. Alistair Thorne, MD', assignedTeam: ['Dr. Alistair Thorne, MD', 'Marcus Rivera, MLS'], lastUpdate: '1 hr ago', safetyIssueCount: 0, gapsCount: 3, hypothesesCount: 2,
+  },
+  'Recurrent migratory joint pain and photosensitive facial rash',
+  '34-year-old male presenting to the rheumatology outpatient clinic with a 4-month history of migratory polyarthralgia, a photosensitive butterfly-shaped facial rash, and new-onset oral ulcers. Constitutional symptoms include fatigue and hair thinning. No significant prior diagnoses. ANA and anti-dsDNA sent. Nexus analysis initiated to map differential and identify contradictions in the evolving dataset.'
+);
+
+export const MOCK_FULL_CASES_REGISTRY: Record<string, FullSyntheticCase> = {
+  '10482': SYNTHETIC_CASE_10482,
+  '10001': STUB_10001,
+  '10002': STUB_10002,
+  '10003': STUB_10003,
+  '10481': STUB_10481,
+  '10479': STUB_10479,
+  '10477': STUB_10477,
+};
+
 export const MOCK_CASES_LIST: CaseOverview[] = [
   SYNTHETIC_CASE_10482.overview,
   {

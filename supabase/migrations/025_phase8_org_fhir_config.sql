@@ -136,7 +136,7 @@ create table if not exists public.organization_invitations (
   expires_at            timestamptz   not null default (now() + interval '7 days'),
 
   -- Accepted membership — populated on acceptance
-  accepted_membership_id uuid         references public.organization_memberships(id),
+  accepted_membership_id uuid         references public.organization_members(id),
   accepted_at           timestamptz,
 
   -- Revocation reason (audit trail)
@@ -188,7 +188,7 @@ language sql security definer stable
 as $$
   select exists (
     select 1
-    from public.organization_memberships
+    from public.organization_members
     where organization_id = p_org_id
       and user_id = auth.uid()
       and is_active = true
@@ -202,11 +202,11 @@ language sql security definer stable
 as $$
   select exists (
     select 1
-    from public.organization_memberships
+    from public.organization_members
     where organization_id = p_org_id
       and user_id = auth.uid()
       and is_active = true
-      and role = any(p_roles)
+      and role_name = any(p_roles)
   );
 $$;
 
@@ -295,19 +295,19 @@ begin
       (id, organization_id, name, system_type, protocol, base_url, trust_level, is_active, circuit_breaker_status, created_at)
     values
       (
-        'fhir-cfg-001'::uuid, v_org_id,
+        'f0000001-0000-0000-0000-000000000001'::uuid, v_org_id,
         'Epic EHR — Teaching Hospital', 'EHR', 'FHIR_R4',
         'https://epic.nexus-hospital.demo/api/FHIR/R4',
         'AUTHORITATIVE', true, 'CLOSED', '2026-01-15T08:00:00Z'
       ),
       (
-        'fhir-cfg-002'::uuid, v_org_id,
+        'f0000001-0000-0000-0000-000000000002'::uuid, v_org_id,
         'Mindray BeneVision — Bedside Devices', 'DEVICE', 'HL7_V2',
         'https://hl7.mindray.nexus-hospital.demo/mllp',
         'STANDARD', true, 'CLOSED', '2026-02-01T10:00:00Z'
       ),
       (
-        'fhir-cfg-003'::uuid, v_org_id,
+        'f0000001-0000-0000-0000-000000000003'::uuid, v_org_id,
         'LabSystems LIS — Pathology', 'LIS', 'FHIR_R4',
         'https://lis.nexus-hospital.demo/fhir/r4',
         'AUTHORITATIVE', true, 'HALF_OPEN', '2026-03-10T09:30:00Z'

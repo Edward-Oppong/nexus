@@ -8,6 +8,7 @@ import { LandingView } from '../../features/landing/LandingView';
 import { OverviewView } from '../../features/overview/OverviewView';
 import { CaseListView } from '../../features/cases/CaseListView';
 import { CaseWorkspaceView } from '../../features/case-workspace/CaseWorkspaceView';
+import { CaseIntakeWorkspace } from '../../features/cases/components/CaseIntakeWorkspace';
 import { PatientsView } from '../../features/patients/PatientsView';
 import { TasksView } from '../../features/tasks/TasksView';
 import { ReviewQueueView } from '../../features/review/ReviewQueueView';
@@ -22,11 +23,24 @@ import { EvidenceDrawer } from '../../components/drawers/EvidenceDrawer';
 import { ContextualAiModal } from '../../components/drawers/ContextualAiModal';
 import { KeyboardShortcutsModal } from '../../components/ui/KeyboardShortcutsModal';
 import { LoginPage } from '../../features/authentication/LoginPage';
+import { useAuth } from '../../features/authentication/AuthProvider';
+
+const ADMIN_ONLY_VIEWS = ['administration', 'ai-governance', 'regulatory-compliance'];
 
 export const AppShell: React.FC = () => {
   const { activeView, setActiveView, setActiveCaseSubTab } = useCase();
   const { closeAllDrawers, openShortcuts } = useDrawer();
+  const { isAuthenticated, role, loading } = useAuth();
   const [lastKey, setLastKey] = useState<string>('');
+
+  const isAdmin = role === 'organization_admin' || role === 'platform_admin';
+
+  // Route guard: If authenticated and role is clinician (non-admin) and activeView is admin-only → redirect to overview
+  useEffect(() => {
+    if (isAuthenticated && !isAdmin && ADMIN_ONLY_VIEWS.includes(activeView)) {
+      setActiveView('overview');
+    }
+  }, [isAuthenticated, isAdmin, activeView, setActiveView]);
 
   // Keyboard shortcut listener (Item 20)
   useEffect(() => {
@@ -79,6 +93,45 @@ export const AppShell: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [lastKey, closeAllDrawers, openShortcuts, setActiveView, setActiveCaseSubTab]);
 
+  // Loading state while checking session
+  if (loading) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#05080f',
+          color: '#94a3b8',
+          fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div
+            style={{
+              width: '24px',
+              height: '24px',
+              border: '2px solid rgba(14, 165, 233, 0.3)',
+              borderTopColor: '#0ea5e9',
+              borderRadius: '50%',
+              animation: 'spin 0.8s linear infinite',
+            }}
+          />
+          <span style={{ fontSize: '14px', letterSpacing: '0.02em', color: '#cbd5e1' }}>
+            Initializing Nexus Workstation...
+          </span>
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  // If not authenticated, always display the login gate regardless of activeView
+  if (!isAuthenticated) {
+    return <LoginPage onSuccess={() => setActiveView('overview')} />;
+  }
+
   // If in landing page mode, display the full editorial landing view
   if (activeView === 'landing') {
     return (
@@ -87,11 +140,6 @@ export const AppShell: React.FC = () => {
         <LandingView />
       </div>
     );
-  }
-
-  // If in dedicated authentication view, display clean clinical sign-in
-  if (activeView === 'login') {
-    return <LoginPage onSuccess={() => setActiveView('case-workspace')} />;
   }
 
   // Workstation Mode
@@ -103,6 +151,8 @@ export const AppShell: React.FC = () => {
         return <CaseListView />;
       case 'case-workspace':
         return <CaseWorkspaceView />;
+      case 'case-intake':
+        return <CaseIntakeWorkspace />;
       case 'patients':
         return <PatientsView />;
       case 'investigations':
@@ -141,11 +191,11 @@ export const AppShell: React.FC = () => {
           </main>
         );
       case 'administration':
-        return <AdministrationView />;
+        return isAdmin ? <AdministrationView /> : <OverviewView />;
       case 'ai-governance':
-        return <AiGovernanceView />;
+        return isAdmin ? <AiGovernanceView /> : <OverviewView />;
       case 'regulatory-compliance':
-        return <RegulatoryComplianceView />;
+        return isAdmin ? <RegulatoryComplianceView /> : <OverviewView />;
       default:
         return <CaseWorkspaceView />;
     }

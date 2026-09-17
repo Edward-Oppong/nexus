@@ -73,7 +73,7 @@ export interface QualitativeUncertainty {
 export interface InformationGap {
   id: string;
   testName: string;
-  priority: 'HIGH PRIORITY' | 'MODERATE PRIORITY' | 'ROUTINE';
+  priority: 'HIGH PRIORITY' | 'MODERATE PRIORITY' | 'ROUTINE' | 'High' | 'Moderate' | 'Routine';
   whyItMatters: string;
   affectedHypotheses: string[];
   status: 'Not yet resolved' | 'Requested' | 'Result received';

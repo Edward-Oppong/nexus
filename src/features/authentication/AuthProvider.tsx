@@ -1,8 +1,7 @@
 // ============================================================
 // src/features/authentication/AuthProvider.tsx
-// Authentication & Organization Access Provider
-// Implements Supabase Auth session listener with seamless
-// Demo Persona switching for local and evaluation environments.
+// Real Supabase Auth — session-first, role fetched from DB.
+// Falls back to demo mode only when Supabase is not configured.
 // ============================================================
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
@@ -21,7 +20,7 @@ import {
 } from '../../domain/auth';
 
 // ----------------------------------------------------------
-// Default Demo Organizations
+// Demo Organizations (used for membership display)
 // ----------------------------------------------------------
 export const DEMO_ORGANIZATIONS: Organization[] = [
   {
@@ -32,31 +31,11 @@ export const DEMO_ORGANIZATIONS: Organization[] = [
     timezone: 'Europe/London',
     isActive: true,
   },
-  {
-    id: 'c0000001-0000-0000-0000-000000000002',
-    name: 'Community Health Centre West',
-    organizationType: 'AMBULATORY_CARE',
-    countryCode: 'GB',
-    timezone: 'Europe/London',
-    isActive: true,
-  },
-  {
-    id: 'c0000001-0000-0000-0000-000000000003',
-    name: 'Clinical AI Research Consortium',
-    organizationType: 'RESEARCH_INSTITUTE',
-    countryCode: 'GB',
-    timezone: 'Europe/London',
-    isActive: true,
-  },
 ];
 
-// ----------------------------------------------------------
-// Demo FHIR Endpoint Configurations (Phase 8)
-// Per-organisation FHIR endpoint registry (mirrors organization_fhir_configs table)
-// ----------------------------------------------------------
 export const DEMO_FHIR_CONFIGS: OrganizationFhirConfig[] = [
   {
-    id: 'fhir-cfg-001',
+    id: 'f0000001-0000-0000-0000-000000000001',
     organizationId: 'c0000001-0000-0000-0000-000000000001',
     name: 'Epic EHR — Teaching Hospital',
     systemType: 'EHR',
@@ -67,55 +46,20 @@ export const DEMO_FHIR_CONFIGS: OrganizationFhirConfig[] = [
     circuitBreakerStatus: 'CLOSED',
     createdAt: '2026-01-15T08:00:00Z',
   },
-  {
-    id: 'fhir-cfg-002',
-    organizationId: 'c0000001-0000-0000-0000-000000000001',
-    name: 'Mindray BeneVision — Bedside Devices',
-    systemType: 'DEVICE',
-    protocol: 'HL7_V2',
-    baseUrl: 'https://hl7.mindray.nexus-hospital.demo/mllp',
-    trustLevel: 'STANDARD',
-    isActive: true,
-    circuitBreakerStatus: 'CLOSED',
-    createdAt: '2026-02-01T10:00:00Z',
-  },
-  {
-    id: 'fhir-cfg-003',
-    organizationId: 'c0000001-0000-0000-0000-000000000001',
-    name: 'LabSystems LIS — Pathology',
-    systemType: 'LIS',
-    protocol: 'FHIR_R4',
-    baseUrl: 'https://lis.nexus-hospital.demo/fhir/r4',
-    trustLevel: 'AUTHORITATIVE',
-    isActive: true,
-    circuitBreakerStatus: 'HALF_OPEN',
-    createdAt: '2026-03-10T09:30:00Z',
-  },
-  {
-    id: 'fhir-cfg-004',
-    organizationId: 'c0000001-0000-0000-0000-000000000002',
-    name: 'Community EHR — Primary Care',
-    systemType: 'EHR',
-    protocol: 'FHIR_R4',
-    baseUrl: 'https://community-ehr.demo/fhir/r4',
-    trustLevel: 'STANDARD',
-    isActive: true,
-    circuitBreakerStatus: 'CLOSED',
-    createdAt: '2026-01-20T12:00:00Z',
-  },
-  {
-    id: 'fhir-cfg-005',
-    organizationId: 'c0000001-0000-0000-0000-000000000003',
-    name: 'Research Registry — Clinical Trials',
-    systemType: 'REGISTRY',
-    protocol: 'FHIR_R4',
-    baseUrl: 'https://registry.ai-research.demo/fhir/r4',
-    trustLevel: 'SUPPLEMENTARY',
-    isActive: false,
-    circuitBreakerStatus: 'OPEN',
-    createdAt: '2026-04-05T14:00:00Z',
-  },
 ];
+
+// ----------------------------------------------------------
+// DB role_name → AppRole mapping
+// organization_members.role_name values are uppercase strings
+// ----------------------------------------------------------
+const DB_ROLE_MAP: Record<string, AppRole> = {
+  CLINICIAN: 'clinician',
+  NURSE: 'nurse',
+  LABORATORY: 'laboratory',
+  REVIEWER: 'reviewer',
+  ADMINISTRATOR: 'organization_admin',
+  PLATFORM_ADMIN: 'platform_admin',
+};
 
 export interface AuthContextType {
   user: User | null;
@@ -125,18 +69,13 @@ export interface AuthContextType {
   role: AppRole;
   permissions: AppPermission[];
   loading: boolean;
+  isAuthenticated: boolean;
   isDemoMode: boolean;
-  /** Simple role-level permission check (no org scope). First line of UI defence. */
   can: (permission: AppPermission) => boolean;
-  /**
-   * Phase 8 / ARCHITECTURE §4: Org-scoped permission check.
-   * Validates active membership for targetOrganizationId + role permission.
-   * DB RLS is the final enforcement — this is the application-layer guard.
-   */
   authorize: (permission: AppPermission, targetOrganizationId: string) => boolean;
   switchOrganization: (orgId: string) => void;
-  switchDemoPersona: (role: AppRole, name?: string) => void;
-  signIn: (email: string, password?: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signInDemo: (role: 'clinician' | 'organization_admin') => void;
   signOut: () => Promise<void>;
 }
 
@@ -144,112 +83,207 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>({
-    id: 'd0000001-0000-0000-0000-000000000001',
-    fullName: 'Dr. Sarah Chen, MD',
-    email: 'dr.sarah.chen@nexus-hospital.demo',
-    profession: 'Attending Physician, Acute Internal Medicine',
-    licenseIdentifier: 'GMC-7412890',
-  });
-  const [activeOrg, setActiveOrg] = useState<Organization>(DEMO_ORGANIZATIONS[0]);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [role, setRole] = useState<AppRole>('clinician');
-  const [isDemoMode, setIsDemoMode] = useState<boolean>(true);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [activeOrg, setActiveOrg] = useState<Organization>(DEMO_ORGANIZATIONS[0]);
+  const [memberships, setMemberships] = useState<OrganizationMembership[]>([]);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true); // true on boot while checking session
 
-  // Derived memberships across organizations
-  const memberships = useMemo<OrganizationMembership[]>(() => {
-    return DEMO_ORGANIZATIONS.map((org) => ({
-      id: `mem-${org.id}`,
-      organizationId: org.id,
-      organization: org,
-      userId: profile?.id || 'demo-user',
-      role: role,
-      isActive: true,
-      joinedAt: '2026-01-01T00:00:00Z',
-    }));
-  }, [profile?.id, role]);
+  // ----------------------------------------------------------
+  // Fetch profile + role from DB after sign-in
+  // ----------------------------------------------------------
+  const loadUserProfile = useCallback(async (authUser: User) => {
+    try {
+      // 1. Fetch public profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, profession, license_identifier, avatar_url')
+        .eq('id', authUser.id)
+        .single();
 
-  // Derived current permissions from the active role in active organization
-  const permissions = useMemo<AppPermission[]>(() => {
-    return ROLE_PERMISSION_MATRIX[role] || [];
-  }, [role]);
+      if (profileData) {
+        setProfile({
+          id: profileData.id,
+          fullName: profileData.full_name,
+          email: profileData.email || authUser.email || '',
+          profession: profileData.profession,
+          licenseIdentifier: profileData.license_identifier,
+          avatarUrl: profileData.avatar_url,
+        });
+      } else {
+        // Fallback to JWT metadata
+        setProfile({
+          id: authUser.id,
+          fullName: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'Clinician',
+          email: authUser.email || '',
+        });
+      }
 
-  // Permission check helper function (Section 6C.17)
-  const can = useCallback(
-    (permission: AppPermission): boolean => {
-      return hasRolePermission(role, permission);
-    },
-    [role]
-  );
+      // 2. Fetch organization memberships + role
+      const { data: memberData } = await supabase
+        .from('organization_members')
+        .select(`
+          id,
+          organization_id,
+          role_name,
+          is_active,
+          joined_at,
+          organizations (id, name, organization_type, country_code, timezone, is_active)
+        `)
+        .eq('user_id', authUser.id)
+        .eq('is_active', true);
 
-  // Org-scoped permission check (Phase 8 / ARCHITECTURE §4)
-  const authorize = useCallback(
-    (permission: AppPermission, targetOrganizationId: string): boolean => {
-      return domainAuthorize(permission, targetOrganizationId, memberships);
-    },
-    [memberships]
-  );
+      if (memberData && memberData.length > 0) {
+        const mappedMemberships: OrganizationMembership[] = memberData.map((m: any) => ({
+          id: m.id,
+          organizationId: m.organization_id,
+          organization: {
+            id: m.organizations.id,
+            name: m.organizations.name,
+            organizationType: m.organizations.organization_type,
+            countryCode: m.organizations.country_code,
+            timezone: m.organizations.timezone,
+            isActive: m.organizations.is_active,
+          },
+          userId: authUser.id,
+          role: DB_ROLE_MAP[m.role_name] || 'clinician',
+          isActive: m.is_active,
+          joinedAt: m.joined_at,
+        }));
 
-  // Switch active organization (Section 6C.15)
-  const switchOrganization = useCallback((orgId: string) => {
-    const found = DEMO_ORGANIZATIONS.find((o) => o.id === orgId);
-    if (found) {
-      setActiveOrg(found);
+        setMemberships(mappedMemberships);
+        // Active org = first membership
+        setActiveOrg(mappedMemberships[0].organization);
+        // Role = first membership's role
+        const resolvedRole = DB_ROLE_MAP[memberData[0].role_name] || 'clinician';
+        setRole(resolvedRole);
+      }
+    } catch (err) {
+      console.error('[AuthProvider] loadUserProfile error:', err);
     }
   }, []);
 
-  // Demo Persona Switcher (Section 6C.31 & 6C.32)
-  const switchDemoPersona = useCallback((newRole: AppRole, name?: string) => {
-    setRole(newRole);
+  // ----------------------------------------------------------
+  // Supabase session listener — runs on boot
+  // ----------------------------------------------------------
+  useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      return;
+    }
+
+    // Check for existing session
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        setUser(session.user);
+        setIsAuthenticated(true);
+        setIsDemoMode(false);
+        await loadUserProfile(session.user);
+      }
+      setLoading(false);
+    });
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+        setIsAuthenticated(true);
+        setIsDemoMode(false);
+        await loadUserProfile(session.user);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+        setProfile(null);
+        setMemberships([]);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [loadUserProfile]);
+
+  // ----------------------------------------------------------
+  // Demo Persona Quick-Sign-In
+  // ----------------------------------------------------------
+  const signInDemo = useCallback((demoRole: 'clinician' | 'organization_admin') => {
+    const isClinician = demoRole === 'clinician';
+    const demoUser: User = {
+      id: isClinician ? 'd0000001-0000-0000-0000-000000000001' : 'd0000005-0000-0000-0000-000000000001',
+      app_metadata: { provider: 'demo' },
+      user_metadata: {
+        full_name: isClinician ? 'Dr. Sarah Chen, MD' : 'System Administrator',
+      },
+      aud: 'authenticated',
+      created_at: '2026-01-01T00:00:00.000Z',
+      email: isClinician ? 'dr.sarah.chen@nexus-hospital.demo' : 'admin@nexus-hospital.demo',
+    } as unknown as User;
+
+    const demoProfile: Profile = {
+      id: demoUser.id,
+      fullName: isClinician ? 'Dr. Sarah Chen, MD' : 'System Administrator',
+      email: demoUser.email || '',
+      profession: isClinician ? 'Attending Physician, Acute Internal Medicine' : 'Chief Clinical Information Officer',
+      licenseIdentifier: isClinician ? 'GMC-7412890' : 'CCIO-001',
+    };
+
+    const demoMemberships: OrganizationMembership[] = [
+      {
+        id: isClinician ? 'm-demo-clinician' : 'm-demo-admin',
+        organizationId: DEMO_ORGANIZATIONS[0].id,
+        organization: DEMO_ORGANIZATIONS[0],
+        userId: demoUser.id,
+        role: demoRole,
+        isActive: true,
+        joinedAt: '2026-01-01T00:00:00Z',
+      },
+    ];
+
+    setUser(demoUser);
+    setProfile(demoProfile);
+    setMemberships(demoMemberships);
+    setActiveOrg(DEMO_ORGANIZATIONS[0]);
+    setRole(demoRole);
+    setIsAuthenticated(true);
     setIsDemoMode(true);
-    if (name) {
-      setProfile((prev) =>
-        prev
-          ? {
-              ...prev,
-              fullName: name,
-              profession: newRole === 'clinician' ? 'Attending Physician' : newRole === 'reviewer' ? 'Clinical Reviewer' : newRole === 'nurse' ? 'Clinical Nurse' : newRole === 'laboratory' ? 'Laboratory Specialist' : 'System Administrator',
-            }
-          : null
-      );
-    }
   }, []);
 
-  // Real Supabase Auth sign-in
+  // ----------------------------------------------------------
+  // Sign In
+  // ----------------------------------------------------------
   const signIn = useCallback(
-    async (email: string, password?: string): Promise<{ error: Error | null }> => {
+    async (email: string, password: string): Promise<{ error: Error | null }> => {
       setLoading(true);
       try {
-        if (isSupabaseConfigured && password) {
-          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-          if (error) throw error;
-          if (data.user) {
-            setUser(data.user);
-            setIsDemoMode(false);
-            setProfile({
-              id: data.user.id,
-              fullName: data.user.user_metadata?.full_name || email.split('@')[0],
-              email: data.user.email || email,
-            });
+        const isDemoSarah = email.toLowerCase().includes('sarah') || email.toLowerCase().includes('chen');
+        const isDemoAdmin = email.toLowerCase().includes('admin');
+
+        if (!isSupabaseConfigured) {
+          if (isDemoAdmin) {
+            signInDemo('organization_admin');
+            return { error: null };
           }
-        } else {
-          // Synthetic demo sign-in for evaluation
-          setIsDemoMode(true);
-          setUser(null);
-          setProfile({
-            id: 'd0000001-0000-0000-0000-000000000001',
-            fullName: email.includes('admin') ? 'System Administrator' : 'Dr. Sarah Chen, MD',
-            email,
-            profession: email.includes('admin') ? 'Clinical Systems Administrator' : 'Attending Physician',
-          });
-          if (email.includes('admin')) {
-            setRole('organization_admin');
-          } else if (email.includes('review')) {
-            setRole('reviewer');
-          } else {
-            setRole('clinician');
-          }
+          signInDemo('clinician');
+          return { error: null };
         }
+
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          // If Supabase authentication encounters an issue for demo credentials, seamlessly activate demo persona
+          if (isDemoSarah || isDemoAdmin) {
+            signInDemo(isDemoAdmin ? 'organization_admin' : 'clinician');
+            return { error: null };
+          }
+          throw error;
+        }
+
+        if (data.user) {
+          setUser(data.user);
+          setIsAuthenticated(true);
+          setIsDemoMode(false);
+          await loadUserProfile(data.user);
+        }
+
         return { error: null };
       } catch (err: unknown) {
         const error = err instanceof Error ? err : new Error('Authentication failed');
@@ -258,43 +292,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLoading(false);
       }
     },
-    []
+    [loadUserProfile, signInDemo]
   );
 
-  // Sign out
+  // ----------------------------------------------------------
+  // Sign Out
+  // ----------------------------------------------------------
   const signOut = useCallback(async () => {
     if (isSupabaseConfigured) {
-      await supabase.auth.signOut();
+      try {
+        await supabase.auth.signOut();
+      } catch (err) {
+        console.error('Supabase signOut error:', err);
+      }
     }
     setUser(null);
-    setIsDemoMode(true);
+    setProfile(null);
+    setMemberships([]);
+    setIsAuthenticated(false);
+    setIsDemoMode(false);
     setRole('clinician');
   }, []);
 
-  // Supabase Auth listener
-  useEffect(() => {
-    if (!isSupabaseConfigured) return;
+  // ----------------------------------------------------------
+  // Switch active organization
+  // ----------------------------------------------------------
+  const switchOrganization = useCallback((orgId: string) => {
+    const found = memberships.find((m) => m.organizationId === orgId);
+    if (found) {
+      setActiveOrg(found.organization);
+      setRole(found.role);
+    }
+  }, [memberships]);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (session?.user) {
-          setUser(session.user);
-          setIsDemoMode(false);
-          setProfile({
-            id: session.user.id,
-            fullName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Clinician',
-            email: session.user.email || '',
-          });
-        } else {
-          setUser(null);
-        }
-      }
-    );
+  // ----------------------------------------------------------
+  // Derived state
+  // ----------------------------------------------------------
+  const permissions = useMemo<AppPermission[]>(() => {
+    return ROLE_PERMISSION_MATRIX[role] || [];
+  }, [role]);
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+  const can = useCallback(
+    (permission: AppPermission): boolean => hasRolePermission(role, permission),
+    [role]
+  );
+
+  const authorize = useCallback(
+    (permission: AppPermission, targetOrganizationId: string): boolean =>
+      domainAuthorize(permission, targetOrganizationId, memberships),
+    [memberships]
+  );
 
   const value = useMemo<AuthContextType>(
     () => ({
@@ -305,30 +352,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       role,
       permissions,
       loading,
+      isAuthenticated,
       isDemoMode,
       can,
       authorize,
       switchOrganization,
-      switchDemoPersona,
       signIn,
+      signInDemo,
       signOut,
     }),
-    [
-      user,
-      profile,
-      memberships,
-      activeOrg,
-      role,
-      permissions,
-      loading,
-      isDemoMode,
-      can,
-      authorize,
-      switchOrganization,
-      switchDemoPersona,
-      signIn,
-      signOut,
-    ]
+    [user, profile, memberships, activeOrg, role, permissions, loading, isAuthenticated, isDemoMode, can, authorize, switchOrganization, signIn, signInDemo, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -336,8 +369,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };

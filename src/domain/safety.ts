@@ -4,6 +4,8 @@ export type SafetyStatus = 'Active - Review Required' | 'Acknowledged' | 'Resolv
 export interface SafetyIssue {
   id: string;
   title: string;
+  category?: string;
+  description?: string;
   severity: SafetySeverity;
   affectedHypotheses: string[];
   reason: string;

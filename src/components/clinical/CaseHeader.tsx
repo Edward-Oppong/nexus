@@ -3,6 +3,7 @@ import { useCase } from '../../app/providers/CaseContext';
 import { usePersona } from '../../app/providers/PersonaContext';
 import { ArrowLeft, AlertTriangle, Plus, FileText, CheckCircle2, ShieldAlert, Wifi, WifiOff } from 'lucide-react';
 import { offlineSyncEngine } from '../../lib/interoperability/advanced/offline-sync-engine';
+import { ACTIVE_COLLABORATIVE_REVIEWERS } from '../../lib/persistence/realtime-collaboration';
 
 export const CaseHeader: React.FC = () => {
   const { activeCase, setActiveView, setActiveCaseSubTab } = useCase();
@@ -95,6 +96,37 @@ export const CaseHeader: React.FC = () => {
 
         {/* Action Buttons with Role Permission Checks */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Phase 13 Collaborative Presence Avatars */}
+          <div
+            title="Active Clinicians in Collaborative Session: 3 reviewers online"
+            style={{ display: 'flex', alignItems: 'center', marginRight: '4px' }}
+          >
+            {ACTIVE_COLLABORATIVE_REVIEWERS.map((rev, idx) => (
+              <div
+                key={rev.id}
+                title={`${rev.name} (${rev.role}) · Active in ${rev.currentTab}`}
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  background: rev.avatarColor,
+                  color: '#FFFFFF',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginLeft: idx === 0 ? 0 : '-6px',
+                  border: '2px solid #FFFFFF',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.12)',
+                  cursor: 'default',
+                }}
+              >
+                {rev.initials}
+              </div>
+            ))}
+          </div>
+
           {/* Phase 10 Offline-First Network Status Badge */}
           <div
             onClick={() => {

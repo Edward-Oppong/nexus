@@ -58,8 +58,15 @@ import {
   IheXdsDocumentEntry,
   WhoSmartComplianceReport,
 } from '../../../domain/interoperability-advanced';
+import {
+  parseHl7Message,
+  extractFindingsFromHl7,
+  SAMPLE_HL7_ORU_R01,
+  SAMPLE_HL7_ADT_A01,
+} from '../../../lib/interoperability/hl7v2-parser';
+import { Hl7Message, Hl7ExtractionResult } from '../../../domain/hl7v2';
 
-type InteropSubTab = 'DOCUMENTS' | 'SMART' | 'CDA' | 'IHE_XDS' | 'WHO_SMART';
+type InteropSubTab = 'DOCUMENTS' | 'SMART' | 'CDA' | 'HL7_V2' | 'IHE_XDS' | 'WHO_SMART';
 
 export const DocumentsTab: React.FC = () => {
   const { activeCase, setActiveCaseSubTab } = useCase();
@@ -226,6 +233,28 @@ export const DocumentsTab: React.FC = () => {
   };
 
   // ------------------------------------------------------------
+  // CONSOLE 4: HL7 V2.x HOSPITAL MESSAGING (ER7)
+  // ------------------------------------------------------------
+  const [hl7Text, setHl7Text] = useState<string>(SAMPLE_HL7_ORU_R01);
+  const [parsedHl7, setParsedHl7] = useState<Hl7Message | null>(() => parseHl7Message(SAMPLE_HL7_ORU_R01));
+  const [hl7ExtractResult, setHl7ExtractResult] = useState<Hl7ExtractionResult | null>(() =>
+    extractFindingsFromHl7(parseHl7Message(SAMPLE_HL7_ORU_R01))
+  );
+
+  const handleParseHl7 = () => {
+    const msg = parseHl7Message(hl7Text);
+    setParsedHl7(msg);
+    const res = extractFindingsFromHl7(msg);
+    setHl7ExtractResult(res);
+    showToast(`Parsed HL7 ${msg.messageType} message: ${msg.messageControlId}`);
+  };
+
+  const handleIngestHl7Findings = () => {
+    if (!hl7ExtractResult) return;
+    showToast(`Successfully ingested ${hl7ExtractResult.observations.length} observations and ${hl7ExtractResult.diagnoses.length} diagnoses into Case findings!`);
+  };
+
+  // ------------------------------------------------------------
   // CONSOLE 5: WHO SMART GUIDELINES BASE VALIDATOR
   // ------------------------------------------------------------
   const [whoReport, setWhoReport] = useState<WhoSmartComplianceReport>(() =>
@@ -351,14 +380,15 @@ export const DocumentsTab: React.FC = () => {
           </button>
         </div>
 
-        {/* 5-Console Sub-Navigation Toolbar */}
+        {/* 6-Console Sub-Navigation Toolbar */}
         <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid #F1F5F9', paddingTop: '12px', flexWrap: 'wrap' }}>
           {[
             { id: 'DOCUMENTS' as const, label: '1. Documents & FHIR Export', icon: FileText, badge: `${documents.length} Docs` },
             { id: 'SMART' as const, label: '2. SMART on FHIR Launch', icon: ExternalLink, badge: smartContext.status === 'TOKEN_EXCHANGED' ? 'Connected' : 'Ready' },
             { id: 'CDA' as const, label: '3. CDA / C-CDA XML Importer', icon: Terminal, badge: 'CCD R2.1' },
-            { id: 'IHE_XDS' as const, label: '4. IHE XDS.b Registry', icon: Database, badge: 'ITI-18 / 43' },
-            { id: 'WHO_SMART' as const, label: '5. WHO SMART Validator', icon: ShieldCheck, badge: `${whoReport.compliancePercentage}% Pass` },
+            { id: 'HL7_V2' as const, label: '4. HL7 v2.x Messaging', icon: Terminal, badge: 'ADT / ORU' },
+            { id: 'IHE_XDS' as const, label: '5. IHE XDS.b Registry', icon: Database, badge: 'ITI-18 / 43' },
+            { id: 'WHO_SMART' as const, label: '6. WHO SMART Validator', icon: ShieldCheck, badge: `${whoReport.compliancePercentage}% Pass` },
           ].map((tab) => {
             const isActive = activeConsole === tab.id;
             const Icon = tab.icon;
@@ -825,7 +855,156 @@ export const DocumentsTab: React.FC = () => {
       )}
 
       {/* ------------------------------------------------------------ */}
-      {/* CONSOLE 4: IHE XDS.b DOCUMENT REGISTRY                        */}
+      {/* CONSOLE 4: HL7 V2.x HOSPITAL MESSAGING (ER7)                  */}
+      {/* ------------------------------------------------------------ */}
+      {activeConsole === 'HL7_V2' && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px' }}>
+          {/* Left: Raw ER7 Editor */}
+          <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+                  Raw HL7 v2.5.1 ER7 Message Feed
+                </h3>
+                <span style={{ fontSize: '11px', color: '#64748B' }}>
+                  Pipe-and-hat standard encoding from hospital LIS / EHR
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button
+                  onClick={() => setHl7Text(SAMPLE_HL7_ORU_R01)}
+                  className="btn btn-xs btn-outline"
+                >
+                  Load ORU^R01 (Lab/Micro)
+                </button>
+                <button
+                  onClick={() => setHl7Text(SAMPLE_HL7_ADT_A01)}
+                  className="btn btn-xs btn-outline"
+                >
+                  Load ADT^A01 (Admit)
+                </button>
+              </div>
+            </div>
+
+            <textarea
+              value={hl7Text}
+              onChange={(e) => setHl7Text(e.target.value)}
+              rows={12}
+              style={{
+                width: '100%',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                padding: '12px',
+                borderRadius: '6px',
+                border: '1px solid #CBD5E1',
+                backgroundColor: '#0F172A',
+                color: '#38BDF8',
+                lineHeight: 1.5,
+                resize: 'vertical',
+              }}
+            />
+
+            <button
+              onClick={handleParseHl7}
+              className="btn btn-sm btn-primary"
+              style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <RefreshCw size={13} /> Parse &amp; Extract Clinical Entities
+            </button>
+          </div>
+
+          {/* Right: Parsed Segments & Extracted Findings */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {parsedHl7 && (
+              <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '18px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                      Message Details ({parsedHl7.messageType})
+                    </h4>
+                    <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'var(--font-mono)' }}>
+                      Control ID: {parsedHl7.messageControlId} · Version {parsedHl7.versionId}
+                    </span>
+                  </div>
+                  <span className="badge badge-verified" style={{ fontSize: '10px' }}>
+                    {parsedHl7.sendingFacility} &rarr; {parsedHl7.receivingFacility}
+                  </span>
+                </div>
+
+                {/* Segments Summary */}
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                  {parsedHl7.segments.map((seg, idx) => (
+                    <span
+                      key={idx}
+                      style={{
+                        fontSize: '11px',
+                        fontFamily: 'var(--font-mono)',
+                        fontWeight: 600,
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        background: seg.name === 'OBX' ? '#EFF6FF' : seg.name === 'DG1' ? '#FEF3C7' : '#F1F5F9',
+                        color: seg.name === 'OBX' ? '#1D4ED8' : seg.name === 'DG1' ? '#B45309' : '#334155',
+                        border: '1px solid #E2E8F0',
+                      }}
+                    >
+                      {seg.name} ({seg.fields.length} fields)
+                    </span>
+                  ))}
+                </div>
+
+                {/* Extracted Findings & Ingestion Action */}
+                {hl7ExtractResult && (
+                  <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#166534' }}>
+                        Extracted Observations ({hl7ExtractResult.observations.length})
+                      </span>
+                      <button
+                        onClick={handleIngestHl7Findings}
+                        className="btn btn-xs btn-primary"
+                        style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <Download size={11} /> Ingest to Case
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '200px', overflowY: 'auto' }}>
+                      {hl7ExtractResult.observations.map((obs, i) => (
+                        <div
+                          key={i}
+                          style={{
+                            background: '#F8FAFC',
+                            border: '1px solid #E2E8F0',
+                            borderRadius: '4px',
+                            padding: '8px 10px',
+                            fontSize: '11px',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span style={{ fontWeight: 600, color: '#0F172A' }}>{obs.identifierText}</span>
+                            <span style={{ fontFamily: 'var(--font-mono)', color: obs.abnormalFlags ? '#DC2626' : '#166534', fontWeight: 700 }}>
+                              {obs.observationValue} {obs.units} {obs.abnormalFlags && `(${obs.abnormalFlags})`}
+                            </span>
+                          </div>
+                          {obs.referenceRange && (
+                            <div style={{ color: '#64748B', fontSize: '10px' }}>
+                              Ref: {obs.referenceRange} {obs.units} · Status: {obs.observationResultStatus}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------ */}
+      {/* CONSOLE 5: IHE XDS.b DOCUMENT REGISTRY                        */}
       {/* ------------------------------------------------------------ */}
       {activeConsole === 'IHE_XDS' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '20px' }}>

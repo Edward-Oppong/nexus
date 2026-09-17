@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import { useCase } from '../../app/providers/CaseContext';
 import { useAuth } from '../authentication/AuthProvider';
-import { CreateCaseDialog } from './components/CreateCaseDialog';
 import { Search, Filter, AlertTriangle, ShieldAlert, CheckCircle2, ArrowRight, Plus } from 'lucide-react';
 
 export const CaseListView: React.FC = () => {
-  const { casesList, openCaseById } = useCase();
+  const { casesList, openCaseById, setActiveView } = useCase();
   const { can } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'my' | 'review' | 'contradictory' | 'insufficient' | 'safety'>('all');
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const filteredCases = casesList.filter((c) => {
     const matchesSearch =
@@ -65,7 +63,7 @@ export const CaseListView: React.FC = () => {
             {can('case.create') && (
               <button
                 type="button"
-                onClick={() => setIsCreateOpen(true)}
+                onClick={() => setActiveView('case-intake')}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -87,16 +85,6 @@ export const CaseListView: React.FC = () => {
             )}
           </div>
         </div>
-
-        <CreateCaseDialog
-          isOpen={isCreateOpen}
-          onClose={() => setIsCreateOpen(false)}
-          onCaseCreated={async (params) => {
-            // Simulated case creation in CaseListView
-            openCaseById('10482');
-            return { error: null };
-          }}
-        />
 
         {/* Filter & Search Bar */}
         <div

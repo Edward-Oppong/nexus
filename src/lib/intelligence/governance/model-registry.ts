@@ -2,35 +2,169 @@
 // src/lib/intelligence/governance/model-registry.ts
 // Phase 11: Clinical AI Model Version Registry
 // Tracks model calibration, medical benchmarks, context windows, and safety tiers
+// Formal registry for the specialized Nexus multi-model stack.
 // ============================================================
 
 import {
   AiModelRegistryEntry,
-  ModelDeploymentStatus,
 } from '../../../domain/ai-governance';
+
+export interface SpecializedModelCard {
+  id: string;
+  hfModelId: string;
+  name: string;
+  provider: string;
+  role: 'NER' | 'DOCUMENT_CLASSIFIER' | 'FINDING_CLASSIFIER' | 'QUERY_EMBEDDING' | 'ARTICLE_EMBEDDING' | 'RERANKING' | 'SUMMARIZATION' | 'REASONING';
+  version: string;
+  status: 'ACTIVE' | 'TESTING' | 'CHALLENGER' | 'DEPRECATED';
+  parameters: string;
+  contextWindow: number;
+  description: string;
+  architecturalConstraint: string;
+}
+
+export const NEXUS_SPECIALIZED_MODEL_STACK: SpecializedModelCard[] = [
+  {
+    id: 'medbert-clinical-ner',
+    hfModelId: 'ribhu/medbert-clinical-ner',
+    name: 'MedBERT Clinical NER',
+    provider: 'Hugging Face / Community',
+    role: 'NER',
+    version: '1.0.0',
+    status: 'ACTIVE',
+    parameters: '110M',
+    contextWindow: 512,
+    description: 'High-throughput token classification extracting symptoms, diseases, medications, procedures, and anatomical spans.',
+    architecturalConstraint: 'Emits candidate spans with character offsets; never creates verified findings directly.',
+  },
+  {
+    id: 'clinicalbert-doc-classifier',
+    hfModelId: 'ParamDev/clinicalbert-medical-doc-classifier',
+    name: 'ClinicalBERT Document Classifier',
+    provider: 'Hugging Face / Community',
+    role: 'DOCUMENT_CLASSIFIER',
+    version: '1.2.0',
+    status: 'ACTIVE',
+    parameters: '110M',
+    contextWindow: 512,
+    description: 'Categorizes uploaded clinical PDFs into Lab Reports, Imaging, Clinical Notes, Discharge Summaries, and Referrals.',
+    architecturalConstraint: 'Determines downstream extraction pipeline; does not establish clinical ground truth.',
+  },
+  {
+    id: 'bioclinicalbert-finding-classifier',
+    hfModelId: 'emilyalsentzer/Bio_ClinicalBERT',
+    name: 'Nexus BioClinicalBERT Finding Classifier (Fine-Tuned)',
+    provider: 'Nexus / MIT LCP',
+    role: 'FINDING_CLASSIFIER',
+    version: '2.0.1-ft',
+    status: 'ACTIVE',
+    parameters: '110M',
+    contextWindow: 512,
+    description: 'Classifies extracted findings into SYMPTOM, SIGN, LABORATORY, IMAGING, HISTORY, MEDICATION, or EXAMINATION.',
+    architecturalConstraint: 'Model confidence is never displayed as a medical diagnosis probability.',
+  },
+  {
+    id: 'medcpt-query-encoder',
+    hfModelId: 'ncbi/MedCPT-Query-Encoder',
+    name: 'NLM MedCPT Query Encoder',
+    provider: 'National Library of Medicine (NCBI)',
+    role: 'QUERY_EMBEDDING',
+    version: '1.0.0',
+    status: 'ACTIVE',
+    parameters: '110M',
+    contextWindow: 512,
+    description: 'Encodes case context and clinical differential queries into dense 768-dimensional vectors for pgvector search.',
+    architecturalConstraint: 'Read-only vector generator; respects tenant and organization RLS permissions in Postgres.',
+  },
+  {
+    id: 'medcpt-article-encoder',
+    hfModelId: 'ncbi/MedCPT-Article-Encoder',
+    name: 'NLM MedCPT Article Encoder',
+    provider: 'National Library of Medicine (NCBI)',
+    role: 'ARTICLE_EMBEDDING',
+    version: '1.0.0',
+    status: 'ACTIVE',
+    parameters: '110M',
+    contextWindow: 512,
+    description: 'Indexes PubMed guidelines, clinical trials, and systematic reviews into pgvector chunks.',
+    architecturalConstraint: 'Encodes verified literature only; never indexes unverified hallucinated text.',
+  },
+  {
+    id: 'medcpt-cross-encoder',
+    hfModelId: 'ncbi/MedCPT-Cross-Encoder',
+    name: 'NLM MedCPT Cross-Encoder Reranker',
+    provider: 'National Library of Medicine (NCBI)',
+    role: 'RERANKING',
+    version: '1.0.0',
+    status: 'ACTIVE',
+    parameters: '110M',
+    contextWindow: 512,
+    description: 'Deep relevance scoring of top-50 vector search candidates down to the top-10 high-yield clinical excerpts.',
+    architecturalConstraint: 'Scores represent retrieval relevance to case query, not clinical certainty.',
+  },
+  {
+    id: 'biomed-reranker',
+    hfModelId: 'NYSgpt/biomed-reranker',
+    name: 'BioMed Reranker (149M)',
+    provider: 'NYSgpt',
+    role: 'RERANKING',
+    version: '1.0.0',
+    status: 'CHALLENGER',
+    parameters: '149M',
+    contextWindow: 8192,
+    description: 'Challenger cross-encoder trained on 433k biomedical papers with native 8k context window.',
+    architecturalConstraint: 'Benchmarked in shadow mode against MedCPT cross-encoder.',
+  },
+  {
+    id: 'medgemma-4b-it',
+    hfModelId: 'google/medgemma-4b-it',
+    name: 'Google MedGemma 4B Instruction-Tuned',
+    provider: 'Google Health',
+    role: 'SUMMARIZATION',
+    version: '1.5-4b',
+    status: 'ACTIVE',
+    parameters: '4.2B',
+    contextWindow: 32768,
+    description: 'Extracts structured section summaries and timeline spans from dense unstructured clinical records.',
+    architecturalConstraint: 'Retains explicit character/token references to original document spans.',
+  },
+  {
+    id: 'medgemma-27b-text-it',
+    hfModelId: 'google/medgemma-27b-text-it',
+    name: 'Google MedGemma 27B Text-IT',
+    provider: 'Google Health',
+    role: 'REASONING',
+    version: '1.0-27b',
+    status: 'ACTIVE',
+    parameters: '27.2B',
+    contextWindow: 131072,
+    description: 'Primary clinical reasoning model for controlled multi-hypothesis differential decomposition.',
+    architecturalConstraint: 'Runs under strict Zod schema; zero direct DB mutation; prohibited from emitting diagnostic odds % or overriding safety rules.',
+  },
+];
 
 export const CLINICAL_MODEL_REGISTRY: AiModelRegistryEntry[] = [
   {
-    id: 'gemini-1.5-pro-clinical',
-    name: 'Gemini 1.5 Pro (Clinical Fine-Tuned)',
+    id: 'medgemma-27b-text-it',
+    name: 'MedGemma 27B (Clinical Reasoning Engine)',
     provider: 'Google Health',
-    version: '2026.08-v2.1',
-    releaseDate: '2026-08-15',
+    version: '2026.09-v1.0',
+    releaseDate: '2026-09-01',
     status: 'ACTIVE',
-    contextWindowTokens: 1048576, // 1M tokens
+    contextWindowTokens: 131072,
     maxOutputTokens: 8192,
     benchmarks: {
-      medQaUsmlPercent: 91.2,
-      pubmedQaPercent: 82.4,
-      mmluClinicalPercent: 89.6,
-      hallucinationRatePercent: 1.2,
+      medQaUsmlPercent: 93.4,
+      pubmedQaPercent: 86.8,
+      mmluClinicalPercent: 92.1,
+      hallucinationRatePercent: 0.7,
     },
     temperature: 0.1,
     safetyTier: 'TIER_1_STRICT',
-    calibrationDate: '2026-09-01',
-    activeDeploymentsCount: 14,
-    description: 'Primary clinical reasoning engine for complex differential diagnosis and multi-day inpatient trajectory synthesis.',
-    intendedClinicalScope: 'Differential diagnosis, qualitative uncertainty estimation, clinical contradiction detection.',
+    calibrationDate: '2026-09-10',
+    activeDeploymentsCount: 16,
+    description: 'Primary clinical reasoning engine for multi-hypothesis differential decomposition and grounded synthesis.',
+    intendedClinicalScope: 'Differential diagnosis decomposition, qualitative uncertainty estimation, clinical contradiction detection.',
   },
   {
     id: 'claude-3.5-sonnet-clinical',
@@ -55,55 +189,33 @@ export const CLINICAL_MODEL_REGISTRY: AiModelRegistryEntry[] = [
     intendedClinicalScope: 'Multi-morbidity triage, diagnostic synthesis, complex investigation planning.',
   },
   {
-    id: 'gpt-4o-clinical',
-    name: 'GPT-4o (Clinical Reasoning Preview)',
-    provider: 'OpenAI',
-    version: '2026.05-v3.0',
-    releaseDate: '2026-05-12',
-    status: 'CANARY',
-    contextWindowTokens: 128000,
-    maxOutputTokens: 4096,
-    benchmarks: {
-      medQaUsmlPercent: 89.8,
-      pubmedQaPercent: 80.2,
-      mmluClinicalPercent: 87.9,
-      hallucinationRatePercent: 1.8,
-    },
-    temperature: 0.2,
-    safetyTier: 'TIER_2_STANDARD',
-    calibrationDate: '2026-07-15',
-    activeDeploymentsCount: 3,
-    description: 'Canary deployment evaluating low-latency diagnostic suggestions for urgent ambulatory care.',
-    intendedClinicalScope: 'Rapid consultation summaries, patient discharge instruction drafting.',
-  },
-  {
-    id: 'open-biollm-70b',
-    name: 'Open-BioLLM 70B (On-Premises Edge)',
-    provider: 'Open-Source Bio',
-    version: '2026.04-llama3-bio',
-    releaseDate: '2026-04-10',
-    status: 'SHADOW',
+    id: 'medgemma-4b-it',
+    name: 'MedGemma 4B (Document Intelligence)',
+    provider: 'Google Health',
+    version: '2026.09-v1.5',
+    releaseDate: '2026-09-01',
+    status: 'ACTIVE',
     contextWindowTokens: 32768,
     maxOutputTokens: 4096,
     benchmarks: {
-      medQaUsmlPercent: 85.6,
-      pubmedQaPercent: 78.9,
-      mmluClinicalPercent: 83.2,
-      hallucinationRatePercent: 2.6,
+      medQaUsmlPercent: 86.5,
+      pubmedQaPercent: 81.2,
+      mmluClinicalPercent: 84.8,
+      hallucinationRatePercent: 1.4,
     },
     temperature: 0.1,
-    safetyTier: 'TIER_2_STANDARD',
-    calibrationDate: '2026-06-30',
-    activeDeploymentsCount: 2,
-    description: 'Air-gapped on-premises medical foundation model for low-connectivity district facilities and high-privacy jurisdictions.',
-    intendedClinicalScope: 'Offline clinical decision support, local entity extraction.',
+    safetyTier: 'TIER_1_STRICT',
+    calibrationDate: '2026-09-05',
+    activeDeploymentsCount: 16,
+    description: 'Fast edge-capable clinical document summarizer and finding extractor.',
+    intendedClinicalScope: 'Clinical report summarization, laboratory timeline extraction.',
   },
 ];
 
-export function getActiveModels(): AiModelRegistryEntry[] {
-  return CLINICAL_MODEL_REGISTRY.filter((m) => m.status === 'ACTIVE' || m.status === 'CANARY');
+export function getModelRegistryEntry(id: string): AiModelRegistryEntry | undefined {
+  return CLINICAL_MODEL_REGISTRY.find((m) => m.id === id);
 }
 
-export function getModelById(modelId: string): AiModelRegistryEntry | undefined {
-  return CLINICAL_MODEL_REGISTRY.find((m) => m.id === modelId);
+export function getSpecializedModelCard(id: string): SpecializedModelCard | undefined {
+  return NEXUS_SPECIALIZED_MODEL_STACK.find((m) => m.id === id);
 }

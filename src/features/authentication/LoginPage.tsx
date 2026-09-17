@@ -1,12 +1,19 @@
 // ============================================================
 // src/features/authentication/LoginPage.tsx
-// Section 6C.13: Clean, focused clinical workstation sign-in.
-// No marketing fluff. Direct access with synthetic demo presets.
+// Professional Clinical System Authentication Entry
+// Clean institutional login with account-driven role resolution
 // ============================================================
 
 import React, { useState } from 'react';
 import { useAuth } from './AuthProvider';
-import { Shield, KeyRound, AlertTriangle, ArrowRight, Stethoscope } from 'lucide-react';
+import {
+  Eye,
+  EyeOff,
+  AlertCircle,
+  Loader2,
+  Lock,
+  CheckCircle2,
+} from 'lucide-react';
 
 interface LoginPageProps {
   onSuccess?: () => void;
@@ -14,280 +21,414 @@ interface LoginPageProps {
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
   const { signIn, loading } = useAuth();
-  const [email, setEmail] = useState('dr.sarah.chen@nexus-hospital.demo');
-  const [password, setPassword] = useState('demo-password');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Quick fill helper for synthetic demo accounts
+  const handleQuickFill = (demoEmail: string, demoPass: string) => {
+    setEmail(demoEmail);
+    setPassword(demoPass);
     setErrorMsg(null);
-    const { error } = await signIn(email, password);
-    if (error) {
-      setErrorMsg(error.message);
-    } else if (onSuccess) {
-      onSuccess();
-    }
   };
 
-  const handleQuickPersona = async (demoEmail: string) => {
-    setEmail(demoEmail);
-    const { error } = await signIn(demoEmail, 'demo-password');
-    if (!error && onSuccess) {
-      onSuccess();
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg(null);
+    setIsAuthenticating(true);
+
+    try {
+      const { error } = await signIn(email, password);
+      if (error) {
+        setErrorMsg(
+          error.message === 'Invalid login credentials'
+            ? 'Incorrect email or password. Please verify your institutional credentials.'
+            : error.message
+        );
+      } else if (onSuccess) {
+        onSuccess();
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Authentication failed';
+      setErrorMsg(msg);
+    } finally {
+      setIsAuthenticating(false);
     }
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#0a0f18',
-      color: '#e2e8f0',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      padding: '24px',
-    }}>
-      {/* Demo Warning Header */}
-      <div style={{
-        display: 'inline-flex',
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
         alignItems: 'center',
-        gap: '8px',
-        padding: '6px 14px',
-        borderRadius: '9999px',
-        backgroundColor: 'rgba(234, 179, 8, 0.12)',
-        border: '1px solid rgba(234, 179, 8, 0.3)',
-        color: '#facc15',
-        fontSize: '12px',
-        fontWeight: 600,
-        letterSpacing: '0.05em',
-        textTransform: 'uppercase',
-        marginBottom: '28px',
-      }}>
-        <AlertTriangle size={14} />
-        Demo Environment · Synthetic Clinical Data Only
-      </div>
-
-      <div style={{
-        width: '100%',
-        maxWidth: '420px',
-        backgroundColor: '#111927',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        borderRadius: '12px',
-        padding: '36px 32px',
-        boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.6)',
-      }}>
-        {/* Brand */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-          <div style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '8px',
-            backgroundColor: '#0284c7',
-            display: 'flex',
+        backgroundColor: '#F8FAFC',
+        color: '#0F172A',
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        padding: '24px 16px',
+        boxSizing: 'border-box',
+      }}
+    >
+      {/* ── Institution / System Header ────────────────────────── */}
+      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+        <div
+          style={{
+            display: 'inline-flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            color: '#ffffff',
-          }}>
-            <Stethoscope size={20} />
+            gap: '10px',
+            marginBottom: '6px',
+          }}
+        >
+          <div
+            style={{
+              width: '28px',
+              height: '28px',
+              backgroundColor: '#0F172A',
+              color: '#FFFFFF',
+              borderRadius: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '15px',
+              fontWeight: 700,
+            }}
+          >
+            ⬡
           </div>
-          <span style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '0.06em', color: '#f8fafc' }}>
+          <span
+            style={{
+              fontSize: '22px',
+              fontWeight: 800,
+              letterSpacing: '0.04em',
+              color: '#0F172A',
+            }}
+          >
             NEXUS
           </span>
         </div>
+        <div
+          style={{
+            fontSize: '13px',
+            fontWeight: 500,
+            color: '#64748B',
+            letterSpacing: '0.02em',
+          }}
+        >
+          Clinical Intelligence Workstation
+        </div>
+      </div>
 
-        <p style={{
-          fontSize: '14px',
-          color: '#94a3b8',
-          margin: '0 0 28px 0',
-          lineHeight: '1.5',
-        }}>
-          Clinical intelligence for better-informed decisions
+      {/* ── Main Authentication Box ────────────────────────────── */}
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '420px',
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #E2E8F0',
+          borderRadius: '8px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03)',
+          padding: '36px 32px',
+          boxSizing: 'border-box',
+        }}
+      >
+        <h1
+          style={{
+            fontSize: '18px',
+            fontWeight: 600,
+            color: '#0F172A',
+            margin: '0 0 6px 0',
+            textAlign: 'left',
+          }}
+        >
+          Sign in to your workspace
+        </h1>
+        <p
+          style={{
+            fontSize: '13px',
+            color: '#64748B',
+            margin: '0 0 24px 0',
+            lineHeight: 1.4,
+          }}
+        >
+          Enter your institutional credentials to authenticate your session.
         </p>
 
+        {/* Error Alert */}
         {errorMsg && (
-          <div style={{
-            padding: '10px 14px',
-            backgroundColor: 'rgba(239, 68, 68, 0.15)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            borderRadius: '6px',
-            color: '#f87171',
-            fontSize: '13px',
-            marginBottom: '20px',
-          }}>
-            {errorMsg}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '10px',
+              padding: '10px 12px',
+              borderRadius: '6px',
+              marginBottom: '20px',
+              backgroundColor: '#FEF2F2',
+              border: '1px solid #FCA5A5',
+              color: '#991B1B',
+              fontSize: '12px',
+              lineHeight: 1.4,
+            }}
+          >
+            <AlertCircle size={15} style={{ flexShrink: 0, marginTop: '2px' }} />
+            <span>{errorMsg}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+        {/* Sign In Form */}
+        <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>
-              Professional Email
+            <label
+              htmlFor="clinical-email-input"
+              style={{
+                display: 'block',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#334155',
+                marginBottom: '6px',
+              }}
+            >
+              Email
             </label>
             <input
+              id="clinical-email-input"
               type="email"
+              required
+              placeholder="clinician@hospital.org"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
               style={{
                 width: '100%',
                 padding: '10px 12px',
                 borderRadius: '6px',
-                backgroundColor: '#1e293b',
-                border: '1px solid #334155',
-                color: '#f8fafc',
-                fontSize: '14px',
-                outline: 'none',
                 boxSizing: 'border-box',
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #CBD5E1',
+                color: '#0F172A',
+                fontSize: '13px',
+                outline: 'none',
+                transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#0284C7';
+                e.target.style.boxShadow = '0 0 0 3px rgba(2, 132, 199, 0.12)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#CBD5E1';
+                e.target.style.boxShadow = 'none';
               }}
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                borderRadius: '6px',
-                backgroundColor: '#1e293b',
-                border: '1px solid #334155',
-                color: '#f8fafc',
-                fontSize: '14px',
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
-            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <label
+                htmlFor="clinical-password-input"
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: '#334155',
+                }}
+              >
+                Password
+              </label>
+              <span
+                style={{
+                  fontSize: '12px',
+                  color: '#0284C7',
+                  cursor: 'pointer',
+                }}
+                onClick={() =>
+                  setErrorMsg('Institutional password resets are managed by your hospital IT directory service.')
+                }
+              >
+                Forgot password?
+              </span>
+            </div>
+
+            <div style={{ position: 'relative' }}>
+              <input
+                id="clinical-password-input"
+                type={showPassword ? 'text' : 'password'}
+                required
+                placeholder="•••••••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 38px 10px 12px',
+                  borderRadius: '6px',
+                  boxSizing: 'border-box',
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #CBD5E1',
+                  color: '#0F172A',
+                  fontSize: '13px',
+                  outline: 'none',
+                  transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#0284C7';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(2, 132, 199, 0.12)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#CBD5E1';
+                  e.target.style.boxShadow = 'none';
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#94A3B8',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                title={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
           </div>
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={isAuthenticating || loading}
             style={{
               marginTop: '8px',
-              padding: '11px',
+              padding: '10px 16px',
               borderRadius: '6px',
-              backgroundColor: '#0284c7',
-              color: '#ffffff',
-              fontSize: '14px',
+              border: '1px solid #0F172A',
+              backgroundColor: '#0F172A',
+              color: '#FFFFFF',
+              fontSize: '13px',
               fontWeight: 600,
-              border: 'none',
-              cursor: loading ? 'not-allowed' : 'pointer',
+              cursor: isAuthenticating || loading ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
               transition: 'background-color 0.15s ease',
             }}
+            onMouseEnter={(e) => {
+              if (!isAuthenticating) e.currentTarget.style.backgroundColor = '#1E293B';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#0F172A';
+            }}
           >
-            {loading ? 'Authenticating...' : (
+            {isAuthenticating || loading ? (
               <>
-                Sign in to Workstation
-                <ArrowRight size={16} />
+                <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />
+                <span>Authenticating...</span>
               </>
+            ) : (
+              <span>Sign in</span>
             )}
           </button>
         </form>
 
-        <div style={{ marginTop: '16px', textAlign: 'center' }}>
-          <a
-            href="#forgot"
-            onClick={(e) => { e.preventDefault(); alert('In the demo environment, use any of the preset personas below.'); }}
-            style={{ fontSize: '12px', color: '#64748b', textDecoration: 'none' }}
+        {/* Subtle separator for test accounts */}
+        <div
+          style={{
+            marginTop: '28px',
+            paddingTop: '20px',
+            borderTop: '1px solid #F1F5F9',
+          }}
+        >
+          <div
+            style={{
+              fontSize: '11px',
+              fontWeight: 600,
+              color: '#94A3B8',
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              marginBottom: '10px',
+              textAlign: 'center',
+            }}
           >
-            Forgot password?
-          </a>
-        </div>
-
-        {/* Quick Demo Personas */}
-        <div style={{ marginTop: '28px', paddingTop: '20px', borderTop: '1px solid #1e293b' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '10px' }}>
-            Quick Demo Sign-In
+            Demo Accounts (Click to load)
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
             <button
               type="button"
-              onClick={() => handleQuickPersona('dr.sarah.chen@nexus-hospital.demo')}
+              onClick={() => handleQuickFill('dr.sarah.chen@nexus-hospital.demo', 'NexusDemo2026!')}
               style={{
-                padding: '8px 10px',
-                borderRadius: '6px',
-                backgroundColor: '#1e293b',
-                border: '1px solid #334155',
-                color: '#cbd5e1',
-                fontSize: '12px',
-                textAlign: 'left',
+                flex: 1,
+                padding: '7px 8px',
+                borderRadius: '5px',
+                border: '1px solid #E2E8F0',
+                backgroundColor: '#F8FAFC',
+                color: '#334155',
+                fontSize: '11px',
+                fontWeight: 500,
                 cursor: 'pointer',
+                textAlign: 'center',
+                transition: 'background-color 0.12s ease',
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F1F5F9')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#F8FAFC')}
             >
-              <strong>Dr. Sarah Chen</strong>
-              <div style={{ fontSize: '10px', color: '#64748b' }}>Clinician · Lead</div>
+              Dr. Sarah Chen (Clinician)
             </button>
             <button
               type="button"
-              onClick={() => handleQuickPersona('prof.marcus.vance@nexus-hospital.demo')}
+              onClick={() => handleQuickFill('admin@nexus-hospital.demo', 'NexusAdmin2026!')}
               style={{
-                padding: '8px 10px',
-                borderRadius: '6px',
-                backgroundColor: '#1e293b',
-                border: '1px solid #334155',
-                color: '#cbd5e1',
-                fontSize: '12px',
-                textAlign: 'left',
+                flex: 1,
+                padding: '7px 8px',
+                borderRadius: '5px',
+                border: '1px solid #E2E8F0',
+                backgroundColor: '#F8FAFC',
+                color: '#334155',
+                fontSize: '11px',
+                fontWeight: 500,
                 cursor: 'pointer',
+                textAlign: 'center',
+                transition: 'background-color 0.12s ease',
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F1F5F9')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#F8FAFC')}
             >
-              <strong>Prof. M. Vance</strong>
-              <div style={{ fontSize: '10px', color: '#64748b' }}>Reviewer · Consultant</div>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickPersona('nurse.elena.rostova@nexus-hospital.demo')}
-              style={{
-                padding: '8px 10px',
-                borderRadius: '6px',
-                backgroundColor: '#1e293b',
-                border: '1px solid #334155',
-                color: '#cbd5e1',
-                fontSize: '12px',
-                textAlign: 'left',
-                cursor: 'pointer',
-              }}
-            >
-              <strong>Elena Rostova, RN</strong>
-              <div style={{ fontSize: '10px', color: '#64748b' }}>Triage Nurse</div>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickPersona('admin@nexus-hospital.demo')}
-              style={{
-                padding: '8px 10px',
-                borderRadius: '6px',
-                backgroundColor: '#1e293b',
-                border: '1px solid #334155',
-                color: '#cbd5e1',
-                fontSize: '12px',
-                textAlign: 'left',
-                cursor: 'pointer',
-              }}
-            >
-              <strong>Administrator</strong>
-              <div style={{ fontSize: '10px', color: '#64748b' }}>Org Admin (Non-Clinical)</div>
+              System Admin (Org Admin)
             </button>
           </div>
         </div>
       </div>
 
-      <div style={{ marginTop: '24px', fontSize: '12px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <Shield size={14} />
-        PostgreSQL Row Level Security (RLS) Enforced · Zero Implicit Trust
+      {/* ── Footer Trust Note ──────────────────────────────────── */}
+      <div
+        style={{
+          marginTop: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          fontSize: '12px',
+          color: '#64748B',
+        }}
+      >
+        <Lock size={13} color="#64748B" />
+        <span>Secure clinical environment · Organization RLS & audit logging active</span>
       </div>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };

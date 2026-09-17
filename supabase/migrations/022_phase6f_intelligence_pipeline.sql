@@ -9,6 +9,25 @@
 -- ============================================================
 
 -- ----------------------------------------------------------
+-- 0. Compatibility projection: organization_memberships view
+-- ----------------------------------------------------------
+create or replace view public.organization_memberships as
+select
+  id,
+  organization_id,
+  user_id,
+  user_id as profile_id,
+  role,
+  role_name,
+  is_active,
+  case when is_active then 'ACTIVE' else 'INACTIVE' end as status,
+  joined_at,
+  joined_at as created_at
+from public.organization_members;
+
+grant select on public.organization_memberships to authenticated, anon;
+
+-- ----------------------------------------------------------
 -- 1. Extend nexus_assessments with Phase 6F Governance Attributes
 -- ----------------------------------------------------------
 alter table public.nexus_assessments

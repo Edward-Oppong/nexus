@@ -1,6 +1,7 @@
 # Nexus Clinical Workstation
 
 > **An AI-augmented clinical reasoning workstation for structured diagnostic decision support.**
+> **Version 1.1.0 (Intelligence Architecture)**
 
 Nexus is a structured clinical reasoning environment — not an AI chatbot, not a diagnosis engine. It supports clinicians in gathering, organising, and evaluating clinical evidence, while ensuring all AI-generated content is explicitly flagged and requires human review before any clinical decision is made.
 
@@ -123,6 +124,8 @@ nexus/
 │   ├── domain/                 — CANONICAL domain types (source of truth)
 │   │   ├── auth.ts
 │   │   ├── case.ts             — CaseStatus, Case, SyntheticPatient
+│   │   ├── contracts/          — Formal architecture & system rule contracts
+│   │   │   └── intelligence-contracts.ts — 18 Non-Negotiable System Rules
 │   │   ├── document.ts         — ClinicalDocument
 │   │   ├── evidence.ts         — EvidenceSource, EvidenceResult
 │   │   ├── external-source.ts  — ExternalDataSource integration metadata
@@ -142,7 +145,9 @@ nexus/
 │   │   ├── cases/              — Case list / queue
 │   │   ├── case-workspace/     — 3-Zone Clinical Workspace
 │   │   │   ├── CaseWorkspaceView.tsx
+│   │   │   ├── IntelligenceRail.tsx — Context-dispatched review rail
 │   │   │   ├── api/            — Case-level API calls
+│   │   │   ├── panels/         — Intelligence Rail panels (Signals, Hypotheses, Evidence, Uncertainty, Review, AskNexus)
 │   │   │   └── tabs/           — All workspace tab panels
 │   │   ├── overview/           — Clinical dashboard
 │   │   ├── patients/           — Patient registry
@@ -152,7 +157,12 @@ nexus/
 │   │
 │   └── lib/
 │       ├── case-state-machine.ts    — Allowed case status transitions
-│       ├── intelligence/            — AI reasoning layer
+│       ├── intelligence/            — AI reasoning & orchestration layer
+│       │   ├── governance/          — Model registry, A/B testing, feedback curation
+│       │   ├── services/            — Specialized adapters (NER extraction, classification, evidence ranking)
+│       │   ├── context-builder.ts   — Deterministic clinical prompt context assembly
+│       │   ├── reasoning-orchestrator.ts — 9-step pipeline execution
+│       │   └── reasoning-provider.ts — Model abstraction layer
 │       └── interoperability/        — FHIR R4 integration layer
 │           ├── fhir/                — Types, client, validators, version URIs
 │           ├── mappers/             — Nexus <-> FHIR R4 transformation
@@ -231,40 +241,93 @@ Exception states: UNCERTAIN, CONTRADICTORY, SAFETY_REVIEW, INSUFFICIENT_DATA, OU
 
 ## 6. Intelligence Layer
 
-### Orchestration Pipeline
+### Architecture Principle
+
+> **Nexus builds: Case → Context Builder → Evidence Layer → AI Reasoning → Schema/Grounding Validation → Human Review**
+> Nexus explicitly rejects: `Frontend → LLM → Answer`. Clinical AI must be deterministic in data assembly, grounded in retrieved evidence, constrained by strict schema, and bounded by human clinical review.
+
+### 18 Non-Negotiable System Rules
+
+All intelligence operations are governed by 18 invariant system rules formalized as typed constraints in [`intelligence-contracts.ts`](file:///c:/Users/user/Desktop/nexus/src/domain/contracts/intelligence-contracts.ts):
+
+| Rule | Short Name | Invariant |
+|------|------------|-----------|
+| R1 | Provenance on Every Field | Every finding, observation, and hypothesis must have an immutable provenance record. |
+| R2 | Pure Deterministic Context Builder | Context is built from database state; AI models never query the database directly. |
+| R3 | Evidence Precedes Generation | Evidence retrieval and reranking runs *before* clinical synthesis, not as post-hoc justification. |
+| R4 | Document Classification Precedes OCR/Extraction | Fast document classification determines processing strategy before heavy extraction inference. |
+| R5 | Strictly Qualitative Uncertainty | Numeric probability scores (e.g. `82.4%`, `0.73`) are strictly forbidden and hard-rejected by schema regex. |
+| R6 | Character-Accurate Source Spans | Extracted clinical findings must include exact character start/end offsets from source document text. |
+| R7 | Two-Stage Evidence Retrieval | Bi-encoder dense embedding retrieval (recall) followed by Cross-Encoder reranking (precision). |
+| R8 | Zero Ungrounded Findings | Every hypothesis must cite existing case finding IDs; hallucinated IDs trigger immediate assessment rejection. |
+| R9 | Model Version Stamped on Assessment | Assessments record registry ID, Hugging Face model ID, and inference parameters. |
+| R10 | Non-Definitive Generative Language | AI models never declare definitive diagnosis; outputs are candidate hypotheses requiring review. |
+| R11 | Atomic Assessment Persist & Audit | Assessment persistence and regulatory audit ledger write execute in a single database transaction. |
+| R12 | Context Window Token Budgeting | Context builder enforces deterministic token budgets (Findings: 3,000, Evidence: 2,500, History: 1,500). |
+| R13 | Graceful Degraded Fallbacks | External provider timeouts fall back to local rule scores and cached evidence. |
+| R14 | Continuous Attribution Explainability | Hypotheses expose positive/negative finding contributions (feature attributions). |
+| R15 | Deterministic Rules Overrule AI | Guideline scoring engines (Duke, CURB-65, Wells) take precedence over generative suggestions. |
+| R16 | Human Review Structurally Required | No AI output can transition a case to `DECISION_RECORDED` or `RESOLVED` without a human clinician signature. |
+| R17 | Clinician Feedback Loop (DPO) | Clinician accept/reject/modify actions generate structured pairs for offline fine-tuning. |
+| R18 | Multi-Tenant Model Isolation | Model inference context, embeddings, and vector similarity queries are strictly scoped by organisation ID. |
+
+### Specialized Model Stack
+
+Nexus avoids monolithic LLMs in favor of a specialized, auditable model hierarchy registered in `src/lib/intelligence/governance/model-registry.ts`:
+
+| Function | Model Identifier | Hugging Face Hub ID | Parameters / Specialization |
+|----------|------------------|---------------------|-----------------------------|
+| Entity Extraction (NER) | `medbert-ner` | `ribhu/medbert-clinical-ner` | 110M — Clinical NER: symptoms, diseases, anatomy |
+| Document Classification | `clinicalbert-doc-clf` | `ParamDev/clinicalbert-medical-doc-classifier` | 110M — Document type routing (discharge, lab, radiology) |
+| Finding Classification | `bio-clinicalbert-finding` | `emilyalsentzer/Bio_ClinicalBERT-ft` | 110M — Finding severity and temporality classification |
+| Evidence Query Encoder | `medcpt-query` | `ncbi/MedCPT-Query-Encoder` | 110M — Stage 1 dense clinical query embedding |
+| Evidence Article Encoder | `medcpt-article` | `ncbi/MedCPT-Article-Encoder` | 110M — Stage 1 PubMed/guideline document embedding |
+| Evidence Reranker | `medcpt-reranker` | `ncbi/MedCPT-Cross-Encoder` | 110M — Stage 2 Cross-Encoder document-query relevance |
+| Primary Synthesis | `medgemma-4b` | `google/medgemma-4b-it` | 4B — Clinical reasoning & candidate hypothesis synthesis |
+| Complex Escalation | `medgemma-27b` | `google/medgemma-27b-text-it` | 27B — Multi-system, contradictory or escalated cases |
+| Evidence Reranker (Challenger) | `biomed-reranker` | `NYSgpt/biomed-reranker` | 110M — A/B benchmark challenger for evidence ranking |
+
+### Modular Intelligence Service Adapters
+
+Specialized adapters in `src/lib/intelligence/services/` decouple model execution from clinical business logic:
+- `extraction-service.ts` — Runs clinical NER, maps entity labels to domain `FindingCategory`, and attaches character-accurate `SourceSpan` records.
+- `classification-service.ts` — Determines document processing strategy (fast OCR vs deep parsing) and evaluates finding severity.
+- `evidence-ranking-service.ts` — Two-stage retrieval pipeline: initial dense vector search via pgvector, followed by Cross-Encoder reranking.
+
+### Orchestration Pipeline (9 Stages)
 
 ```
-ClinicalCase Data
+[1] Clinical Case Data (Patient, Findings, Observations, Documents, Timeline)
       |
       v
-[1] Data Quality Check (deterministic, no AI)
-      |
+[2] Clinical NER & Span Extraction (ribhu/medbert-clinical-ner)
+      |  Extracts findings with character-accurate SourceSpans from clinical text
       v
-[2] Evidence Retrieval (local knowledge base + PubMed edge function)
-      |
+[3] Document & Finding Classification (clinicalbert-medical-doc-classifier + Bio_ClinicalBERT)
+      |  Routes document processing strategy; assigns finding severity & temporality
       v
-[3] Context Builder (assembles structured prompt context)
-      |
+[4] Two-Stage Evidence Retrieval & Reranking (MedCPT Bi-Encoder + Cross-Encoder)
+      |  Stage 1 pgvector dense retrieval (top-20) -> Stage 2 Cross-Encoder reranking (top-5)
       v
-[4] Reasoning Provider (AI model call — OpenAI / Vertex / local model)
-      |
+[5] Deterministic Rules & Context Builder (buildPromptContext)
+      |  Clinical guideline scoring + token-budgeted structured prompt assembly
       v
-[5] Assessment Schema Validation (validateAssessmentOutput)
-      |
+[6] Clinical Reasoning & Synthesis (google/medgemma-4b-it / 27b-text-it)
+      |  Generates candidate hypotheses, contraindications, missing investigations
       v
-[6] Grounding Check (validateGrounding — verifies finding IDs exist in case)
-      |
+[7] Assessment Schema Validation (validateAssessmentOutput)
+      |  Hard rejection of numeric probability scores (% or 0.xx) and definitive diagnoses
       v
-[7] NexusAssessment output (provenance-tagged, UNVERIFIED)
+[8] Grounding Verification (validateGrounding)
+      |  Hard rejection if candidate findings reference nonexistent finding IDs
+      v
+[9] Provenance-Tagged NexusAssessment Output
+      |  Stamped with model registry version, UNVERIFIED status, awaiting clinician review
 ```
 
-### Provider Abstraction
+### Assessment Output & Schema Hardening
 
-`src/lib/intelligence/reasoning-provider.ts` abstracts the underlying model so it can be swapped without changing the orchestrator.
-
-### Assessment Output (No Numeric Probability)
-
-All AI outputs are validated against `NexusAssessmentSchema`. The schema explicitly forbids numeric probability scores. Uncertainty is expressed via `QualitativeUncertainty`:
+All AI outputs are validated against `NexusAssessmentSchema`. The schema explicitly forbids pseudo-precision numeric probabilities (hard regex rejection) and definitive diagnostic declarations. Uncertainty is expressed strictly via `QualitativeUncertainty`:
 
 ```typescript
 interface QualitativeUncertainty {
@@ -274,6 +337,21 @@ interface QualitativeUncertainty {
   overallState: 'REQUIRES REVIEW' | 'CONTRADICTORY' | 'INSUFFICIENT DATA' | 'STABLE';
 }
 ```
+
+### Contextual Intelligence & Review Rail
+
+The right pane of the clinical workstation is a contextual **Intelligence & Review Rail** (not a chatbot sidebar). It mounts 2–4 specialized panels based on the clinician's active center tab via the **Context Dispatch Matrix**:
+
+| Center Tab | Mounted Rail Panels | Clinical Purpose |
+|------------|---------------------|------------------|
+| Overview | `CaseSignalsPanel`, `UncertaintyRailPanel` | Immediate situational awareness & case trajectory |
+| Findings | `CaseSignalsPanel`, `QuickReviewRailPanel` | Unverified AI extraction sign-off & critical flags |
+| Reasoning | `HypothesesRailPanel`, `EvidenceRailPanel`, `UncertaintyRailPanel` | Deep differential evaluation, citation grounding, gaps |
+| Investigations | `EvidenceRailPanel`, `CaseSignalsPanel` | Investigation yield, diagnostic protocols & safety checks |
+| Timeline | `CaseSignalsPanel`, `UncertaintyRailPanel` | Temporal anomaly detection & interval consistency |
+| Documents | `QuickReviewRailPanel`, `EvidenceRailPanel` | Document extraction review & literature grounding |
+| Rules | `EvidenceRailPanel`, `UncertaintyRailPanel` | Guideline rule grounding & criteria satisfaction |
+| Decision / Safety | `QuickReviewRailPanel`, `UncertaintyRailPanel` | Final sign-off verification & critical safety alerts |
 
 ---
 
@@ -490,15 +568,22 @@ Duplicate imports are safely skipped.
 - [x] GDPR / POPIA data residency controls
 - [x] Audit export in FHIR AuditEvent format for regulators
 
-### Near-term Backlog
-- [ ] Idempotency key persistence across sessions
-- [ ] FHIR Bundle pagination for large imports (>1,000 resources)
-- [ ] SyncQueue persistence (currently in-memory)
-- [ ] Drag-and-drop document upload in DocumentsTab
-- [ ] Inline DICOM viewer (OHIF Viewer integration)
-- [ ] `process-document` support for HL7 v2 ADT messages
-- [ ] Real-time contradiction alerts via Supabase Realtime
-- [ ] Evidence search with clinical knowledge graph (UMLS, SNOMED hierarchy)
+### Phase 13 — Enterprise Hardening, Imaging & Knowledge Graph (v1.0.0 GA)
+- [x] Idempotency key persistence across sessions (Postgres `sync_events` + local storage cache)
+- [x] FHIR Bundle pagination for large imports (>1,000 resources)
+- [x] Persistent sync queue with transaction outbox pattern
+- [x] Drag-and-drop document upload in DocumentsTab
+- [x] Medical imaging & DICOMweb viewer with multi-slice, W/L presets (Cardiac, Lung, Soft Tissue), and caliper measurements
+- [x] HL7 v2.5.1 ER7 hospital messaging engine (ADT^A01, ADT^A08, ORU^R01) with clinical finding extraction
+- [x] Real-time contradiction alerts and clinician presence avatars via Supabase Realtime
+- [x] Evidence search with clinical knowledge graph (UMLS & SNOMED CT ontological pathfinding)
+
+### Phase 14 — Intelligence Architecture Formalization (v1.1.0)
+- [x] 18 Non-Negotiable System Rules formalized as typed runtime constraints in `src/domain/contracts/intelligence-contracts.ts`
+- [x] Specialized Hugging Face Model Stack (9 models: NER, classification, MedCPT 2-stage retrieval, MedGemma reasoning)
+- [x] Modular service adapters: `extraction-service.ts`, `classification-service.ts`, `evidence-ranking-service.ts`
+- [x] Hardened output validation: regex rejection of numeric probability & definitive diagnosis declarations, zero ungrounded findings
+- [x] Contextual Intelligence & Review Rail with 6 specialized panels and Context Dispatch Matrix tab integration
 
 ---
 

@@ -19,10 +19,12 @@ import {
   ChevronUp,
   TrendingUp,
   TrendingDown,
+  Network,
 } from 'lucide-react';
 import { CandidateHypothesis } from '../../../domain/hypothesis';
 import { NexusAssessmentPanel } from '../../../components/intelligence/NexusAssessmentPanel';
 import { computeHypothesisExplainability } from '../../../lib/intelligence/governance/explainability-engine';
+import { KnowledgeGraphDrawer } from '../../../components/clinical/KnowledgeGraphDrawer';
 
 export const ReasoningTab: React.FC = () => {
   const { activeCase, setActiveCaseSubTab, requestInvestigation, setActiveView } = useCase();
@@ -30,6 +32,7 @@ export const ReasoningTab: React.FC = () => {
   const { currentPersona } = usePersona();
   const [selectedHypothesisId, setSelectedHypothesisId] = useState<string>('hyp-1');
   const [showExplainability, setShowExplainability] = useState<boolean>(false);
+  const [showKnowledgeGraph, setShowKnowledgeGraph] = useState<boolean>(false);
 
   const { hypotheses, findings, uncertainty, informationGaps } = activeCase;
   const activeHypothesis = hypotheses.find((h) => h.id === selectedHypothesisId) || hypotheses[0];
@@ -338,13 +341,22 @@ export const ReasoningTab: React.FC = () => {
                       Shapley-Proxy Clinical Feature Attribution
                     </span>
                   </div>
-                  <button
-                    onClick={() => setActiveView('ai-governance')}
-                    className="btn btn-xs btn-outline"
-                    style={{ fontSize: '11px', padding: '2px 8px' }}
-                  >
-                    AI Governance Console &rarr;
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <button
+                      onClick={() => setShowKnowledgeGraph(true)}
+                      className="btn btn-xs btn-outline"
+                      style={{ fontSize: '11px', padding: '2px 8px', display: 'flex', alignItems: 'center', gap: '4px', color: '#2563EB', borderColor: '#BFDBFE', background: '#EFF6FF' }}
+                    >
+                      <Network size={12} /> Knowledge Graph &rarr;
+                    </button>
+                    <button
+                      onClick={() => setActiveView('ai-governance')}
+                      className="btn btn-xs btn-outline"
+                      style={{ fontSize: '11px', padding: '2px 8px' }}
+                    >
+                      AI Governance Console &rarr;
+                    </button>
+                  </div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px', marginBottom: '14px' }}>
@@ -527,6 +539,12 @@ export const ReasoningTab: React.FC = () => {
           )}
         </div>
       </section>
+
+      {/* Phase 13: Clinical Knowledge Graph Visual Explorer Drawer */}
+      <KnowledgeGraphDrawer
+        isOpen={showKnowledgeGraph}
+        onClose={() => setShowKnowledgeGraph(false)}
+      />
     </div>
   );
 };

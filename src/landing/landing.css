@@ -1,0 +1,131 @@
+/* ==========================================================================
+   NEXUS — Clinical Workstation Landing Page Styles
+   Design Direction: Clinical, disciplined, high-legibility, restrained.
+   Accessibility: WCAG 2.2 AA compliant · Strict reduced-motion support
+   ========================================================================== */
+
+:root {
+  /* 6 Named Hex Values chosen for clinical environments */
+  --ink-primary: #111827;       /* Deep slate-charcoal for maximum legibility */
+  --ink-secondary: #4B5563;     /* Neutral mid-tone for clinical notes & metadata */
+  --surface-ground: #F9FAFB;    /* Sterile off-white matching hospital charts & monitors */
+  --surface-card: #FFFFFF;      /* Clean clinical white */
+  --border-subtle: #E5E7EB;     /* Clean 1px rule line matching lab reports */
+  --clinical-accent: #0D5C58;   /* Restrained, authoritative medical teal */
+  --contraindication: #B91C1C;  /* Clinical alert crimson (safety conflicts only) */
+  --caution-amber: #92400E;     /* Clinical caution amber */
+  --caution-bg: #FEF3C7;        /* Subtle caution fill */
+
+  /* Typography */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Focus outline for keyboard navigation */
+  --focus-ring: 2px solid #0D5C58;
+  --focus-offset: 2px;
+}
+
+/* Reset & Base */
+.nexus-landing-wrapper {
+  background-color: var(--surface-ground);
+  color: var(--ink-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.nexus-landing-wrapper * {
+  box-sizing: border-box;
+}
+
+/* Accessible focus styles */
+.nexus-landing-wrapper a:focus-visible,
+.nexus-landing-wrapper button:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+/* Layout Utilities */
+.nexus-container {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+@media (max-width: 640px) {
+  .nexus-container {
+    padding: 0 16px;
+  }
+}
+
+/* Clean Clinical Buttons */
+.nexus-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--clinical-accent);
+  color: #FFFFFF;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: 1px solid var(--clinical-accent);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.nexus-btn-primary:hover {
+  background-color: #0A4744;
+}
+
+.nexus-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: var(--ink-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.nexus-btn-secondary:hover {
+  background-color: #F3F4F6;
+  border-color: #D1D5DB;
+}
+
+/* Section Rule Dividers */
+.nexus-divider {
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+  margin: 0;
+}
+
+/* Tabular Numbers */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Respect Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .nexus-landing-wrapper *,
+  .nexus-landing-wrapper *::before,
+  .nexus-landing-wrapper *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

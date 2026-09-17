@@ -1,9 +1,7 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import { ClinicalPersona } from '../../domain/persona';
 import { MOCK_PERSONAS } from '../../data/users/mockPersonas';
-
 import { useAuth } from '../../features/authentication/AuthProvider';
-import { AppRole } from '../../domain/auth';
 
 interface PersonaContextType {
   currentPersona: ClinicalPersona;
@@ -14,25 +12,42 @@ interface PersonaContextType {
 const PersonaContext = createContext<PersonaContextType | undefined>(undefined);
 
 export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentPersona, setCurrentPersona] = useState<ClinicalPersona>(MOCK_PERSONAS[0]); // Dr. Vance default
-  const { switchDemoPersona } = useAuth();
+  const { user, profile, role } = useAuth();
 
-  const setPersonaById = (id: string) => {
-    const found = MOCK_PERSONAS.find((p) => p.id === id);
-    if (found) {
-      setCurrentPersona(found);
-      // Synchronize Phase 6C authorization role
-      let appRole: AppRole = 'clinician';
-      if (found.role === 'nurse') appRole = 'nurse';
-      else if (found.role === 'laboratory') appRole = 'laboratory';
-      else if (found.role === 'reviewer') appRole = 'reviewer';
-      else if (found.role === 'administrator') appRole = 'organization_admin';
-      switchDemoPersona(appRole, found.name);
-    }
-  };
+  const currentPersona = useMemo<ClinicalPersona>(() => {
+    // Select base clinical template matching authenticated role
+    const base =
+      MOCK_PERSONAS.find((p) => {
+        if (role === 'organization_admin') return p.role === 'administrator';
+        if (role === 'nurse') return p.role === 'nurse';
+        if (role === 'laboratory') return p.role === 'laboratory';
+        if (role === 'reviewer') return p.role === 'reviewer';
+        return p.role === 'clinician';
+      }) || MOCK_PERSONAS[0];
+
+    const fullName =
+      profile?.fullName ||
+      user?.user_metadata?.full_name ||
+      (user?.email ? user.email.split('@')[0] : base.name);
+
+    const initials = fullName
+      .split(' ')
+      .filter(Boolean)
+      .map((part: string) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+
+    return {
+      ...base,
+      name: fullName,
+      title: profile?.profession || base.title,
+      avatarInitials: initials || base.avatarInitials,
+    };
+  }, [user, profile, role]);
 
   return (
-    <PersonaContext.Provider value={{ currentPersona, allPersonas: MOCK_PERSONAS, setPersonaById }}>
+    <PersonaContext.Provider value={{ currentPersona, allPersonas: [currentPersona], setPersonaById: () => {} }}>
       {children}
     </PersonaContext.Provider>
   );

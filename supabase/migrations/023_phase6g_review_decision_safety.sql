@@ -35,6 +35,11 @@ create table if not exists public.decisions (
   legal_disclaimer_acknowledged boolean   not null default true
 );
 
+alter table public.decisions
+  add column if not exists amendment_reason text,
+  add column if not exists related_assessment_id uuid references public.nexus_assessments(id) on delete set null,
+  add column if not exists legal_disclaimer_acknowledged boolean not null default true;
+
 comment on table public.decisions is
   'Official clinician-owned decisions. Immutable record: amendments create a linked chain.';
 
@@ -81,6 +86,9 @@ create table if not exists public.safety_concerns (
   clinical_notes      text
 );
 
+alter table public.safety_concerns
+  add column if not exists clinical_notes text;
+
 comment on table public.safety_concerns is
   'Structured safety hazards and contraindication alerts. Resolved concerns are never deleted.';
 
@@ -101,6 +109,11 @@ create table if not exists public.reviews (
   reason              text,
   reviewed_at         timestamptz not null default now()
 );
+
+alter table public.reviews
+  add column if not exists case_id uuid references public.cases(id) on delete cascade,
+  add column if not exists finding_id uuid references public.clinical_findings(id) on delete set null,
+  add column if not exists reason_category text;
 
 comment on table public.reviews is
   'Traceable audit trail of clinician review actions on AI and diagnostic outputs.';
@@ -123,6 +136,9 @@ create table if not exists public.tasks (
   completed_at        timestamptz,
   completed_by        uuid        references public.profiles(id)
 );
+
+alter table public.tasks
+  add column if not exists completed_by uuid references public.profiles(id);
 
 comment on table public.tasks is
   'Clinical workflow duties and investigation follow-ups.';

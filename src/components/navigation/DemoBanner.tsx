@@ -46,7 +46,7 @@ export const DemoBanner: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <span style={{ color: '#CBD5E1', display: 'flex', alignItems: 'center', gap: '6px' }}>
           <UserCheck size={12} color="#38BDF8" />
-          Active Persona: <strong style={{ color: '#F8FAFC' }}>{currentPersona.roleDisplay}</strong>
+          Signed in: <strong style={{ color: '#F8FAFC' }}>{currentPersona.name} ({currentPersona.roleDisplay})</strong>
         </span>
 
         {activeView === 'landing' ? (

@@ -1,5 +1,9 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
-import { FullSyntheticCase, SYNTHETIC_CASE_10482, MOCK_CASES_LIST } from '../../data/cases/mockCasesData';
+import { createPatientCase } from '../../features/cases/services/create-patient-case';
+import { CaseIntakeDraft } from '../../features/cases/types/intake';
+import { runCaseAnalysis } from '../../features/cases/services/case-analysis';
+import { FullSyntheticCase, SYNTHETIC_CASE_10482, MOCK_CASES_LIST, MOCK_FULL_CASES_REGISTRY } from '../../data/cases/mockCasesData';
+import { useAuth } from '../../features/authentication/AuthProvider';
 import {
   INITIAL_SAFETY_CONCERNS,
   INITIAL_REVIEW_QUEUE,
@@ -39,6 +43,7 @@ export type MainView =
   | 'overview'
   | 'cases'
   | 'case-workspace'
+  | 'case-intake'
   | 'patients'
   | 'investigations'
   | 'tasks'
@@ -63,6 +68,13 @@ export type CaseSubTab =
   | 'safety'
   | 'rules';
 
+export interface RegisterCaseOptions {
+  runAnalysisImmediately: boolean;
+  organizationId: string;
+  userId: string;
+  userDisplayName: string;
+}
+
 interface CaseContextType {
   activeView: MainView;
   setActiveView: (view: MainView) => void;
@@ -70,7 +82,8 @@ interface CaseContextType {
   setActiveCaseSubTab: (tab: CaseSubTab) => void;
   activeCase: FullSyntheticCase;
   casesList: CaseOverview[];
-  openCaseById: (caseId: string) => void;
+  openCaseById: (caseId: string, targetTab?: CaseSubTab) => void;
+  registerCreatedCase: (draft: CaseIntakeDraft, options: RegisterCaseOptions) => Promise<{ success: boolean; error: string | null }>;
 
   // Findings & Investigations
   updateFindingStatus: (findingId: string, status: VerificationStatus, reason?: string, note?: string) => void;
@@ -133,10 +146,14 @@ interface CaseContextType {
 const CaseContext = createContext<CaseContextType | undefined>(undefined);
 
 export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { profile } = useAuth();
   const [activeView, setActiveView] = useState<MainView>('case-workspace');
   const [activeCaseSubTab, setActiveCaseSubTab] = useState<CaseSubTab>('reasoning');
   const [activeCase, setActiveCase] = useState<FullSyntheticCase>(SYNTHETIC_CASE_10482);
   const [casesList, setCasesList] = useState<CaseOverview[]>(MOCK_CASES_LIST);
+
+  // Derive the logged-in user's display name for audit events
+  const activeUserDisplayName = profile?.fullName || 'Clinician';
 
   // Phase 6F: Nexus Assessment
   const [nexusAssessment, setNexusAssessment] = useState<NexusAssessment | null>(
@@ -187,10 +204,72 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   }, [activeCase.overview.state, hasBlockingSafety, activeDecision]);
 
-  const openCaseById = (caseId: string) => {
+  const openCaseById = (caseId: string, targetTab?: CaseSubTab) => {
+    // Load the full case object from the registry (or fall back to demo)
+    const fullCase = MOCK_FULL_CASES_REGISTRY[caseId];
+    if (fullCase) {
+      setActiveCase(fullCase);
+      // Also reset per-case derived state for safety concerns & decisions
+      setNexusAssessment(fullCase.nexusAssessment ?? null);
+    }
     setActiveView('case-workspace');
-    setActiveCaseSubTab('summary');
+    setActiveCaseSubTab(targetTab ?? 'summary');
   };
+
+  // ── Phase 14: Case Registration from Intake ──────────────
+  const registerCreatedCase = useCallback(async (
+    draft: CaseIntakeDraft,
+    options: RegisterCaseOptions
+  ): Promise<{ success: boolean; error: string | null }> => {
+    const result = await createPatientCase(draft, {
+      organizationId: options.organizationId,
+      userId: options.userId,
+      userDisplayName: options.userDisplayName,
+    });
+
+    if (!result.success) {
+      return { success: false, error: result.error };
+    }
+
+    const newFullCase = result.fullCase;
+
+    // Persist the new case into context state
+    setActiveCase(newFullCase);
+    setCasesList((prev) => [
+      {
+        ...newFullCase.overview,
+      },
+      ...prev,
+    ]);
+
+    // If Nexus analysis was requested immediately, run it
+    if (options.runAnalysisImmediately) {
+      setActiveView('case-workspace');
+      setActiveCaseSubTab('reasoning');
+      setIsRunningAnalysis(true);
+      try {
+        const analysisResult = await runCaseAnalysis(newFullCase, {
+          caseId: result.caseId,
+          allowOfflineGrace: true,
+        });
+        if (analysisResult.assessment) {
+          setNexusAssessment(analysisResult.assessment);
+          setActiveCase((prev) => ({
+            ...prev,
+            nexusAssessment: analysisResult.assessment ?? undefined,
+          }));
+        }
+      } finally {
+        setIsRunningAnalysis(false);
+      }
+    } else {
+      // Route to case workspace summary tab
+      setActiveView('case-workspace');
+      setActiveCaseSubTab('summary');
+    }
+
+    return { success: true, error: null };
+  }, [casesList]);
 
   // ── Findings Status Update ──────────────────────────────
   const updateFindingStatus = (findingId: string, status: VerificationStatus, reason?: string, note?: string) => {
@@ -204,7 +283,7 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
               verificationStatus: status,
               rejectionReason: reason,
               rejectionNote: note,
-              rejectedBy: status === 'Rejected' ? 'Dr. Edward Vance, MD' : undefined,
+              rejectedBy: status === 'Rejected' ? activeUserDisplayName : undefined,
               rejectedAt: status === 'Rejected' ? 'Just now' : undefined,
             },
           };
@@ -216,7 +295,7 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: `evt-${Date.now()}`,
         time: 'Just now',
         actor: 'CLINICIAN',
-        actorName: 'Dr. Edward Vance, MD',
+        actorName: activeUserDisplayName,
         eventType: status === 'Rejected' ? 'REJECTED' : 'REVIEWED',
         title: `Clinical finding ${status.toLowerCase()}: ${prev.findings.find((f) => f.id === findingId)?.label}`,
         description:
@@ -245,7 +324,7 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         testName,
         category,
         priority,
-        requestedBy: 'Dr. Edward Vance, MD',
+        requestedBy: activeUserDisplayName,
         requestedAt: 'Just now',
         clinicalIndication: indication,
         status: 'Requested' as const,
@@ -255,7 +334,7 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: `evt-${Date.now()}`,
         time: 'Just now',
         actor: 'CLINICIAN',
-        actorName: 'Dr. Edward Vance, MD',
+        actorName: activeUserDisplayName,
         eventType: 'REQUESTED',
         title: `Investigation ordered: ${testName}`,
         description: `Priority: ${priority}. Indication: ${indication}`,
@@ -376,8 +455,9 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // ── Phase 6G: Safety Concerns Management ────────────────
   const acknowledgeSafetyConcern = (concernId: string, note?: string) => {
+    const userId = profile?.id || 'user';
     setSafetyConcerns((prev) =>
-      prev.map((c) => (c.id === concernId ? acknowledgeConcern(c, 'dr-edward-vance', 'Dr. Edward Vance, MD', note) : c))
+      prev.map((c) => (c.id === concernId ? acknowledgeConcern(c, userId, activeUserDisplayName, note) : c))
     );
 
     setActiveCase((prev) => {
@@ -386,7 +466,7 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: `evt-${Date.now()}`,
         time: 'Just now',
         actor: 'CLINICIAN',
-        actorName: 'Dr. Edward Vance, MD',
+        actorName: activeUserDisplayName,
         eventType: 'REVIEWED',
         title: `Safety concern acknowledged: ${concern?.category || 'Clinical Hazard'}`,
         description: note || 'Acknowledged by lead clinician; appropriate care protocol underway.',
@@ -397,8 +477,9 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const resolveSafetyConcern = (concernId: string, note: string) => {
+    const userId = profile?.id || 'user';
     setSafetyConcerns((prev) =>
-      prev.map((c) => (c.id === concernId ? resolveConcern(c, 'dr-edward-vance', 'Dr. Edward Vance, MD', note) : c))
+      prev.map((c) => (c.id === concernId ? resolveConcern(c, userId, activeUserDisplayName, note) : c))
     );
 
     setActiveCase((prev) => {
@@ -407,7 +488,7 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: `evt-${Date.now()}`,
         time: 'Just now',
         actor: 'CLINICIAN',
-        actorName: 'Dr. Edward Vance, MD',
+        actorName: activeUserDisplayName,
         eventType: 'REVIEWED',
         title: `Safety concern RESOLVED: ${concern?.category || 'Clinical Hazard'}`,
         description: `Resolution note: ${note}`,
@@ -455,7 +536,7 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: `evt-${Date.now()}`,
         time: 'Just now',
         actor: 'CLINICIAN',
-        actorName: 'Dr. Edward Vance, MD',
+        actorName: activeUserDisplayName,
         eventType: action === 'REJECT' ? 'REJECTED' : 'REVIEWED',
         title: `Review Queue: ${item?.title || 'Item'} [${action}]`,
         description:
@@ -483,8 +564,8 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
       decisionType: draft.decisionType,
       summary: draft.summary,
       rationale: draft.rationale,
-      recordedBy: 'Dr. Edward Vance, MD',
-      recordedByRole: 'Attending Physician · Lead Clinician',
+      recordedBy: activeUserDisplayName,
+      recordedByRole: profile?.profession || 'Attending Physician',
       status: 'ACTIVE',
       recordedAt: new Date().toISOString(),
       relatedAssessmentId: draft.relatedAssessmentId,
@@ -500,7 +581,7 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: `evt-${Date.now()}`,
         time: 'Just now',
         actor: 'CLINICIAN',
-        actorName: 'Dr. Edward Vance, MD',
+        actorName: activeUserDisplayName,
         eventType: 'DECISION_RECORDED',
         title: `Clinical Decision Recorded: ${draft.decisionType}`,
         description: `Clinician-owned decision recorded. Summary: "${draft.summary.slice(0, 100)}..."`,
@@ -541,8 +622,8 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { amendedPrior, activeNew } = amendDecision(
       activeDecision,
       amendment,
-      'Dr. Edward Vance, MD',
-      'Attending Physician · Lead Clinician'
+      activeUserDisplayName,
+      profile?.profession || 'Attending Physician'
     );
 
     setDecisions((prev) =>
@@ -554,7 +635,7 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: `evt-${Date.now()}`,
         time: 'Just now',
         actor: 'CLINICIAN',
-        actorName: 'Dr. Edward Vance, MD',
+        actorName: activeUserDisplayName,
         eventType: 'DECISION_RECORDED',
         title: `Clinical Decision AMENDED: Decision #${activeNew.id}`,
         description: `Amended from Decision #${amendedPrior.id}. Reason: "${amendment.amendmentReason}". Prior decision preserved in historical record.`,
@@ -599,7 +680,7 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: `evt-${Date.now()}`,
         time: 'Just now',
         actor: 'CLINICIAN',
-        actorName: 'Dr. Edward Vance, MD',
+        actorName: activeUserDisplayName,
         eventType: 'REQUESTED',
         title: `Clinical task created: ${newTask.title}`,
         description: `Priority: ${newTask.priority}. Assigned: ${newTask.assignedToName || 'Unassigned'}.`,
@@ -611,7 +692,7 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const completeTask = (taskId: string) => {
     setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? completeClinicalTask(t, 'Dr. Edward Vance, MD') : t))
+      prev.map((t) => (t.id === taskId ? completeClinicalTask(t, activeUserDisplayName) : t))
     );
 
     setActiveCase((prev) => {
@@ -620,7 +701,7 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: `evt-${Date.now()}`,
         time: 'Just now',
         actor: 'CLINICIAN',
-        actorName: 'Dr. Edward Vance, MD',
+        actorName: activeUserDisplayName,
         eventType: 'REVIEWED',
         title: `Clinical task completed: ${task?.title || 'Task'}`,
         description: 'Marked as completed by clinician.',
@@ -658,7 +739,7 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: `evt-${Date.now()}`,
         time: 'Just now',
         actor: 'CLINICIAN',
-        actorName: 'Dr. Edward Vance, MD',
+        actorName: activeUserDisplayName,
         eventType: 'REVIEWED',
         title: `Case status transitioned: ${prev.overview.state} → ${targetStatus}`,
         description: `Clinical lifecycle state updated according to clinical workflow rules.`,
@@ -695,6 +776,7 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         activeCase,
         casesList,
         openCaseById,
+        registerCreatedCase,
         updateFindingStatus,
         requestInvestigation,
         nexusAssessment,
