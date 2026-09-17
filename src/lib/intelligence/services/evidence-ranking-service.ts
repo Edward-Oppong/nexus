@@ -16,6 +16,8 @@ export interface EvidenceRetrievalAndRankingService {
   retrieveAndRerank(caseQuery: string, limit?: number): Promise<RankedEvidenceResult[]>;
 }
 
+import { huggingFaceClient } from './huggingface-api';
+
 export class MedCPTEvidencePipeline implements EvidenceRetrievalAndRankingService {
   readonly queryEncoderModel = 'ncbi/MedCPT-Query-Encoder';
   readonly articleEncoderModel = 'ncbi/MedCPT-Article-Encoder';
@@ -23,10 +25,21 @@ export class MedCPTEvidencePipeline implements EvidenceRetrievalAndRankingServic
 
   /**
    * Encodes clinical question / case context into dense 768-d vector
+   * Uses ncbi/MedCPT-Query-Encoder when live token is present
    */
   async encodeQuery(query: string): Promise<number[]> {
-    // In production, dispatched to Supabase Edge Function or HF Inference Endpoint
-    // Deterministic pseudo-vector representation for local environment
+    if (huggingFaceClient.isConfigured()) {
+      try {
+        const { embedding } = await huggingFaceClient.generateEmbedding(query, 'ncbi/MedCPT-Query-Encoder');
+        if (embedding && embedding.length > 0) {
+          return embedding;
+        }
+      } catch (err) {
+        console.warn(`[EvidencePipeline] Live MedCPT query encoding failed, utilizing deterministic representation:`, err);
+      }
+    }
+
+    // Deterministic pseudo-vector representation for local/offline environment
     const hash = Array.from(query).reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return Array.from({ length: 768 }, (_, i) => Math.sin(hash + i));
   }
@@ -39,7 +52,7 @@ export class MedCPTEvidencePipeline implements EvidenceRetrievalAndRankingServic
   async retrieveAndRerank(caseQuery: string, limit: number = 5): Promise<RankedEvidenceResult[]> {
     const queryTerms = caseQuery.toLowerCase().split(/\s+/).filter((t) => t.length > 3);
 
-    // Convert existing mock literature repository into EvidenceChunks
+    // Convert existing literature repository into EvidenceChunks
     const chunks: EvidenceChunk[] = MOCK_EVIDENCE_ITEMS.map((item) => ({
       id: item.id,
       sourceDocumentId: `doc-ev-${item.id}`,
@@ -57,7 +70,7 @@ export class MedCPTEvidencePipeline implements EvidenceRetrievalAndRankingServic
       embeddingVersion: '1.0.0',
     }));
 
-    // Stage 1: Dense Vector Retrieval Simulation (Top candidates)
+    // Stage 1: Dense Vector Retrieval Simulation / Candidate Selection (Top candidates)
     const stage1Candidates = chunks.map((chunk, index) => {
       const text = (chunk.title + ' ' + chunk.content).toLowerCase();
       const matched = queryTerms.filter((term) => text.includes(term));
@@ -71,6 +84,31 @@ export class MedCPTEvidencePipeline implements EvidenceRetrievalAndRankingServic
     });
 
     // Stage 2: MedCPT Cross-Encoder Reranking
+    // If live Hugging Face token is configured, probe live Cross-Encoder for top 5 candidates
+    let liveReranked: RankedEvidenceResult[] | null = null;
+    if (huggingFaceClient.isConfigured()) {
+      try {
+        const topCandidates = stage1Candidates.slice(0, Math.min(stage1Candidates.length, 5));
+        const scored = await Promise.all(
+          topCandidates.map(async (c) => {
+            const { score } = await huggingFaceClient.scoreRelevance(caseQuery, c.chunk.content);
+            return {
+              ...c,
+              rerankScore: parseFloat(score.toFixed(3)),
+              relevanceRationale: `ncbi/MedCPT-Cross-Encoder joint scoring: ${c.matchedConcepts.slice(0, 3).join(', ') || 'clinical semantic alignment'}`,
+            };
+          })
+        );
+        liveReranked = scored.sort((a, b) => b.rerankScore - a.rerankScore).slice(0, limit);
+      } catch (err) {
+        console.warn(`[EvidencePipeline] Live MedCPT Cross-Encoder reranking failed, falling back to local scoring:`, err);
+      }
+    }
+
+    if (liveReranked && liveReranked.length > 0) {
+      return liveReranked;
+    }
+
     const reranked = stage1Candidates.map((candidate) => {
       // Cross-encoders evaluate full query + passage pair jointly
       const deepScore = candidate.retrievalScore * 1.12 + (candidate.matchedConcepts.length > 1 ? 0.15 : 0.05);

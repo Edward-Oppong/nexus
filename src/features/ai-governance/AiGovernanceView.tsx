@@ -7,6 +7,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useCase } from '../../app/providers/CaseContext';
+import { useDrawer } from '../../app/providers/DrawerContext';
 import {
   BrainCircuit,
   Sliders,
@@ -50,6 +51,7 @@ type GovernanceConsole = 'REGISTRY' | 'AB_TEST' | 'FEEDBACK' | 'EXPLAINABILITY';
 
 export const AiGovernanceView: React.FC = () => {
   const { activeCase, setActiveView } = useCase();
+  const { openHfTesting } = useDrawer();
   const [activeConsole, setActiveConsole] = useState<GovernanceConsole>('REGISTRY');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -189,24 +191,46 @@ export const AiGovernanceView: React.FC = () => {
               </p>
             </div>
 
-            <button
-              onClick={() => setActiveView('case-workspace')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: '#0F172A',
-                color: '#FFFFFF',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '8px 14px',
-                fontSize: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              Open Active Case <ChevronRight size={14} />
-            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={openHfTesting}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '8px 14px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 4px rgba(2, 132, 199, 0.2)',
+                }}
+              >
+                <span>🤗</span> Test HF Models Live
+              </button>
+
+              <button
+                onClick={() => setActiveView('case-workspace')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#0F172A',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '8px 14px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Open Active Case <ChevronRight size={14} />
+              </button>
+            </div>
           </div>
 
           {/* 4-Console Sub-Navigation Toolbar */}

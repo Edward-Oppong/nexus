@@ -18,13 +18,53 @@ export interface ClinicalClassificationService {
   classifyFinding(input: FindingClassificationInput): Promise<FindingClassificationResult>;
 }
 
+import { huggingFaceClient } from './huggingface-api';
+
 export class HuggingFaceClassificationService implements ClinicalClassificationService {
   readonly docClassifierModel = 'ParamDev/clinicalbert-medical-doc-classifier';
   readonly findingClassifierModel = 'emilyalsentzer/Bio_ClinicalBERT-ft';
 
   async classifyDocument(documentId: string, text: string): Promise<DocumentClassificationResult> {
-    const lower = text.toLowerCase();
+    // 1. Live Hugging Face Inference Attempt
+    if (huggingFaceClient.isConfigured()) {
+      try {
+        const { predictions } = await huggingFaceClient.classifyDocument(text);
+        if (predictions.length > 0) {
+          const top = predictions[0];
+          const label = top.label.toUpperCase();
+          let docType: DocumentClassificationType = 'CLINICAL_NOTE';
+          let strategy: DocumentClassificationResult['processingStrategy'] = 'CLINICAL_NOTE_EXTRACTION';
 
+          if (label.includes('LAB') || label.includes('PATH')) {
+            docType = 'LAB_REPORT';
+            strategy = 'LABORATORY_EXTRACTION';
+          } else if (label.includes('IMAGE') || label.includes('RADIO') || label.includes('CT')) {
+            docType = 'IMAGING_REPORT';
+            strategy = 'IMAGING_EXTRACTION';
+          } else if (label.includes('DISCHARGE')) {
+            docType = 'DISCHARGE_SUMMARY';
+            strategy = 'GENERAL_EXTRACTION';
+          } else if (label.includes('REFER')) {
+            docType = 'REFERRAL';
+            strategy = 'CLINICAL_NOTE_EXTRACTION';
+          }
+
+          return {
+            documentId,
+            docType,
+            confidence: parseFloat(top.score.toFixed(3)),
+            modelName: this.docClassifierModel,
+            modelVersion: '1.2.0',
+            processingStrategy: strategy,
+          };
+        }
+      } catch (err) {
+        console.warn(`[ClassificationService] Live HF doc classification failed, utilizing local calibrated rule:`, err);
+      }
+    }
+
+    // 2. Deterministic / Local Fallback
+    const lower = text.toLowerCase();
     let docType: DocumentClassificationType = 'CLINICAL_NOTE';
     let strategy: DocumentClassificationResult['processingStrategy'] = 'CLINICAL_NOTE_EXTRACTION';
     let confidence = 0.88;
@@ -58,6 +98,34 @@ export class HuggingFaceClassificationService implements ClinicalClassificationS
   }
 
   async classifyFinding(input: FindingClassificationInput): Promise<FindingClassificationResult> {
+    // 1. Live Hugging Face Inference Attempt
+    if (huggingFaceClient.isConfigured()) {
+      try {
+        const { predictions } = await huggingFaceClient.classifyFinding(input.text);
+        if (predictions.length > 0) {
+          const top = predictions[0];
+          const label = top.label.toUpperCase();
+          let category: ContractFindingCategory = 'SIGN';
+
+          if (label.includes('SYMPTOM')) category = 'SYMPTOM';
+          else if (label.includes('MED') || label.includes('DRUG')) category = 'MEDICATION';
+          else if (label.includes('LAB')) category = 'LABORATORY';
+          else if (label.includes('IMAG') || label.includes('RAD')) category = 'IMAGING';
+          else if (label.includes('HIST')) category = 'HISTORY';
+
+          return {
+            category,
+            confidence: parseFloat(top.score.toFixed(3)),
+            modelName: this.findingClassifierModel,
+            modelVersion: '2.0.1-ft',
+          };
+        }
+      } catch (err) {
+        console.warn(`[ClassificationService] Live HF finding classification failed, utilizing local calibrated rule:`, err);
+      }
+    }
+
+    // 2. Deterministic / Local Fallback
     const text = input.text.toLowerCase();
     let category: ContractFindingCategory = 'SIGN';
     let confidence = 0.89;

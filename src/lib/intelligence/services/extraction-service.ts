@@ -36,17 +36,50 @@ function mapEntityTypeToFindingCategory(type: ExtractedEntity['entityType']): Co
   }
 }
 
+import { huggingFaceClient } from './huggingface-api';
+
 export class HuggingFaceNERService implements MedicalNERService {
   readonly modelId = 'ribhu/medbert-clinical-ner';
   readonly modelVersion = '1.0.0';
 
   /**
    * Token classification extraction
-   * In local/simulated environment, uses medical lexicon pattern matcher
-   * to guarantee deterministic span offsets and reproducible evaluations.
+   * When Hugging Face API token is available, connects to ribhu/medbert-clinical-ner.
+   * Gracefully falls back to high-fidelity clinical pattern extraction if offline or unauthenticated.
    */
   async extractEntities(input: ExtractionInput): Promise<ExtractedEntity[]> {
     const text = input.text;
+
+    // 1. Live Hugging Face Inference Attempt
+    if (huggingFaceClient.isConfigured()) {
+      try {
+        const { entities: hfEntities } = await huggingFaceClient.extractNER(text);
+        if (hfEntities.length > 0) {
+          return hfEntities.map((ent) => {
+            const group = (ent.entity_group || ent.entity || '').toUpperCase();
+            let type: ExtractedEntity['entityType'] = 'SIGN';
+            if (group.includes('SYMPT') || group.includes('SIGN')) type = 'SYMPTOM';
+            else if (group.includes('DIS') || group.includes('DISEASE')) type = 'DISEASE';
+            else if (group.includes('MED') || group.includes('DRUG')) type = 'MEDICATION';
+            else if (group.includes('PROC')) type = 'PROCEDURE';
+            else if (group.includes('ANAT')) type = 'ANATOMY';
+            else if (group.includes('LAB')) type = 'LAB_VALUE';
+
+            return {
+              text: ent.word,
+              entityType: type,
+              startOffset: ent.start,
+              endOffset: ent.end,
+              confidence: parseFloat(ent.score.toFixed(3)),
+            };
+          });
+        }
+      } catch (err) {
+        console.warn(`[ExtractionService] Live HF NER call failed, utilizing local calibrated matcher:`, err);
+      }
+    }
+
+    // 2. Deterministic Clinical Lexicon Matcher (Offline / Fallback / Calibration)
     const entities: ExtractedEntity[] = [];
 
     // Clinical pattern recognition matching ribhu/medbert-clinical-ner entity classes

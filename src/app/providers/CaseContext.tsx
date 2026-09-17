@@ -3,7 +3,7 @@ import { createPatientCase } from '../../features/cases/services/create-patient-
 import { CaseIntakeDraft } from '../../features/cases/types/intake';
 import { runCaseAnalysis } from '../../features/cases/services/case-analysis';
 import { FullSyntheticCase, SYNTHETIC_CASE_10482, MOCK_CASES_LIST, MOCK_FULL_CASES_REGISTRY } from '../../data/cases/mockCasesData';
-import { useAuth } from '../../features/authentication/AuthProvider';
+import { useAuth, DEMO_ORGANIZATIONS } from '../../features/authentication/AuthProvider';
 import {
   INITIAL_SAFETY_CONCERNS,
   INITIAL_REVIEW_QUEUE,
@@ -35,7 +35,10 @@ import {
   TransitionCheckResult,
 } from '../../domain/workflow';
 import { runNexusAnalysis } from '../../lib/intelligence/reasoning-orchestrator';
-import { testProvider } from '../../lib/intelligence/reasoning-provider';
+import { testProvider, getDefaultReasoningProvider } from '../../lib/intelligence/reasoning-provider';
+import { getCaseDetail } from '../../features/cases/api/getCaseDetail';
+import { getCases } from '../../features/cases/api/getCases';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase/client';
 
 export type MainView =
   | 'landing'
@@ -146,7 +149,7 @@ interface CaseContextType {
 const CaseContext = createContext<CaseContextType | undefined>(undefined);
 
 export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { profile } = useAuth();
+  const { profile, activeOrganization } = useAuth();
   const [activeView, setActiveView] = useState<MainView>('case-workspace');
   const [activeCaseSubTab, setActiveCaseSubTab] = useState<CaseSubTab>('reasoning');
   const [activeCase, setActiveCase] = useState<FullSyntheticCase>(SYNTHETIC_CASE_10482);
@@ -204,16 +207,64 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   }, [activeCase.overview.state, hasBlockingSafety, activeDecision]);
 
-  const openCaseById = (caseId: string, targetTab?: CaseSubTab) => {
-    // Load the full case object from the registry (or fall back to demo)
-    const fullCase = MOCK_FULL_CASES_REGISTRY[caseId];
-    if (fullCase) {
-      setActiveCase(fullCase);
-      // Also reset per-case derived state for safety concerns & decisions
-      setNexusAssessment(fullCase.nexusAssessment ?? null);
+  // Org ID is derived from the authenticated user's active organization.
+  // Falls back to the demo org ID until auth has loaded.
+  const activeOrganizationId = activeOrganization?.id ?? DEMO_ORGANIZATIONS[0].id;
+
+  React.useEffect(() => {
+    if (isSupabaseConfigured && profile) {
+      const orgId = activeOrganizationId;
+      getCases(orgId).then((dbCases) => {
+        if (dbCases && dbCases.length > 0) {
+          setCasesList(
+            dbCases.map((c) => ({
+              id: c.id,
+              patient: {
+                id: c.patientId || `pat-${c.id}`,
+                syntheticIdentifier: 'Clinical Patient',
+                age: 58,
+                gender: 'Female',
+                encounterNumber: `#${c.caseNumber}`,
+                encounterType: 'Inpatient admission',
+                encounterDate: 'Recently',
+                allergiesCount: 0,
+                activeMedicationsCount: 0,
+                allergies: [],
+                medications: [],
+              },
+              state: c.status as any,
+              priority: (c.priority?.toLowerCase() || 'normal') as any,
+              assignedClinician: 'Attending Clinician',
+              assignedTeam: ['Attending Clinician (Lead)'],
+              lastUpdate: 'Recently',
+              safetyIssueCount: 0,
+              gapsCount: 0,
+              hypothesesCount: 0,
+            }))
+          );
+        }
+      });
     }
+  }, [activeOrganizationId, profile]);
+
+  const openCaseById = async (caseId: string, targetTab?: CaseSubTab) => {
     setActiveView('case-workspace');
     setActiveCaseSubTab(targetTab ?? 'summary');
+
+    try {
+      const fullCase = await getCaseDetail(caseId);
+      if (fullCase) {
+        setActiveCase(fullCase);
+        setNexusAssessment(fullCase.nexusAssessment ?? null);
+      }
+    } catch (err) {
+      console.warn('[openCaseById] Fallback to registry for case:', caseId, err);
+      const fullCase = MOCK_FULL_CASES_REGISTRY[caseId];
+      if (fullCase) {
+        setActiveCase(fullCase);
+        setNexusAssessment(fullCase.nexusAssessment ?? null);
+      }
+    }
   };
 
   // ── Phase 14: Case Registration from Intake ──────────────
@@ -305,6 +356,20 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isNexusSimulated: false,
       };
 
+      // Persist to Supabase clinical_findings table if configured
+      if (isSupabaseConfigured) {
+        supabase
+          .from('clinical_findings')
+          .update({
+            status: status === 'Rejected' ? 'REJECTED' : 'ACTIVE',
+            verified_at: status === 'Verified' ? new Date().toISOString() : null,
+          })
+          .eq('id', findingId)
+          .then(({ error }) => {
+            if (error) console.warn('[updateFindingStatus] Supabase sync notice:', error.message);
+          });
+      }
+
       return { ...prev, findings: updatedFindings, timeline: [auditEvent, ...prev.timeline] };
     });
   };
@@ -341,6 +406,24 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isNexusSimulated: false,
       };
 
+      // Persist to Supabase investigations table if configured
+      if (isSupabaseConfigured) {
+        supabase
+          .from('investigations')
+          .insert({
+            case_id: prev.overview.id,
+            test_name: testName,
+            category: category.toUpperCase(),
+            priority: priority.toUpperCase(),
+            clinical_indication: indication,
+            status: 'ORDERED',
+            requested_by: activeUserDisplayName,
+          })
+          .then(({ error }) => {
+            if (error) console.warn('[requestInvestigation] Supabase sync notice:', error.message);
+          });
+      }
+
       return { ...prev, investigations: [newOrder, ...prev.investigations], timeline: [auditEvent, ...prev.timeline] };
     });
   };
@@ -353,10 +436,30 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setNexusAssessment((prev) => (prev ? { ...prev, status: 'SUPERSEDED' } : null));
       }
 
-      const newAssessment = await runNexusAnalysis(activeCase, testProvider, {
+      // Automatically routes to live Hugging Face provider (MedGemma 4B) when token is configured
+      const provider = getDefaultReasoningProvider();
+      const newAssessment = await runNexusAnalysis(activeCase, provider, {
         caseId: activeCase.overview.id,
       });
       setNexusAssessment(newAssessment);
+
+      // Persist assessment event to Supabase audit trail if configured
+      if (isSupabaseConfigured) {
+        supabase
+          .from('audit_events')
+          .insert({
+            case_id: activeCase.overview.id,
+            event_type: 'GENERATED',
+            action_type: 'NEXUS_ASSESSMENT',
+            summary: `Nexus Clinical Assessment Generated via ${newAssessment.modelName}`,
+            description: `Model: ${newAssessment.modelName} (v${newAssessment.modelVersion}). Safety boundary: ${newAssessment.safetyBoundary}.`,
+            user_display_name: 'Nexus Clinical Reasoning Engine',
+            recorded_at: new Date().toISOString(),
+          })
+          .then(({ error }) => {
+            if (error) console.warn('[handleRunNexusAnalysis] Supabase audit sync notice:', error.message);
+          });
+      }
 
       setActiveCase((prev) => {
         const auditEvent: TimelineEvent = {

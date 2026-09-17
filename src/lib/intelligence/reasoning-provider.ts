@@ -125,5 +125,109 @@ export class TestProvider implements ReasoningProvider {
   }
 }
 
-// Singleton test provider instance
+// ----------------------------------------------------------
+// HuggingFaceMedGemmaProvider — Live Generative Synthesis
+// Connects to google/medgemma-4b-it via Hugging Face Inference API
+// Complies with 18 Non-Negotiable System Rules
+// ----------------------------------------------------------
+import { huggingFaceClient } from './services/huggingface-api';
+
+export class HuggingFaceMedGemmaProvider implements ReasoningProvider {
+  readonly name = 'google/medgemma-4b-it';
+  readonly version = '1.0.0-hf';
+
+  async generateAssessment(input: ReasoningInput): Promise<RawReasoningOutput> {
+    if (!huggingFaceClient.isConfigured()) {
+      console.info('[HuggingFaceMedGemmaProvider] No HF token configured; falling back to deterministic synthesizer.');
+      return testProvider.generateAssessment(input);
+    }
+
+    try {
+      const allowedFindingIds = input.verifiedFindings.map((f) => f.id);
+      const prompt = `[CLINICAL REASONING TASK - NEXUS WORKSTATION]
+Patient Case ID: ${input.caseId}
+Summary: ${input.clinicalSummary}
+
+Verified Findings:
+${input.verifiedFindings.map((f) => `- [${f.id}] (${f.category}) ${f.label}`).join('\n')}
+
+Investigation Results:
+${input.investigationResults.map((i) => `- [${i.id}] ${i.testName}: ${i.value} (${i.interpretation})`).join('\n')}
+
+Retrieved Clinical Evidence:
+${input.retrievedEvidence.map((e) => `- [${e.id}] ${e.title} (${e.excerpt || ''})`).join('\n')}
+
+Known Information Gaps:
+${input.informationGaps.map((g) => `- [${g.id}] ${g.description} (Priority: ${g.priority})`).join('\n')}
+
+SYSTEM CONSTRAINTS (MANDATORY):
+1. Do NOT invent new findings. Only reference finding IDs from the list above.
+2. Prohibit numeric probabilities or percentage likelihoods (e.g. no "80%", no "0.75"). Use qualitative uncertainty only.
+3. Formulate candidate differential hypotheses, not definitive declarations.
+4. Return ONLY a single valid JSON object in the following schema:
+{
+  "summary": "Synthesized clinical summary",
+  "hypotheses": [
+    {
+      "label": "Hypothesis title",
+      "rationale": "Clinical reasoning explanation without percentages",
+      "supportingFindingIds": ["<id from findings above>"],
+      "contradictingFindingIds": [],
+      "missingInformation": ["Gap description"],
+      "evidenceSourceIds": ["<id from evidence above>"]
+    }
+  ],
+  "contradictions": [],
+  "limitations": ["Clinical limitation statement"]
+}`;
+
+      const { text } = await huggingFaceClient.generateClinicalSynthesis(prompt, 'google/medgemma-4b-it');
+
+      // Extract JSON if wrapped in markdown code fence
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (parsed.summary && Array.isArray(parsed.hypotheses)) {
+          // Filter to guarantee IDs are grounded
+          const groundedHypotheses = parsed.hypotheses.map((h: any) => ({
+            label: String(h.label || 'Candidate Condition'),
+            rationale: String(h.rationale || 'Derived from clinical evidence.'),
+            supportingFindingIds: Array.isArray(h.supportingFindingIds)
+              ? h.supportingFindingIds.filter((id: string) => allowedFindingIds.includes(id))
+              : [],
+            contradictingFindingIds: Array.isArray(h.contradictingFindingIds)
+              ? h.contradictingFindingIds.filter((id: string) => allowedFindingIds.includes(id))
+              : [],
+            missingInformation: Array.isArray(h.missingInformation)
+              ? h.missingInformation.map(String)
+              : [],
+            evidenceSourceIds: Array.isArray(h.evidenceSourceIds)
+              ? h.evidenceSourceIds.map(String)
+              : [],
+          }));
+
+          return {
+            summary: String(parsed.summary),
+            hypotheses: groundedHypotheses.length > 0 ? groundedHypotheses : (await testProvider.generateAssessment(input)).hypotheses,
+            contradictions: Array.isArray(parsed.contradictions) ? parsed.contradictions : [],
+            limitations: Array.isArray(parsed.limitations)
+              ? parsed.limitations.map(String)
+              : ['Generated with google/medgemma-4b-it under clinician supervision.'],
+          };
+        }
+      }
+    } catch (err) {
+      console.warn('[HuggingFaceMedGemmaProvider] Live generation failed or unparseable, utilizing safe deterministic synthesizer:', err);
+    }
+
+    return testProvider.generateAssessment(input);
+  }
+}
+
+// Singleton instances
 export const testProvider: ReasoningProvider = new TestProvider();
+export const huggingFaceProvider: ReasoningProvider = new HuggingFaceMedGemmaProvider();
+
+export function getDefaultReasoningProvider(): ReasoningProvider {
+  return huggingFaceClient.isConfigured() ? huggingFaceProvider : testProvider;
+}

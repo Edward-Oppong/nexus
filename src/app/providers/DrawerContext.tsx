@@ -33,6 +33,10 @@ interface DrawerContextType {
   openShortcuts: () => void;
   closeShortcuts: () => void;
 
+  isHfTestingOpen: boolean;
+  openHfTesting: () => void;
+  closeHfTesting: () => void;
+
   closeAllDrawers: () => void;
 }
 
@@ -43,6 +47,7 @@ export const DrawerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [selectedEvidence, setSelectedEvidence] = useState<EvidenceItem | null>(null);
   const [contextualAiPrompt, setContextualAiPrompt] = useState<ContextualAiPrompt | null>(null);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [isHfTestingOpen, setIsHfTestingOpen] = useState(false);
 
   const openFindingDrawer = (finding: ClinicalFinding) => {
     setSelectedEvidence(null);
@@ -71,11 +76,15 @@ export const DrawerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const openShortcuts = () => setIsShortcutsOpen(true);
   const closeShortcuts = () => setIsShortcutsOpen(false);
 
+  const openHfTesting = () => setIsHfTestingOpen(true);
+  const closeHfTesting = () => setIsHfTestingOpen(false);
+
   const closeAllDrawers = () => {
     setSelectedFinding(null);
     setSelectedEvidence(null);
     setContextualAiPrompt(null);
     setIsShortcutsOpen(false);
+    setIsHfTestingOpen(false);
   };
 
   return (
@@ -93,6 +102,9 @@ export const DrawerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         isShortcutsOpen,
         openShortcuts,
         closeShortcuts,
+        isHfTestingOpen,
+        openHfTesting,
+        closeHfTesting,
         closeAllDrawers,
       }}
     >

@@ -22,6 +22,7 @@ import { FindingProvenanceDrawer } from '../../components/drawers/FindingProvena
 import { EvidenceDrawer } from '../../components/drawers/EvidenceDrawer';
 import { ContextualAiModal } from '../../components/drawers/ContextualAiModal';
 import { KeyboardShortcutsModal } from '../../components/ui/KeyboardShortcutsModal';
+import { HuggingFaceModelTestingModal } from '../../components/intelligence/HuggingFaceModelTestingModal';
 import { LoginPage } from '../../features/authentication/LoginPage';
 import { useAuth } from '../../features/authentication/AuthProvider';
 
@@ -29,7 +30,7 @@ const ADMIN_ONLY_VIEWS = ['administration', 'ai-governance', 'regulatory-complia
 
 export const AppShell: React.FC = () => {
   const { activeView, setActiveView, setActiveCaseSubTab } = useCase();
-  const { closeAllDrawers, openShortcuts } = useDrawer();
+  const { closeAllDrawers, openShortcuts, isHfTestingOpen, closeHfTesting } = useDrawer();
   const { isAuthenticated, role, loading } = useAuth();
   const [lastKey, setLastKey] = useState<string>('');
 
@@ -222,6 +223,7 @@ export const AppShell: React.FC = () => {
       <EvidenceDrawer />
       <ContextualAiModal />
       <KeyboardShortcutsModal />
+      <HuggingFaceModelTestingModal isOpen={isHfTestingOpen} onClose={closeHfTesting} />
     </div>
   );
 };

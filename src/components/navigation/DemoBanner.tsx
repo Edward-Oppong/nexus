@@ -1,11 +1,16 @@
 import React from 'react';
 import { useCase } from '../../app/providers/CaseContext';
 import { usePersona } from '../../app/providers/PersonaContext';
-import { AlertCircle, Eye, ArrowRight, UserCheck } from 'lucide-react';
+import { useDrawer } from '../../app/providers/DrawerContext';
+import { huggingFaceClient } from '../../lib/intelligence/services/huggingface-api';
+import { AlertCircle, Eye, ArrowRight, UserCheck, Sparkles } from 'lucide-react';
 
 export const DemoBanner: React.FC = () => {
   const { activeView, setActiveView } = useCase();
   const { currentPersona } = usePersona();
+  const { openHfTesting } = useDrawer();
+
+  const isHfReady = huggingFaceClient.isConfigured();
 
   return (
     <aside
@@ -48,6 +53,28 @@ export const DemoBanner: React.FC = () => {
           <UserCheck size={12} color="#38BDF8" />
           Signed in: <strong style={{ color: '#F8FAFC' }}>{currentPersona.name} ({currentPersona.roleDisplay})</strong>
         </span>
+
+        {/* Hugging Face Model Test Bench Trigger */}
+        <button
+          onClick={openHfTesting}
+          style={{
+            background: isHfReady ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.08)',
+            color: isHfReady ? '#38BDF8' : '#CBD5E1',
+            border: isHfReady ? '1px solid rgba(56, 189, 248, 0.4)' : '1px solid rgba(255, 255, 255, 0.15)',
+            padding: '2px 9px',
+            borderRadius: '4px',
+            fontSize: '11px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+          }}
+          title="Open Hugging Face Model Test Bench and Token Console"
+        >
+          <span>🤗</span>
+          <span>HF Models {isHfReady ? '✓' : '(Setup)'}</span>
+        </button>
 
         {activeView === 'landing' ? (
           <button
