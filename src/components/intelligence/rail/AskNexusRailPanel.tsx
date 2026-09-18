@@ -25,8 +25,10 @@ export const AskNexusRailPanel: React.FC = () => {
       let ans = '';
 
       if (q.includes('why') || q.includes('hypothesis') || q.includes('consider')) {
-        const topHyp = activeCase.hypotheses[0];
-        ans = `"${topHyp.title}" is considered based on ${topHyp.supportingFindingIds.length} verified findings. It is contradicted by ${topHyp.contradictingFindingIds.length} finding(s).`;
+        const topHyp = activeCase.hypotheses?.[0];
+        ans = topHyp
+          ? `"${topHyp.title}" is considered based on ${topHyp.supportingFindingIds?.length || 0} verified findings. It is contradicted by ${topHyp.contradictingFindingIds?.length || 0} finding(s).`
+          : 'No candidate hypotheses generated for this case yet.';
       } else if (q.includes('evidence') || q.includes('guideline') || q.includes('paper')) {
         ans = `Retrieved evidence includes clinical guidelines regarding Case ${activeCase.overview.id}. All retrieved sources are indexed in the Evidence Library.`;
       } else if (q.includes('missing') || q.includes('pending') || q.includes('gap')) {

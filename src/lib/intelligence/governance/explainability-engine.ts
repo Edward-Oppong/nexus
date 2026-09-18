@@ -18,7 +18,23 @@ export function computeHypothesisExplainability(
   activeCase: FullSyntheticCase,
   hypothesisId: string
 ): HypothesisExplainability {
-  const hypothesis = activeCase.hypotheses.find((h) => h.id === hypothesisId) || activeCase.hypotheses[0];
+  const hypothesis = activeCase.hypotheses?.find((h) => h.id === hypothesisId) || activeCase.hypotheses?.[0];
+
+  if (!hypothesis) {
+    return {
+      hypothesisId: hypothesisId || 'none',
+      hypothesisLabel: 'No candidate hypothesis',
+      qualitativeLikelihood: 'INSUFFICIENT_DATA',
+      attributions: [],
+      topDrivers: [],
+      counterfactuals: [],
+      uncertaintyBreakdown: {
+        epistemicUncertainty: 'HIGH',
+        aleatoricUncertainty: 'HIGH',
+        clinicalSummary: 'No candidate hypotheses available for feature attribution.',
+      },
+    };
+  }
 
   // Specific high-resolution attribution profile for Infective Endocarditis
   const attributions: FindingAttribution[] = [

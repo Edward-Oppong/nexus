@@ -1,7 +1,7 @@
 # Nexus Clinical Workstation
 
 > **An AI-augmented clinical reasoning workstation for structured diagnostic decision support.**
-> **Version 1.1.0 (Intelligence Architecture)**
+> **Version 1.2.0 (Live Backend, GoTrue Auth & Clinical PDF Reconstruction)**
 
 Nexus is a structured clinical reasoning environment — not an AI chatbot, not a diagnosis engine. It supports clinicians in gathering, organising, and evaluating clinical evidence, while ensuring all AI-generated content is explicitly flagged and requires human review before any clinical decision is made.
 
@@ -10,7 +10,7 @@ Nexus is a structured clinical reasoning environment — not an AI chatbot, not 
 ## Table of Contents
 
 1. [Philosophy & Design Principles](#1-philosophy--design-principles)
-2. [Getting Started](#2-getting-started)
+2. [Getting Started & Authentication](#2-getting-started--authentication)
 3. [Project Structure](#3-project-structure)
 4. [Domain Model](#4-domain-model)
 5. [Clinical Workflow & Case States](#5-clinical-workflow--case-states)
@@ -54,7 +54,7 @@ Any AI-type provenance is visually badged in the UI and cannot transition a case
 
 ---
 
-## 2. Getting Started
+## 2. Getting Started & Authentication
 
 ### Prerequisites
 
@@ -75,13 +75,13 @@ cd nexus
 # 2. Install dependencies
 npm install
 
-# 3. Copy environment variables
-cp .env.example .env.local
-# Fill in: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
+# 3. Configure environment variables
+cp .env.example .env
+# Fill in: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_HF_API_TOKEN
 
 # 4. Start the development server
 npm run dev
-# Runs at http://localhost:5173 (Vite default) or 127.0.0.1:3000 if --port is set
+# Runs at http://localhost:5173 (or configured dev port)
 
 # 5. Build for production
 npm run build
@@ -95,13 +95,32 @@ npm run preview
 | Variable | Description | Required |
 |----------|-------------|----------|
 | `VITE_SUPABASE_URL` | Supabase project URL | Yes |
-| `VITE_SUPABASE_ANON_KEY` | Supabase anonymous public key | Yes |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anonymous client key | Yes |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key | Optional |
+| `VITE_HF_API_TOKEN` | Hugging Face Inference API token for live clinical NER/classification | Yes (falls back to deterministic stubs) |
 | `VITE_OPENAI_API_KEY` | OpenAI API key for reasoning edge functions | Edge functions only |
 | `VITE_FHIR_BASE_URL` | Default FHIR server base URL | Optional |
 
-> API keys used in edge functions are set as Supabase secrets — they are never exposed to the client bundle.
+### Demo Accounts & Credentials
 
----
+For development and clinical demonstration, pre-seeded institutional accounts are provided:
+
+| Role | Email | Password | Scope / Permissions |
+|------|-------|----------|---------------------|
+| Attending Clinician | `dr.sarah.chen@nexus-hospital.demo` | `NexusDemo2026!` | Full clinical decision authority, case review & close |
+| Clinical Reviewer | `prof.marcus.vance@nexus-hospital.demo` | `NexusDemo2026!` | Review, validation, and case close authority |
+| Critical Care Nurse | `nurse.elena.rostova@nexus-hospital.demo` | `NexusDemo2026!` | Clinical observations and data entry |
+| Clinical Pathologist / Lab | `lab.david.kim@nexus-hospital.demo` | `NexusDemo2026!` | Laboratory results entry |
+| System Administrator | `admin@nexus-hospital.demo` | `NexusAdmin2026!` | Institutional management & user administration |
+
+> **Note on Supabase Auth:** Demo user accounts are managed by Supabase GoTrue with bcrypt encryption (`031_fix_auth_users_passwords.sql`). Each account includes synchronized `auth.identities` records to allow direct password sign-in.
+
+### Database Migrations Setup
+
+Ensure migrations are applied in your Supabase SQL Editor in sequence:
+- `001` through `030`: Base schema, roles, multi-tenant orgs, CDS rules, interoperability, and knowledge graph.
+- `031_fix_auth_users_passwords.sql`: Applies bcrypt passwords, GoTrue `auth.identities`, and confirms email addresses.
+- `032_case_close_permission.sql`: Registers `case.close` permission and adds the dedicated RLS update policy for case soft-deletion.
 
 ## 3. Project Structure
 
@@ -141,8 +160,11 @@ nexus/
 │   │   └── timeline.ts         — TimelineEvent
 │   │
 │   ├── features/               — Feature-sliced pages & views
-│   │   ├── authentication/     — Login, auth flow
-│   │   ├── cases/              — Case list / queue
+│   │   ├── authentication/     — Institutional login & GoTrue provider
+│   │   ├── cases/              — Case queue & intake workspace
+│   │   │   ├── api/            — Live Supabase APIs (deleteCase.ts soft-delete, getCaseDetail.ts)
+│   │   │   ├── components/     — DocumentReconstructionReview.tsx (clinical PDF inspection)
+│   │   │   └── CaseListView.tsx
 │   │   ├── case-workspace/     — 3-Zone Clinical Workspace
 │   │   │   ├── CaseWorkspaceView.tsx
 │   │   │   ├── IntelligenceRail.tsx — Context-dispatched review rail
@@ -150,7 +172,7 @@ nexus/
 │   │   │   ├── panels/         — Intelligence Rail panels (Signals, Hypotheses, Evidence, Uncertainty, Review, AskNexus)
 │   │   │   └── tabs/           — All workspace tab panels
 │   │   ├── overview/           — Clinical dashboard
-│   │   ├── patients/           — Patient registry
+│   │   ├── patients/           — Patient registry (live getPatients.ts)
 │   │   ├── review/             — Needs Review queue
 │   │   ├── safety/             — System-wide safety issues
 │   │   └── tasks/              — Clinical task management
@@ -159,7 +181,7 @@ nexus/
 │       ├── case-state-machine.ts    — Allowed case status transitions
 │       ├── intelligence/            — AI reasoning & orchestration layer
 │       │   ├── governance/          — Model registry, A/B testing, feedback curation
-│       │   ├── services/            — Specialized adapters (NER extraction, classification, evidence ranking)
+│       │   ├── services/            — Specialized adapters (NER extraction, pdf-extraction-service.ts, classification, evidence ranking)
 │       │   ├── context-builder.ts   — Deterministic clinical prompt context assembly
 │       │   ├── reasoning-orchestrator.ts — 9-step pipeline execution
 │       │   └── reasoning-provider.ts — Model abstraction layer
@@ -236,6 +258,13 @@ Exception states: UNCERTAIN, CONTRADICTORY, SAFETY_REVIEW, INSUFFICIENT_DATA, OU
 | `SAFETY_REVIEW` | At least one active `SafetyIssue` with `severity: High` |
 | `DECISION_RECORDED` | A named clinician has accepted or overridden a hypothesis |
 | `RESOLVED` | All high-severity safety issues are `Resolved` or `Acknowledged` |
+
+### Case Deletion & Audit Trail Preservation
+
+In clinical workflows, cases must never be erased from the database:
+- **Soft-Delete Only**: Deleting a case in the UI executes `deleteCase.ts`, which sets `status = 'RESOLVED'` and timestamps `closed_at = now()`.
+- **Audit Logged**: An audit entry is immediately inserted into `public.audit_events` (`action_type: 'CASE_DELETED'`), recording the timestamp, case ID, and authenticated user identity.
+- **Permission & RLS**: Case deletion/closure requires the `case.close` permission and is guarded at the database level by RLS policy `case_close_permission` (Migration 032).
 
 ---
 
@@ -584,6 +613,15 @@ Duplicate imports are safely skipped.
 - [x] Modular service adapters: `extraction-service.ts`, `classification-service.ts`, `evidence-ranking-service.ts`
 - [x] Hardened output validation: regex rejection of numeric probability & definitive diagnosis declarations, zero ungrounded findings
 - [x] Contextual Intelligence & Review Rail with 6 specialized panels and Context Dispatch Matrix tab integration
+
+### Phase 15 — Live Backend, GoTrue Auth & Clinical PDF Reconstruction (v1.2.0)
+- [x] Mock data removed from active clinical path — live Supabase queries for cases, patients, and details (`getCaseDetail`, `getPatients`, `deleteCase`)
+- [x] Institutional GoTrue authentication with bcrypt password encryption and `auth.identities` email provider synchronization (Migration 031)
+- [x] Pre-configured institutional demo accounts across Clinician, Reviewer, Nurse, Lab, and Admin personas
+- [x] Clinical case soft-delete workflow with audit trail preservation (`CASE_DELETED` events) and `case.close` RLS policy (Migration 032)
+- [x] High-fidelity clinical PDF document reconstruction and verification review with `pdfjs-dist` text layer extraction (`DocumentReconstructionReview.tsx`)
+- [x] Live Hugging Face Inference API integration (`VITE_HF_API_TOKEN`) for zero-shot clinical entity extraction
+- [x] Structured hypothesis rejection modal with mandatory clinical justification (`HypothesisRejectionModal.tsx`)
 
 ---
 

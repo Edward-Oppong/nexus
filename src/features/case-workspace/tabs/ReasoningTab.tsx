@@ -35,12 +35,22 @@ export const ReasoningTab: React.FC = () => {
   const [showKnowledgeGraph, setShowKnowledgeGraph] = useState<boolean>(false);
   const [orderFeedback, setOrderFeedback] = useState<string | null>(null);
 
-  const { hypotheses, findings, uncertainty, informationGaps } = activeCase;
-  const activeHypothesis = hypotheses.find((h) => h.id === selectedHypothesisId) || hypotheses[0];
+  const { hypotheses = [], findings = [], uncertainty = {
+    overallState: 'UNCERTAIN',
+    dataCompleteness: 'PENDING',
+    dataCompletenessReason: 'Initial data assessment pending.',
+    evidenceConsistency: 'PENDING',
+    evidenceConsistencyReason: 'Evaluating clinical presentations.',
+    modelApplicability: 'STANDARD',
+    modelApplicabilityReason: 'Standard clinical models active.',
+    primaryReason: 'Initial intake phase.'
+  }, informationGaps = [] } = activeCase || {};
+  const activeHypothesis = hypotheses.find((h) => h.id === selectedHypothesisId) || hypotheses[0] || null;
 
   const explainability = useMemo(() => {
+    if (!activeHypothesis) return null;
     return computeHypothesisExplainability(activeCase, activeHypothesis.id);
-  }, [activeCase, activeHypothesis.id]);
+  }, [activeCase, activeHypothesis?.id]);
 
   const getFindingLabel = (id: string) => {
     return findings.find((f) => f.id === id)?.label || id;
@@ -77,348 +87,379 @@ export const ReasoningTab: React.FC = () => {
       <NexusAssessmentPanel />
 
       {/* Candidate Hypotheses Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
-        {hypotheses.map((hyp, index) => {
-          const isSelected = hyp.id === activeHypothesis.id;
-          const statusBg =
-            hyp.status === 'Supported' ? '#ECFDF5' : hyp.status === 'Uncertain' ? '#FFFBEB' : '#FEF2F2';
-          const statusColor =
-            hyp.status === 'Supported' ? '#065F46' : hyp.status === 'Uncertain' ? '#92400E' : '#991B1B';
-          const statusBorder =
-            hyp.status === 'Supported' ? '#6EE7B7' : hyp.status === 'Uncertain' ? '#FCD34D' : '#FCA5A5';
-
-          return (
-            <div
-              key={hyp.id}
-              onClick={() => setSelectedHypothesisId(hyp.id)}
-              style={{
-                background: isSelected ? '#FFFFFF' : '#F8FAFC',
-                border: `2px solid ${isSelected ? '#0F172A' : '#E2E8F0'}`,
-                borderRadius: '6px',
-                padding: '16px',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                transition: 'all 0.15s ease',
-                boxShadow: isSelected ? 'var(--shadow-md)' : 'none',
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
-                    HYPOTHESIS 0{index + 1}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      background: statusBg,
-                      color: statusColor,
-                      border: `1px solid ${statusBorder}`,
-                      padding: '2px 6px',
-                      borderRadius: '4px',
-                    }}
-                  >
-                    ● {hyp.status}
-                  </span>
-                </div>
-
-                <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', marginBottom: '6px', lineHeight: 1.3 }}>
-                  {hyp.title}
-                </h3>
-                <p style={{ fontSize: '11px', color: '#64748B', lineHeight: 1.4, marginBottom: '12px' }}>
-                  {hyp.statusDetail}
-                </p>
-              </div>
-
-              <div
-                style={{
-                  borderTop: '1px solid #E2E8F0',
-                  paddingTop: '8px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  fontSize: '11px',
-                  color: '#475569',
-                }}
-              >
-                <span>✓ {hyp.supportingFindingIds.length} sup</span>
-                <span>! {hyp.contradictingFindingIds.length} con</span>
-                <span>? {hyp.informationGapIds.length} gap</span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Selected Hypothesis In-Depth Clinical Decomposition */}
-      <section
-        style={{
-          background: '#FFFFFF',
-          border: '1px solid #E2E8F0',
-          borderRadius: '6px',
-          padding: '20px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-          <div>
-            <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748B', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-              Detailed Decomposition
-            </span>
-            <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', marginTop: '2px' }}>
-              {activeHypothesis.title}
-            </h3>
-          </div>
-          <span className="badge badge-neutral">
-            Status: {activeHypothesis.status}
-          </span>
-        </div>
-
-        {/* Nexus Clinical Assessment Text */}
+      {hypotheses.length === 0 ? (
         <div
           style={{
-            background: '#F8FAFC',
-            border: '1px solid #CBD5E1',
-            borderLeft: '4px solid #0F172A',
-            borderRadius: '4px',
-            padding: '14px',
-            fontSize: '13px',
-            color: '#1E293B',
-            lineHeight: 1.6,
-            marginBottom: '20px',
+            background: '#FFFFFF',
+            border: '1px dashed #CBD5E1',
+            borderRadius: '6px',
+            padding: '36px 20px',
+            textAlign: 'center',
           }}
         >
-          <strong style={{ color: '#0F172A', display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '4px' }}>
-            Nexus Assessment
-          </strong>
-          {activeHypothesis.nexusAssessment}
+          <div style={{ display: 'inline-flex', padding: '10px', background: '#F1F5F9', borderRadius: '50%', color: '#64748B', marginBottom: '12px' }}>
+            <BrainCircuit size={26} />
+          </div>
+          <h3 style={{ fontSize: '15px', fontWeight: 600, color: '#0F172A', marginBottom: '6px' }}>
+            No Candidate Hypotheses Generated
+          </h3>
+          <p style={{ fontSize: '12px', color: '#64748B', maxWidth: '440px', margin: '0 auto 16px', lineHeight: 1.5 }}>
+            No candidate differential diagnoses have been established for this case yet. Ingest clinical documents or run the Nexus reasoning analysis above to generate hypotheses.
+          </p>
+          <button
+            onClick={() => setActiveCaseSubTab('documents')}
+            className="btn btn-sm btn-outline"
+            style={{ fontSize: '12px' }}
+          >
+            Review Clinical Documents &rarr;
+          </button>
         </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
+          {hypotheses.map((hyp, index) => {
+            const isSelected = activeHypothesis ? hyp.id === activeHypothesis.id : false;
+            const statusBg =
+              hyp.status === 'Supported' ? '#ECFDF5' : hyp.status === 'Uncertain' ? '#FFFBEB' : '#FEF2F2';
+            const statusColor =
+              hyp.status === 'Supported' ? '#065F46' : hyp.status === 'Uncertain' ? '#92400E' : '#991B1B';
+            const statusBorder =
+              hyp.status === 'Supported' ? '#6EE7B7' : hyp.status === 'Uncertain' ? '#FCD34D' : '#FCA5A5';
 
-        {/* Section 20: Evidence Balance / Contradiction View */}
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{ fontSize: '12px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '10px' }}>
-            Evidence Balance & Contradiction Analysis
+            return (
+              <div
+                key={hyp.id}
+                onClick={() => setSelectedHypothesisId(hyp.id)}
+                style={{
+                  background: isSelected ? '#FFFFFF' : '#F8FAFC',
+                  border: `2px solid ${isSelected ? '#0F172A' : '#E2E8F0'}`,
+                  borderRadius: '6px',
+                  padding: '16px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  transition: 'all 0.15s ease',
+                  boxShadow: isSelected ? 'var(--shadow-md)' : 'none',
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                      HYPOTHESIS 0{index + 1}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        background: statusBg,
+                        color: statusColor,
+                        border: `1px solid ${statusBorder}`,
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                      }}
+                    >
+                      ● {hyp.status}
+                    </span>
+                  </div>
+
+                  <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', marginBottom: '6px', lineHeight: 1.3 }}>
+                    {hyp.title}
+                  </h3>
+                  <p style={{ fontSize: '11px', color: '#64748B', lineHeight: 1.4, marginBottom: '12px' }}>
+                    {hyp.statusDetail}
+                  </p>
+                </div>
+
+                <div
+                  style={{
+                    borderTop: '1px solid #E2E8F0',
+                    paddingTop: '8px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '11px',
+                    color: '#475569',
+                  }}
+                >
+                  <span>✓ {hyp.supportingFindingIds.length} sup</span>
+                  <span>! {hyp.contradictingFindingIds.length} con</span>
+                  <span>? {hyp.informationGapIds.length} gap</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Selected Hypothesis In-Depth Clinical Decomposition */}
+      {activeHypothesis && (
+        <section
+          style={{
+            background: '#FFFFFF',
+            border: '1px solid #E2E8F0',
+            borderRadius: '6px',
+            padding: '20px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <div>
+              <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748B', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
+                Detailed Decomposition
+              </span>
+              <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', marginTop: '2px' }}>
+                {activeHypothesis.title}
+              </h3>
+            </div>
+            <span className="badge badge-neutral">
+              Status: {activeHypothesis.status}
+            </span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
-            {/* Supporting Column */}
-            <div
-              style={{
-                background: '#F0FDF4',
-                border: '1px solid #BBF7D0',
-                borderRadius: '6px',
-                padding: '14px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#15803D', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', marginBottom: '10px' }}>
-                <CheckCircle2 size={15} /> Supporting Findings ({activeHypothesis.supportingFindingIds.length})
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {activeHypothesis.supportingFindingIds.map((id) => (
-                  <div
-                    key={id}
-                    style={{
-                      background: '#FFFFFF',
-                      border: '1px solid #DCFCE7',
-                      padding: '8px',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      color: '#166534',
-                      lineHeight: 1.3,
-                    }}
-                  >
-                    ✓ {getFindingLabel(id)}
-                  </div>
-                ))}
-              </div>
+          {/* Nexus Clinical Assessment Text */}
+          <div
+            style={{
+              background: '#F8FAFC',
+              border: '1px solid #CBD5E1',
+              borderLeft: '4px solid #0F172A',
+              borderRadius: '4px',
+              padding: '14px',
+              fontSize: '13px',
+              color: '#1E293B',
+              lineHeight: 1.6,
+              marginBottom: '20px',
+            }}
+          >
+            <strong style={{ color: '#0F172A', display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '4px' }}>
+              Nexus Assessment
+            </strong>
+            {activeHypothesis.nexusAssessment}
+          </div>
+
+          {/* Section 20: Evidence Balance / Contradiction View */}
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{ fontSize: '12px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '10px' }}>
+              Evidence Balance & Contradiction Analysis
             </div>
 
-            {/* Contradicting Column */}
-            <div
-              style={{
-                background: '#FEF2F2',
-                border: '1px solid #FECACA',
-                borderRadius: '6px',
-                padding: '14px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#B91C1C', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', marginBottom: '10px' }}>
-                <AlertTriangle size={15} /> Contradicting / Atypical ({activeHypothesis.contradictingFindingIds.length})
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {activeHypothesis.contradictingFindingIds.length === 0 ? (
-                  <div style={{ fontSize: '12px', color: '#991B1B', fontStyle: 'italic' }}>
-                    No contradicting findings observed.
-                  </div>
-                ) : (
-                  activeHypothesis.contradictingFindingIds.map((id) => (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+              {/* Supporting Column */}
+              <div
+                style={{
+                  background: '#F0FDF4',
+                  border: '1px solid #BBF7D0',
+                  borderRadius: '6px',
+                  padding: '14px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#15803D', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', marginBottom: '10px' }}>
+                  <CheckCircle2 size={15} /> Supporting Findings ({activeHypothesis.supportingFindingIds.length})
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {activeHypothesis.supportingFindingIds.map((id) => (
                     <div
                       key={id}
                       style={{
                         background: '#FFFFFF',
-                        border: '1px solid #FEE2E2',
+                        border: '1px solid #DCFCE7',
                         padding: '8px',
                         borderRadius: '4px',
                         fontSize: '12px',
-                        color: '#991B1B',
+                        color: '#166534',
                         lineHeight: 1.3,
                       }}
                     >
-                      ! {getFindingLabel(id)}
+                      ✓ {getFindingLabel(id)}
                     </div>
-                  ))
-                )}
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Unresolved / Missing Gaps Column */}
-            <div
-              style={{
-                background: '#FFFBEB',
-                border: '1px solid #FDE68A',
-                borderRadius: '6px',
-                padding: '14px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#B45309', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', marginBottom: '10px' }}>
-                <HelpCircle size={15} /> Unresolved Information Gaps
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {informationGaps.map((gap) => (
-                  <div
-                    key={gap.id}
-                    style={{
-                      background: '#FFFFFF',
-                      border: '1px solid #FEF3C7',
-                      padding: '8px',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                    }}
-                  >
-                    <div style={{ fontWeight: 600, color: '#92400E' }}>? {gap.testName}</div>
-                    <div style={{ fontSize: '11px', color: '#B45309', marginTop: '2px' }}>
-                      Status: {gap.status}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Phase 11: Point-of-Care Feature Attribution & Sensitivity Simulation */}
-          <div style={{ marginTop: '16px', borderTop: '1px solid #E2E8F0', paddingTop: '14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <button
-                onClick={() => setShowExplainability(!showExplainability)}
+              {/* Contradicting Column */}
+              <div
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  padding: 0,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  color: '#2563EB',
+                  background: '#FEF2F2',
+                  border: '1px solid #FECACA',
+                  borderRadius: '6px',
+                  padding: '14px',
                 }}
               >
-                <BrainCircuit size={15} />
-                <span>{showExplainability ? 'Hide Feature Attribution & Explainability' : 'Show Feature Attribution & Explainability Weights'}</span>
-                {showExplainability ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              </button>
-
-              <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'var(--font-mono)' }}>
-                Likelihood: {explainability.qualitativeLikelihood}
-              </span>
-            </div>
-
-            {showExplainability && (
-              <div style={{ marginTop: '14px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '6px', padding: '14px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Sparkles size={14} style={{ color: '#6366F1' }} />
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#0F172A' }}>
-                      Shapley-Proxy Clinical Feature Attribution
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <button
-                      onClick={() => setShowKnowledgeGraph(true)}
-                      className="btn btn-xs btn-outline"
-                      style={{ fontSize: '11px', padding: '2px 8px', display: 'flex', alignItems: 'center', gap: '4px', color: '#2563EB', borderColor: '#BFDBFE', background: '#EFF6FF' }}
-                    >
-                      <Network size={12} /> Knowledge Graph &rarr;
-                    </button>
-                    <button
-                      onClick={() => setActiveView('ai-governance')}
-                      className="btn btn-xs btn-outline"
-                      style={{ fontSize: '11px', padding: '2px 8px' }}
-                    >
-                      AI Governance Console &rarr;
-                    </button>
-                  </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#B91C1C', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', marginBottom: '10px' }}>
+                  <AlertTriangle size={15} /> Contradicting / Atypical ({activeHypothesis.contradictingFindingIds.length})
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px', marginBottom: '14px' }}>
-                  {explainability.attributions.slice(0, 4).map((attr) => {
-                    const isPos = attr.direction === 'POSITIVE_SUPPORT';
-                    return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {activeHypothesis.contradictingFindingIds.length === 0 ? (
+                    <div style={{ fontSize: '12px', color: '#991B1B', fontStyle: 'italic' }}>
+                      No contradicting findings observed.
+                    </div>
+                  ) : (
+                    activeHypothesis.contradictingFindingIds.map((id) => (
                       <div
-                        key={attr.findingId}
+                        key={id}
                         style={{
                           background: '#FFFFFF',
-                          border: '1px solid #E2E8F0',
+                          border: '1px solid #FEE2E2',
+                          padding: '8px',
                           borderRadius: '4px',
-                          padding: '8px 10px',
-                          fontSize: '11px',
+                          fontSize: '12px',
+                          color: '#991B1B',
+                          lineHeight: 1.3,
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                          <span style={{ fontWeight: 600, color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }} title={attr.findingLabel}>
-                            {attr.findingLabel}
-                          </span>
-                          <span
-                            style={{
-                              fontWeight: 700,
-                              fontFamily: 'var(--font-mono)',
-                              color: isPos ? '#16A34A' : '#DC2626',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '2px',
-                            }}
-                          >
-                            {isPos ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
-                            {attr.attributionPercentage}%
-                          </span>
-                        </div>
-                        <div style={{ color: '#64748B', fontSize: '10px', lineHeight: 1.3 }}>
-                          {attr.counterfactualImpact}
-                        </div>
+                        ! {getFindingLabel(id)}
                       </div>
-                    );
-                  })}
+                    ))
+                  )}
                 </div>
+              </div>
 
-                {explainability.counterfactuals.length > 0 && (
-                  <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '4px', padding: '10px 12px' }}>
-                    <div style={{ fontSize: '11px', fontWeight: 600, color: '#1E40AF', marginBottom: '4px' }}>
-                      Counterfactual Sensitivity Simulation
+              {/* Unresolved / Missing Gaps Column */}
+              <div
+                style={{
+                  background: '#FFFBEB',
+                  border: '1px solid #FDE68A',
+                  borderRadius: '6px',
+                  padding: '14px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#B45309', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', marginBottom: '10px' }}>
+                  <HelpCircle size={15} /> Unresolved Information Gaps
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {informationGaps.map((gap) => (
+                    <div
+                      key={gap.id}
+                      style={{
+                        background: '#FFFFFF',
+                        border: '1px solid #FEF3C7',
+                        padding: '8px',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                      }}
+                    >
+                      <div style={{ fontWeight: 600, color: '#92400E' }}>? {gap.testName}</div>
+                      <div style={{ fontSize: '11px', color: '#B45309', marginTop: '2px' }}>
+                        Status: {gap.status}
+                      </div>
                     </div>
-                    <div style={{ fontSize: '11px', color: '#1E3A8A', lineHeight: 1.4 }}>
-                      <strong>{explainability.counterfactuals[0].findingModified}: </strong>
-                      {explainability.counterfactuals[0].predictedHypothesisRankShift}
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Phase 11: Point-of-Care Feature Attribution & Sensitivity Simulation */}
+            <div style={{ marginTop: '16px', borderTop: '1px solid #E2E8F0', paddingTop: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <button
+                  onClick={() => setShowExplainability(!showExplainability)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: '#2563EB',
+                  }}
+                >
+                  <BrainCircuit size={15} />
+                  <span>{showExplainability ? 'Hide Feature Attribution & Explainability' : 'Show Feature Attribution & Explainability Weights'}</span>
+                  {showExplainability ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                </button>
+
+                <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'var(--font-mono)' }}>
+                  Likelihood: {explainability?.qualitativeLikelihood || activeHypothesis.statusDetail || activeHypothesis.status}
+                </span>
+              </div>
+
+              {showExplainability && explainability && (
+                <div style={{ marginTop: '14px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '6px', padding: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Sparkles size={14} style={{ color: '#6366F1' }} />
+                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#0F172A' }}>
+                        Shapley-Proxy Clinical Feature Attribution
+                      </span>
                     </div>
-                    <div style={{ fontSize: '10px', color: '#3B82F6', marginTop: '4px', fontStyle: 'italic' }}>
-                      {explainability.counterfactuals[0].clinicalRationale}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <button
+                        onClick={() => setShowKnowledgeGraph(true)}
+                        className="btn btn-xs btn-outline"
+                        style={{ fontSize: '11px', padding: '2px 8px', display: 'flex', alignItems: 'center', gap: '4px', color: '#2563EB', borderColor: '#BFDBFE', background: '#EFF6FF' }}
+                      >
+                        <Network size={12} /> Knowledge Graph &rarr;
+                      </button>
+                      <button
+                        onClick={() => setActiveView('ai-governance')}
+                        className="btn btn-xs btn-outline"
+                        style={{ fontSize: '11px', padding: '2px 8px' }}
+                      >
+                        AI Governance Console &rarr;
+                      </button>
                     </div>
                   </div>
-                )}
-              </div>
-            )}
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px', marginBottom: '14px' }}>
+                    {explainability.attributions?.slice(0, 4).map((attr) => {
+                      const isPos = attr.direction === 'POSITIVE_SUPPORT';
+                      return (
+                        <div
+                          key={attr.findingId}
+                          style={{
+                            background: '#FFFFFF',
+                            border: '1px solid #E2E8F0',
+                            borderRadius: '4px',
+                            padding: '8px 10px',
+                            fontSize: '11px',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                            <span style={{ fontWeight: 600, color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }} title={attr.findingLabel}>
+                              {attr.findingLabel}
+                            </span>
+                            <span
+                              style={{
+                                fontWeight: 700,
+                                fontFamily: 'var(--font-mono)',
+                                color: isPos ? '#16A34A' : '#DC2626',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '2px',
+                              }}
+                            >
+                              {isPos ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+                              {attr.attributionPercentage}%
+                            </span>
+                          </div>
+                          <div style={{ color: '#64748B', fontSize: '10px', lineHeight: 1.3 }}>
+                            {attr.counterfactualImpact}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {explainability.counterfactuals && explainability.counterfactuals.length > 0 && (
+                    <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '4px', padding: '10px 12px' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 600, color: '#1E40AF', marginBottom: '4px' }}>
+                        Counterfactual Sensitivity Simulation
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#1E3A8A', lineHeight: 1.4 }}>
+                        <strong>{explainability.counterfactuals[0].findingModified}: </strong>
+                        {explainability.counterfactuals[0].predictedHypothesisRankShift}
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#3B82F6', marginTop: '4px', fontStyle: 'italic' }}>
+                        {explainability.counterfactuals[0].clinicalRationale}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Section 21 & Expert Correction #5: Multi-Dimensional Qualitative Uncertainty */}
       <section
@@ -500,68 +541,70 @@ export const ReasoningTab: React.FC = () => {
       </section>
 
       {/* Section 22: High-Priority Information Gap Action */}
-      <section
-        style={{
-          background: '#FFFBEB',
-          border: '1px solid #FCD34D',
-          borderRadius: '6px',
-          padding: '18px 20px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: '#B45309', letterSpacing: '0.06em' }}>
-              High-Priority Information Gap Detected
+      {informationGaps && informationGaps.length > 0 && informationGaps[0] && (
+        <section
+          style={{
+            background: '#FFFBEB',
+            border: '1px solid #FCD34D',
+            borderRadius: '6px',
+            padding: '18px 20px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: '#B45309', letterSpacing: '0.06em' }}>
+                High-Priority Information Gap Detected
+              </div>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#92400E', marginTop: '2px' }}>
+                {informationGaps[0].testName}
+              </h3>
+              <p style={{ fontSize: '12px', color: '#78350F', marginTop: '4px', maxWidth: '720px', lineHeight: 1.5 }}>
+                {informationGaps[0].whyItMatters}
+              </p>
             </div>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#92400E', marginTop: '2px' }}>
-              {informationGaps[0].testName}
-            </h3>
-            <p style={{ fontSize: '12px', color: '#78350F', marginTop: '4px', maxWidth: '720px', lineHeight: 1.5 }}>
-              {informationGaps[0].whyItMatters}
-            </p>
-          </div>
 
-          {currentPersona.allowedActions.canRequestInvestigations && (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
-              <button
-                onClick={() => {
-                  requestInvestigation(
-                    'Transesophageal Echocardiography (TEE)',
-                    'Cardiovascular',
-                    'Urgent',
-                    'Urgent TEE to resolve infective endocarditis vegetation stigmata'
-                  );
-                  setOrderFeedback('Urgent TEE successfully requested and logged in case timeline.');
-                  setTimeout(() => setOrderFeedback(null), 5000);
-                }}
-                className="btn btn-primary"
-                style={{ background: '#92400E', borderColor: '#92400E' }}
-              >
-                Request Investigation
-              </button>
-              {orderFeedback && (
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    fontSize: '11px',
-                    color: '#065F46',
-                    background: '#ECFDF5',
-                    border: '1px solid #A7F3D0',
-                    padding: '4px 8px',
-                    borderRadius: '4px',
-                    fontWeight: 500,
+            {currentPersona.allowedActions.canRequestInvestigations && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                <button
+                  onClick={() => {
+                    requestInvestigation(
+                      informationGaps[0].testName || 'Transesophageal Echocardiography (TEE)',
+                      'Cardiovascular',
+                      'Urgent',
+                      'Urgent TEE to resolve infective endocarditis vegetation stigmata'
+                    );
+                    setOrderFeedback(`${informationGaps[0].testName || 'Investigation'} successfully requested and logged in case timeline.`);
+                    setTimeout(() => setOrderFeedback(null), 5000);
                   }}
+                  className="btn btn-primary"
+                  style={{ background: '#92400E', borderColor: '#92400E' }}
                 >
-                  <CheckCircle2 size={12} color="#059669" />
-                  {orderFeedback}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
+                  Request Investigation
+                </button>
+                {orderFeedback && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '11px',
+                      color: '#065F46',
+                      background: '#ECFDF5',
+                      border: '1px solid #A7F3D0',
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      fontWeight: 500,
+                    }}
+                  >
+                    <CheckCircle2 size={12} color="#059669" />
+                    {orderFeedback}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Phase 13: Clinical Knowledge Graph Visual Explorer Drawer */}
       <KnowledgeGraphDrawer

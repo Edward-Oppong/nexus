@@ -1,6 +1,6 @@
 # Nexus Clinical Workstation — Authoritative System Architecture
 
-> **Version: 1.1.0 (Intelligence Architecture)** | Stack: React 18 + TypeScript 5 + Vite 6 + Supabase | FHIR: R4
+> **Version: 1.2.0 (Live Backend, GoTrue Auth & Clinical PDF Reconstruction)** | Stack: React 18 + TypeScript 5 + Vite 6 + Supabase | FHIR: R4
 >
 > This is the architecture we build against. Not a design sketch — a production requirement.
 
@@ -218,7 +218,7 @@ audit.view
 | case.view | Y | Y | Y | Y | Y | |
 | case.create | Y | | | | Y | |
 | case.edit | Y | | | | Y | |
-| case.close | | | | | Y | |
+| case.close | Y | | | Y | Y | |
 | finding.create | Y | Y | | | | |
 | finding.verify | Y | | | Y | | |
 | investigation.request | Y | | | | | |
@@ -234,6 +234,15 @@ audit.view
 | user.manage | | | | | Y | Y |
 | organization.manage | | | | | Y | Y |
 | audit.view | | | | Y | Y | Y |
+
+### Case Closure & Soft-Deletion Semantics
+
+In clinical information systems, patient records, diagnostic findings, and case records must **never be physically deleted** (`DELETE FROM cases`). Hard deletes destroy legal diagnostic audit trails and violate regulatory data retention standards (MDCG 2021-6, FDA SaMD, HIPAA).
+
+Nexus implements a non-destructive **Soft-Deletion Pattern** via `src/features/cases/api/deleteCase.ts`:
+1. When a user requests to delete or close an active case, the case status is transitioned to `RESOLVED` and `closed_at` is stamped with the current timestamp.
+2. In the same operation, an immutable audit event (`event_type: 'DELETED'`, `action_type: 'CASE_DELETED'`) is appended to `public.audit_events` with the user's display name and justification.
+3. RLS policy `case_close_permission` (Migration 032) grants closure authorization to assigned case team members or users with `case.close` permission (`clinician`, `reviewer`, `organization_admin`).
 
 ### Authorization Check Pattern
 
@@ -458,6 +467,51 @@ BEGIN
   FROM cases WHERE id = p_case_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+### Authentication & Password Hashing Architecture (Migration 031)
+
+When Supabase GoTrue processes password authentication (`POST /auth/v1/token?grant_type=password`), it performs strict verification across both `auth.users` and `auth.identities`:
+1. **Password Encryption**: Stored passwords must be valid bcrypt hashes. Plaintext or empty strings cause immediate rejection with `400: Invalid login credentials`. Passwords are encrypted using PostgreSQL `pgcrypto`:
+   ```sql
+   extensions.crypt('PasswordString', extensions.gen_salt('bf', 10))
+   ```
+2. **GoTrue Identity Provider Binding**: Seeding `auth.users` directly without `auth.identities` breaks authentication. GoTrue requires a linked identity record for the `email` provider with `identity_data` containing `{"sub": user_id, "email": email, "email_verified": true}`.
+3. **Institutional Accounts**: Demo clinical personas are deterministically seeded and synced with `public.profiles` and `public.organization_members`:
+   - `dr.sarah.chen@nexus-hospital.demo` (Clinician) — `NexusDemo2026!`
+   - `prof.marcus.vance@nexus-hospital.demo` (Reviewer) — `NexusDemo2026!`
+   - `nurse.elena.rostova@nexus-hospital.demo` (Nurse) — `NexusDemo2026!`
+   - `lab.david.kim@nexus-hospital.demo` (Lab) — `NexusDemo2026!`
+   - `admin@nexus-hospital.demo` (Organization Admin) — `NexusAdmin2026!`
+
+### Case Closure & Soft-Delete RLS Policy (Migration 032)
+
+To allow authorized clinicians and reviewers to close or soft-delete cases without granting blanket update privileges over other clinical fields, Migration 032 introduces a scoped RLS policy:
+
+```sql
+-- 1. Register case.close permission
+insert into public.permissions (code, description)
+values ('case.close', 'Close or archive a clinical case')
+on conflict (code) do nothing;
+
+-- 2. Grant to clinician, reviewer, organization_admin
+insert into public.role_permissions (role_id, permission_id)
+select r.id, p.id from public.roles r, public.permissions p
+where r.name in ('clinician', 'reviewer', 'organization_admin')
+  and p.code = 'case.close'
+on conflict do nothing;
+
+-- 3. Dedicated RLS UPDATE policy for case closure
+create policy "case_close_permission"
+  on public.cases for update to authenticated
+  using (
+    public.is_case_member(id) or
+    (public.is_org_member(organization_id) and public.has_permission('case.close'))
+  )
+  with check (
+    public.is_case_member(id) or
+    (public.is_org_member(organization_id) and public.has_permission('case.close'))
+  );
 ```
 
 ---
@@ -1203,6 +1257,39 @@ FHIR Bundle received (webhook or DocumentsTab upload)
   -> ImportPipelineResult returned
 ```
 
+### Case Soft-Deletion Flow
+
+```
+Clinician / Reviewer triggers Delete Case in CaseListView or CaseNav
+  -> deleteCase.ts API called with { caseId, deletedByDisplayName }
+  -> Supabase client updates public.cases:
+       SET status = 'RESOLVED', closed_at = now(), updated_at = now()
+       WHERE id = caseId
+  -> RLS policy 'case_close_permission' validates:
+       is_case_member(caseId) OR (is_org_member(org_id) AND has_permission('case.close'))
+  -> Supabase client inserts into public.audit_events:
+       event_type: 'DELETED'
+       action_type: 'CASE_DELETED'
+       summary: 'Clinical case removed from active index'
+       recorded_at: now()
+  -> Local CaseContext drops case from active workspace cache
+  -> Navigation automatically redirects to Overview dashboard
+```
+
+### Clinical PDF Document Reconstruction & Verification Flow
+
+```
+Clinician uploads PDF or opens Document Reconstruction Review
+  -> pdf-extraction-service.ts loads file buffer via pdfjs-dist
+  -> Extracts structured text stream + per-token glyph bounding coordinates
+  -> huggingface-api.ts / extraction-service.ts classifies clinical entities (NER)
+  -> DocumentReconstructionReview.tsx mounts side-by-side verification:
+       Left viewport: Interactive multi-page PDF document canvas
+       Right viewport: Entity curation stream with character-level SourceSpans
+  -> Clinician inspects bounding highlights overlaid on source text
+  -> One-click "Accept Finding" converts verified candidate into ClinicalFinding (CLINICIAN_VERIFIED)
+```
+
 ---
 
 ## 13. Dependency Graph
@@ -1399,6 +1486,7 @@ Recovery:  PROCESSING items older than 5 minutes re-queued by cron.
 | v0.11.0 | 2026-09-11 | Phase 12 — Regulatory & Compliance Architecture implemented. Pure domain types defined in `src/domain/regulatory-compliance.ts`. MDCG 2021-6 & EU AI Act automated auditor (`mdcg-auditor.ts`) evaluating 9 SaMD clauses across human oversight, accuracy benchmarks, transparency IFU, and cybersecurity. FDA Predetermined Change Control Plan (PCCP) engine (`fda-pccp-tracker.ts`) enforcing Authorized Modification Protocol (AMP) boundaries and distinguishing permissible adjustments from mandatory 510(k) triggers. Data residency sovereignty manager (`data-residency-manager.ts`) enforcing regional jurisdiction controls (EU GDPR eu-central-1, South Africa POPIA af-south-1, Ghana DPA accra-edge-01, US HIPAA us-east-1), patient AI consent scopes, and Data Subject Rights (DSR) lifecycle fulfillment. Tamper-evident regulatory audit exporter (`regulatory-audit-exporter.ts`) compiling immutable clinical events into standardized FHIR R4 AuditEvent collection Bundles sealed with cryptographic SHA-256 checksums. Dedicated 4-console `RegulatoryComplianceView.tsx` workstation integrated into `AppShell` and `GlobalNav`. Database migration `029_phase12_regulatory_compliance.sql` created with RLS, audit policies, and production seed data. |
 | v1.0.0 | 2026-09-12 | Phase 13 — Enterprise Production Hardening, DICOM PACS Imaging, HL7 v2.x Hospital Messaging & Clinical Knowledge Graph (Production GA). Pure domain types defined in `src/domain/knowledge-graph.ts`, `src/domain/dicom.ts`, and `src/domain/hl7v2.ts`. Unified Medical Language System (UMLS) and SNOMED CT ontological pathfinder (`clinical-knowledge-graph.ts`) tracing pathophysiological trajectories connecting findings to candidate hypotheses. DICOMweb procedural multi-slice imaging client (`dicom-client.ts`) with synthetic TEE cardiac echo study, Window/Level contrast presets, zoom/pan transform matrix, and interactive caliper distance measurement overlay. HL7 v2.5.1 ER7 messaging engine (`hl7v2-parser.ts`) supporting `ADT^A01` (Admit), `ADT^A08` (Update), and `ORU^R01` (Observation Results) with automatic clinical finding ingestion. Real-time multi-clinician collaboration engine (`realtime-collaboration.ts`) with presence awareness, contradiction event broadcasting, cross-session persistent idempotency cache, and FHIR Bundle pagination helper. UI workstation extensions: `DicomViewerModal.tsx` in `InvestigationsTab.tsx`, `KnowledgeGraphDrawer.tsx` in `ReasoningTab.tsx`, HL7 v2.x console with interactive ER7 ingestion in `DocumentsTab.tsx`, and real-time presence avatars stack in `CaseHeader.tsx`. Database migration `030_phase13_production_hardening.sql` created with RLS, audit policies, and production seed data. |
 | v1.1.0 | 2026-09-17 | Intelligence Architecture Formalization. New principle: Nexus builds Case → Context Builder → Evidence Layer → AI Reasoning → Schema/Grounding Validation → Human Review — never Frontend → LLM → Answer. **18 Non-Negotiable System Rules** formalized in `src/domain/contracts/intelligence-contracts.ts` as a typed constant array — covering provenance, grounding, numeric probability prohibition, NER span accuracy, model versioning, and audit atomicity. **Specialized model stack registered** in `src/lib/intelligence/governance/model-registry.ts`: 9 Hugging Face models across NER (ribhu/medbert-clinical-ner), document classification (ParamDev/clinicalbert-medical-doc-classifier), finding classification (emilyalsentzer/Bio_ClinicalBERT-ft), two-stage evidence retrieval (ncbi/MedCPT-Query-Encoder + Article-Encoder + Cross-Encoder; NYSgpt/biomed-reranker as CHALLENGER), and synthesis (google/medgemma-4b-it + medgemma-27b-text-it). **Three modular service adapters** added in `src/lib/intelligence/services/`: `extraction-service.ts` (NER with character-accurate SourceSpans), `classification-service.ts` (document processing strategy + finding severity), `evidence-ranking-service.ts` (pgvector dense retrieval → Cross-Encoder reranking). **Assessment schema hardened**: Rule 5 (numeric probability regex — hard rejection), Rule 10 (definitive diagnosis declarations — hard rejection), grounding violations upgraded from warnings to hard errors. **Contextual Intelligence & Review Rail**: six panel components (`CaseSignalsPanel`, `HypothesesRailPanel`, `EvidenceRailPanel`, `UncertaintyRailPanel`, `QuickReviewRailPanel`, `AskNexusRailPanel`) and refactored `IntelligenceRail.tsx` with Context Dispatch Matrix mounting 2–4 relevant panels per active center tab. Manual override filter (`AUTO / SIGNALS / REVIEW / EVIDENCE`). Build: ✓ 2025 modules, 0 TypeScript errors. |
+| v1.2.0 | 2026-09-18 | Live Supabase Backend, GoTrue Auth & Clinical PDF Reconstruction. **Mock data removed from active clinical path**: case list, case detail, and patient registry queries connect directly to live Supabase PostgreSQL (`getCaseDetail`, `getPatients`, `deleteCase`, `CaseContext`); demo stubs preserved only as an offline fallback when `isSupabaseConfigured` is false. **GoTrue Supabase Auth Architecture (Migration 031)**: resolved `400: Invalid login credentials` by establishing `pgcrypto` bcrypt password hashes (`NexusDemo2026!`, `NexusAdmin2026!`), linking mandatory `auth.identities` records for the email provider, and synchronizing `auth.users` state (`aud = 'authenticated'`, `role = 'authenticated'`, `email_confirmed_at`). **Case Soft-Deletion & Closure (Migration 032)**: implemented non-destructive case deletion via `deleteCase.ts` setting `status = 'RESOLVED'` and logging `CASE_DELETED` to `audit_events`; granted `case.close` permission to `clinician`, `reviewer`, and `organization_admin` with dedicated RLS update policy. **Clinical PDF Reconstruction & Verification**: integrated `pdfjs-dist` browser extraction pipeline (`pdf-extraction-service.ts`) with interactive `DocumentReconstructionReview.tsx` component providing side-by-side text-layer alignment and live Hugging Face clinical entity extraction. **Hypothesis Rejection Adjudication**: added `HypothesisRejectionModal.tsx` requiring structured clinical justification before candidate hypothesis dismissal. |
 
 ---
 
