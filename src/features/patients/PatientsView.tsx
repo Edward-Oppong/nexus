@@ -4,20 +4,43 @@
 // Access-controlled master patient directory with active encounter and case mapping.
 // ============================================================
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useCase } from '../../app/providers/CaseContext';
 import { useAuth } from '../authentication/AuthProvider';
-import { SYNTHETIC_DEMO_PATIENTS } from './api/getPatients';
+import { getPatients, SYNTHETIC_DEMO_PATIENTS } from './api/getPatients';
+import { Patient } from '../../domain/patient';
 import { CreatePatientDialog } from './components/CreatePatientDialog';
-import { Users, Search, Plus, ArrowRight, ShieldCheck, FileText, Calendar } from 'lucide-react';
+import { Users, Search, Plus, ArrowRight, ShieldCheck, FileText, Calendar, Loader2 } from 'lucide-react';
 
 export const PatientsView: React.FC = () => {
   const { openCaseById } = useCase();
-  const { can } = useAuth();
+  const { can, activeOrganization } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [patients, setPatients] = useState<Patient[]>(SYNTHETIC_DEMO_PATIENTS);
+  const [loading, setLoading] = useState(false);
 
-  const filteredPatients = SYNTHETIC_DEMO_PATIENTS.filter((p) => {
+  const orgId = activeOrganization?.id || 'c0000001-0000-0000-0000-000000000001';
+
+  const loadPatients = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await getPatients(orgId);
+      if (data && data.length > 0) {
+        setPatients(data);
+      }
+    } catch (e) {
+      console.warn('Failed to load patients, using fallback:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [orgId]);
+
+  useEffect(() => {
+    loadPatients();
+  }, [loadPatients]);
+
+  const filteredPatients = patients.filter((p) => {
     const query = searchQuery.toLowerCase();
     return (
       p.givenName.toLowerCase().includes(query) ||
@@ -173,7 +196,7 @@ export const PatientsView: React.FC = () => {
         <CreatePatientDialog
           isOpen={isCreateOpen}
           onClose={() => setIsCreateOpen(false)}
-          onSuccess={() => {}}
+          onSuccess={loadPatients}
         />
       </div>
     </main>

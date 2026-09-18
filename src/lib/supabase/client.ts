@@ -6,10 +6,15 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://synthetic-nexus-preview.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'synthetic-preview-anonymous-token';
+// Support both key names: VITE_SUPABASE_ANON_KEY (standard) and the legacy VITE_SUPABASE_PUBLISHABLE_KEY
+const supabaseAnonKey =
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  'synthetic-preview-anonymous-token';
 
 export const isSupabaseConfigured = Boolean(
-  import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+  import.meta.env.VITE_SUPABASE_URL &&
+  (import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY)
 );
 
 // Instantiate standard Supabase client with auth session persistence

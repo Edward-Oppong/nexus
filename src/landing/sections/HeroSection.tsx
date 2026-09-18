@@ -14,7 +14,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       id="hero"
       style={{
         position: 'relative',
-        padding: '110px 0 80px',
+        padding: '80px 0 60px',
         overflow: 'hidden',
       }}
     >

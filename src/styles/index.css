@@ -1,5 +1,9 @@
 @import './tokens.css';
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* CSS Reset & Global Standards */
 *, *::before, *::after {
   box-sizing: border-box;

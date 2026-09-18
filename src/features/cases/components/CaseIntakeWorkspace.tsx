@@ -6,7 +6,7 @@
 // and decoupled clinical creation vs. Nexus intelligence orchestration.
 // ============================================================
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useCase } from '../../../app/providers/CaseContext';
 import { useAuth } from '../../authentication/AuthProvider';
 import {
@@ -41,8 +41,15 @@ import {
   Plus,
   Trash2,
 } from 'lucide-react';
+import {
+  extractClinicalDataFromFile,
+  heuristicClinicalExtraction,
+} from '../../../lib/intelligence/services/pdf-extraction-service';
+import { DocumentReconstructionReview } from './DocumentReconstructionReview';
+
 
 const DRAFT_STORAGE_KEY = 'nexus_case_intake_draft_v3';
+
 
 const INITIAL_DRAFT: CaseIntakeDraft = {
   version: '3.0',
@@ -306,8 +313,167 @@ export const CaseIntakeWorkspace: React.FC = () => {
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
+  const [isExtractingPdf, setIsExtractingPdf] = useState(false);
+  const [pdfExtractionError, setPdfExtractionError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-save draft to local storage
+  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (fileInputRef.current) fileInputRef.current.value = '';
+
+    setIsExtractingPdf(true);
+    setPdfExtractionError(null);
+
+    try {
+      const result = await extractClinicalDataFromFile(file);
+      const isImg = result.fileType === 'image';
+      const newDoc: IntakeDocumentInput = {
+        id: `doc-${Date.now()}`,
+        title: result.title || file.name,
+        category: file.name.toLowerCase().includes('lab')
+          ? 'Laboratory Report'
+          : isImg
+          ? 'Imaging Report'
+          : 'Consult Note',
+        mimeType: file.type || (result.fileType === 'pdf' ? 'application/pdf' : 'image/jpeg'),
+        fileSize: file.size,
+        uploadedAt: new Date().toISOString(),
+        rawText: result.rawText,
+        fileUrl: result.fileUrl,
+        fileType: result.fileType,
+        pageCount: result.pageCount,
+        extractedFindings: result.findings,
+      };
+      setDraft((p) => ({ ...p, documents: [...p.documents, newDoc] }));
+      if (result.source === 'EMPTY') {
+        setPdfExtractionError('No readable text found in this file. You can transcribe notes in the Editable Transcript tab.');
+      }
+    } catch (err) {
+      console.error('[intake] File extraction error:', err);
+      setPdfExtractionError('Failed to read file. Please try a different file.');
+    } finally {
+      setIsExtractingPdf(false);
+    }
+  };
+
+  const handleUpdateDocument = (updatedDoc: IntakeDocumentInput) => {
+    setDraft((prev) => ({
+      ...prev,
+      documents: prev.documents.map((d) => (d.id === updatedDoc.id ? updatedDoc : d)),
+    }));
+  };
+
+  const handleApplyDocumentData = (appliedData: {
+    observations: IntakeObservationInput[];
+    medications: IntakeMedicationInput[];
+    diagnosisNotes?: string;
+  }) => {
+    setDraft((prev) => {
+      const existingObsCodes = new Set(prev.observations.map((o) => o.display.toLowerCase()));
+      const newObs = appliedData.observations.filter((o) => !existingObsCodes.has(o.display.toLowerCase()));
+
+      const existingMedNames = new Set(prev.medications.map((m) => m.name.toLowerCase()));
+      const newMeds = appliedData.medications.filter((m) => !existingMedNames.has(m.name.toLowerCase()));
+
+      let updatedPresentation = { ...prev.presentation };
+      if (appliedData.diagnosisNotes) {
+        updatedPresentation.historyOfPresentIllness = updatedPresentation.historyOfPresentIllness
+          ? `${updatedPresentation.historyOfPresentIllness}\n\n[Extracted Diagnoses]: ${appliedData.diagnosisNotes}`
+          : `[Extracted Diagnoses]: ${appliedData.diagnosisNotes}`;
+      }
+
+      return {
+        ...prev,
+        observations: [...prev.observations, ...newObs],
+        medications: [...prev.medications, ...newMeds],
+        presentation: updatedPresentation,
+      };
+    });
+
+    setStatusMessage({
+      type: 'success',
+      text: `Successfully synced ${appliedData.observations.length} observation(s) and ${appliedData.medications.length} medication(s) to Case Intake!`,
+    });
+    setTimeout(() => setStatusMessage(null), 5000);
+  };
+
+  const handleLoadSampleDocument = () => {
+    const sampleRawText = `PATIENT DISCHARGE & CLINICAL CONSULTATION SUMMARY
+Hospital ID: #NY-99412
+Date: 2026-09-17
+Encounter: Acute Cardiac & Renal Assessment
+
+ADMISSION DIAGNOSIS:
+Diagnosis: Non-ST-Elevation Myocardial Infarction with Acute Kidney Injury
+
+VITAL SIGNS:
+BP: 148/92 mmHg
+HR: 104 bpm
+SpO2: 93%
+RR: 22 breaths/min
+Temperature: 37.8 C
+
+LABORATORY INVESTIGATIONS:
+Hb: 10.8 g/dL
+WBC: 13.8 x10^9/L
+Platelets: 210 x10^9/L
+Serum Creatinine: 2.1 mg/dL
+Potassium: 5.4 mmol/L
+Troponin I: 1.85 ng/mL
+Blood Glucose: 165 mg/dL
+
+CURRENT MEDICATIONS:
+Aspirin 81 mg daily
+Atorvastatin 80 mg daily
+Lisinopril 10 mg daily (withhold due to AKI)
+Metoprolol 25 mg bid
+
+IMPRESSION:
+Impression: High-risk coronary syndrome with mild pulmonary congestion and early cardiorenal syndrome.`;
+
+    const canvas = window.document.createElement('canvas');
+    canvas.width = 620;
+    canvas.height = 760;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, 620, 760);
+      ctx.fillStyle = '#0F766E';
+      ctx.fillRect(0, 0, 620, 60);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.fillText('NEXUS HEALTH SYSTEM - CLINICAL CONSULT & LAB REPORT', 20, 36);
+      ctx.fillStyle = '#0F172A';
+      ctx.font = '11px monospace';
+      const lines = sampleRawText.split('\n');
+      lines.slice(0, 32).forEach((l, i) => {
+        ctx.fillText(l, 20, 90 + i * 20);
+      });
+    }
+    const sampleImgUrl = canvas.toDataURL('image/png');
+
+    const sampleFindings = heuristicClinicalExtraction(sampleRawText, 'Discharge Summary & Lab Report');
+
+    const sampleDoc: IntakeDocumentInput = {
+      id: `sample-doc-${Date.now()}`,
+      title: 'Sample Discharge Summary & Lab Report',
+      category: 'Discharge Summary',
+      mimeType: 'image/png',
+      fileSize: 48200,
+      uploadedAt: new Date().toISOString(),
+      rawText: sampleRawText,
+      fileUrl: sampleImgUrl,
+      fileType: 'image',
+      pageCount: 1,
+      extractedFindings: sampleFindings,
+    };
+
+    setDraft((p) => ({ ...p, documents: [...p.documents, sampleDoc] }));
+    setStatusMessage({ type: 'success', text: 'Loaded sample clinical document with extracted findings!' });
+    setTimeout(() => setStatusMessage(null), 4000);
+  };
+
   useEffect(() => {
     try {
       localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({ ...draft, updatedAt: new Date().toISOString() }));
@@ -1144,86 +1310,129 @@ export const CaseIntakeWorkspace: React.FC = () => {
                   </p>
                 </div>
 
-                {/* Upload Trigger Area */}
-                <div
-                  style={{
-                    border: '2px dashed #CBD5E1',
-                    borderRadius: '8px',
-                    padding: '24px',
-                    textAlign: 'center',
-                    backgroundColor: '#F8FAFC',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => {
-                    // Simulate document attachment
-                    const newDoc: IntakeDocumentInput = {
-                      id: `doc-${Date.now()}`,
-                      title: `Clinical Attachment — ${new Date().toLocaleDateString()}`,
-                      category: 'Consult Note',
-                      mimeType: 'application/pdf',
-                      fileSize: 340000,
-                      uploadedAt: new Date().toISOString(),
-                      rawText: 'Patient evaluation note attached by consult service.',
-                      extractedFindings: [
-                        {
-                          id: `ext-${Date.now()}-1`,
-                          category: 'exam',
-                          label: 'Clinical Finding in Attached Report',
-                          value: 'Documented in attached PDF',
-                          sourceDocumentTitle: 'Clinical Attachment',
-                          sourcePage: 1,
-                          sourceSnippet: 'Attached report notes abnormal clinical markers',
-                          provenanceType: 'AI_EXTRACTED',
-                          verificationStatus: 'REVIEW_REQUIRED',
-                        },
-                      ],
-                    };
-                    setDraft((p) => ({ ...p, documents: [...p.documents, newDoc] }));
-                  }}
-                >
-                  <Upload size={24} color="#0F766E" style={{ margin: '0 auto 8px' }} />
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>
-                    Click to attach PDF / Clinical Document
+                {/* PDF error */}
+                {pdfExtractionError && (
+                  <div style={{
+                    background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '6px',
+                    padding: '10px 14px', fontSize: '12px', color: '#DC2626',
+                    display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px',
+                  }}>
+                    <AlertTriangle size={14} />
+                    {pdfExtractionError}
                   </div>
-                  <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>
-                    Supports PDF, DICOM reports, and narrative summaries up to 50MB
+                )}
+
+                {/* Hidden real file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="application/pdf,.pdf,image/*,.png,.jpg,.jpeg,.webp,.txt"
+                  style={{ display: 'none' }}
+                  onChange={handleFileSelected}
+                />
+
+                {/* Upload Trigger Area & Quick Test Options */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', alignItems: 'stretch' }}>
+                  <div
+                    style={{
+                      border: `2px dashed ${isExtractingPdf ? '#0284C7' : '#CBD5E1'}`,
+                      borderRadius: '8px',
+                      padding: '24px 20px',
+                      textAlign: 'center',
+                      backgroundColor: isExtractingPdf ? '#EFF6FF' : '#F8FAFC',
+                      cursor: isExtractingPdf ? 'wait' : 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    onClick={() => !isExtractingPdf && fileInputRef.current?.click()}
+                  >
+                    {isExtractingPdf ? (
+                      <>
+                        <div
+                          style={{
+                            width: '26px',
+                            height: '26px',
+                            borderRadius: '50%',
+                            border: '3px solid #BFDBFE',
+                            borderTopColor: '#0284C7',
+                            animation: 'spin 0.8s linear infinite',
+                            margin: '0 auto 8px',
+                          }}
+                        />
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#0284C7' }}>
+                          Reconstructing file & extracting clinical entities…
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>
+                          Parsing document, running NER model, and building editable data table
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <Upload size={22} color="#0F766E" style={{ margin: '0 auto 6px' }} />
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>
+                          Click to attach Clinical PDF, Scan, or Image
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
+                          Supports PDF, PNG, JPG, WEBP, TXT · Reconstructs visual file + editable clinical table
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Instant Sample Button */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      backgroundColor: '#F0FDFA',
+                      border: '1px solid #CCFBF1',
+                      borderRadius: '8px',
+                      padding: '16px 20px',
+                      maxWidth: '240px',
+                    }}
+                  >
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#0F766E', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Sparkles size={14} /> Quick Demo Test
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#475569', margin: '4px 0 10px' }}>
+                      Test the visual reconstruction, editable table & sync with a realistic discharge summary.
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleLoadSampleDocument}
+                      style={{
+                        border: 'none',
+                        backgroundColor: '#0F766E',
+                        color: '#FFFFFF',
+                        fontWeight: 600,
+                        fontSize: '11px',
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      Load Sample Report
+                    </button>
                   </div>
                 </div>
 
-                {/* Document List */}
+                {/* Reconstructed Document & Editable Findings Workspaces */}
                 {draft.documents.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {draft.documents.map((doc, idx) => (
-                      <div
+                      <DocumentReconstructionReview
                         key={doc.id}
-                        style={{
-                          padding: '12px 16px',
-                          backgroundColor: '#FFFFFF',
-                          border: '1px solid #E2E8F0',
-                          borderRadius: '6px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <Paperclip size={16} color="#0F766E" />
-                          <div>
-                            <div style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>
-                              {doc.title}
-                            </div>
-                            <div style={{ fontSize: '11px', color: '#64748B' }}>
-                              {doc.category} · {doc.extractedFindings.length} candidate finding(s) extracted with page citation
-                            </div>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => setDraft((p) => ({ ...p, documents: p.documents.filter((_, i) => i !== idx) }))}
-                          style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer' }}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
+                        document={doc}
+                        onUpdateDocument={handleUpdateDocument}
+                        onApplyToCase={handleApplyDocumentData}
+                        onRemoveDocument={() =>
+                          setDraft((p) => ({ ...p, documents: p.documents.filter((_, i) => i !== idx) }))
+                        }
+                      />
                     ))}
                   </div>
                 )}

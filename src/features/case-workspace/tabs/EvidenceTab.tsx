@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { MOCK_EVIDENCE_ITEMS } from '../../../data/evidence/mockEvidence';
 import { useDrawer } from '../../../app/providers/DrawerContext';
 import { useCase } from '../../../app/providers/CaseContext';
 import {
@@ -13,7 +12,7 @@ import {
   AlertCircle,
   Tag,
 } from 'lucide-react';
-import { AuthorityTier, AUTHORITY_TIER_LABELS } from '../../../domain/evidence';
+import { AuthorityTier, AUTHORITY_TIER_LABELS, EvidenceItem } from '../../../domain/evidence';
 
 export const EvidenceTab: React.FC = () => {
   const { openEvidenceDrawer } = useDrawer();
@@ -22,30 +21,14 @@ export const EvidenceTab: React.FC = () => {
   const [selectedTier, setSelectedTier] = useState<string>('ALL');
   const [selectedHypothesis, setSelectedHypothesis] = useState<string>('ALL');
 
-  // Map MOCK_EVIDENCE_ITEMS to enhanced metadata
+  // Evidence is sourced from Supabase via the case context.
+  // Until the evidence table is populated, this will be empty — showing the empty state below.
   const enrichedEvidence = useMemo(() => {
-    return MOCK_EVIDENCE_ITEMS.map((ev) => {
-      // Derive authority tier (1 to 5)
-      let tier: AuthorityTier = 1;
-      if (ev.authority === 'High' && (ev.documentType.includes('Guideline') || ev.documentType.includes('Diagnostic Standard'))) {
-        tier = 1;
-      } else if (ev.authority === 'Moderate') {
-        tier = 2;
-      } else {
-        tier = 1;
-      }
-
-      // Map linked hypothesis titles
-      const linkedHypotheses = activeCase.hypotheses.filter((h) =>
-        h.evidenceIds.includes(ev.id)
-      );
-
-      return {
-        ...ev,
-        tier,
-        linkedHypotheses,
-      };
-    });
+    // No local mock evidence. Return empty; real evidence will come from Supabase.
+    return [] as Array<EvidenceItem & {
+      tier: AuthorityTier;
+      linkedHypotheses: typeof activeCase.hypotheses;
+    }>;
   }, [activeCase.hypotheses]);
 
   // Filter evidence

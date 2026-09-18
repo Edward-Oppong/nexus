@@ -9,7 +9,6 @@ import React, { useState } from 'react';
 import { useAuth } from '../../authentication/AuthProvider';
 import { AppRole } from '../../../domain/auth';
 import {
-  MOCK_TEAM_MEMBERS,
   DemoTeamMember,
   ROLE_DISPLAY,
 } from '../../../data/administration/mockAdminData';
@@ -56,7 +55,7 @@ export const TeamMembersTab: React.FC = () => {
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [invite, setInvite] = useState<InviteState>({ email: '', role: 'clinician' });
   const [inviteSent, setInviteSent] = useState(false);
-  const [members, setMembers] = useState<DemoTeamMember[]>(MOCK_TEAM_MEMBERS);
+  const [members, setMembers] = useState<DemoTeamMember[]>([]);
   const [roleMenuOpen, setRoleMenuOpen] = useState<string | null>(null);
   const [savedRole, setSavedRole] = useState<string | null>(null);
 

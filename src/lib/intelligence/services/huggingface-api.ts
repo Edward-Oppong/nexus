@@ -361,3 +361,4 @@ class HuggingFaceClient {
 }
 
 export const huggingFaceClient = new HuggingFaceClient();
+export const hfClient = huggingFaceClient;

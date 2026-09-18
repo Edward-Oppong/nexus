@@ -9,7 +9,6 @@ import {
   EvidenceChunk,
   RankedEvidenceResult,
 } from '../../../domain/contracts/intelligence-contracts';
-import { MOCK_EVIDENCE_ITEMS } from '../../../data/evidence/mockEvidence';
 
 export interface EvidenceRetrievalAndRankingService {
   encodeQuery(query: string): Promise<number[]>;
@@ -52,8 +51,11 @@ export class MedCPTEvidencePipeline implements EvidenceRetrievalAndRankingServic
   async retrieveAndRerank(caseQuery: string, limit: number = 5): Promise<RankedEvidenceResult[]> {
     const queryTerms = caseQuery.toLowerCase().split(/\s+/).filter((t) => t.length > 3);
 
+    // Evidence items will be injected from Supabase in future; empty until then.
+    const evidenceItems: import('../../../domain/evidence').EvidenceItem[] = [];
+
     // Convert existing literature repository into EvidenceChunks
-    const chunks: EvidenceChunk[] = MOCK_EVIDENCE_ITEMS.map((item) => ({
+    const chunks: EvidenceChunk[] = evidenceItems.map((item) => ({
       id: item.id,
       sourceDocumentId: `doc-ev-${item.id}`,
       title: item.title,

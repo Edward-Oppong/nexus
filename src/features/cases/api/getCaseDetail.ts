@@ -7,7 +7,7 @@
 // ============================================================
 
 import { supabase, isSupabaseConfigured } from '../../../lib/supabase/client';
-import { FullSyntheticCase, MOCK_FULL_CASES_REGISTRY, SYNTHETIC_CASE_10482 } from '../../../data/cases/mockCasesData';
+import { FullSyntheticCase, EMPTY_CASE } from '../../../data/cases/mockCasesData';
 import { CaseOverview, SyntheticPatient } from '../../../domain/case';
 import { ClinicalFinding, FindingCategory, VerificationStatus, FindingProvenance } from '../../../domain/finding';
 import { CandidateHypothesis, HypothesisStatus } from '../../../domain/hypothesis';
@@ -15,9 +15,9 @@ import { InvestigationOrder, InvestigationStatus } from '../../../domain/investi
 import { TimelineEvent } from '../../../domain/timeline';
 
 export async function getCaseDetail(caseId: string): Promise<FullSyntheticCase> {
-  // If Supabase is not configured, resolve from registry
+  // If Supabase is not configured, return an empty shell — the UI shows a prompt to connect.
   if (!isSupabaseConfigured) {
-    return MOCK_FULL_CASES_REGISTRY[caseId] || SYNTHETIC_CASE_10482;
+    return EMPTY_CASE;
   }
 
   try {
@@ -29,8 +29,8 @@ export async function getCaseDetail(caseId: string): Promise<FullSyntheticCase> 
       .maybeSingle();
 
     if (caseErr || !caseRow) {
-      console.warn(`[getCaseDetail] Supabase case query failed for ${caseId}, using local fallback:`, caseErr?.message);
-      return MOCK_FULL_CASES_REGISTRY[caseId] || SYNTHETIC_CASE_10482;
+      console.warn(`[getCaseDetail] Supabase case query failed for ${caseId}, using empty shell:`, caseErr?.message);
+      return EMPTY_CASE;
     }
 
     const patient = caseRow.patient || {};
@@ -168,19 +168,17 @@ export async function getCaseDetail(caseId: string): Promise<FullSyntheticCase> 
       isNexusSimulated: false,
     }));
 
-    // Merge with base fallback to keep workstation-compatible structure
-    const baseFallback = MOCK_FULL_CASES_REGISTRY[caseId] || SYNTHETIC_CASE_10482;
-
+    // Merge with EMPTY_CASE to maintain the full workstation-compatible shape
     return {
-      ...baseFallback,
+      ...EMPTY_CASE,
       overview,
-      findings: findings.length > 0 ? findings : baseFallback.findings,
-      investigations: investigations.length > 0 ? investigations : baseFallback.investigations,
-      hypotheses: hypotheses.length > 0 ? hypotheses : baseFallback.hypotheses,
-      timeline: timeline.length > 0 ? timeline : baseFallback.timeline,
+      findings,
+      investigations,
+      hypotheses,
+      timeline,
     };
   } catch (err) {
     console.error(`[getCaseDetail] Exception querying Supabase:`, err);
-    return MOCK_FULL_CASES_REGISTRY[caseId] || SYNTHETIC_CASE_10482;
+    return EMPTY_CASE;
   }
 }

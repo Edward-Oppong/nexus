@@ -33,6 +33,7 @@ export const ReasoningTab: React.FC = () => {
   const [selectedHypothesisId, setSelectedHypothesisId] = useState<string>('hyp-1');
   const [showExplainability, setShowExplainability] = useState<boolean>(false);
   const [showKnowledgeGraph, setShowKnowledgeGraph] = useState<boolean>(false);
+  const [orderFeedback, setOrderFeedback] = useState<string | null>(null);
 
   const { hypotheses, findings, uncertainty, informationGaps } = activeCase;
   const activeHypothesis = hypotheses.find((h) => h.id === selectedHypothesisId) || hypotheses[0];
@@ -521,21 +522,43 @@ export const ReasoningTab: React.FC = () => {
           </div>
 
           {currentPersona.allowedActions.canRequestInvestigations && (
-            <button
-              onClick={() => {
-                requestInvestigation(
-                  'Transesophageal Echocardiography (TEE)',
-                  'Cardiovascular',
-                  'Urgent',
-                  'Urgent TEE to resolve infective endocarditis vegetation stigmata'
-                );
-                alert('Urgent TEE successfully requested and logged in case timeline.');
-              }}
-              className="btn btn-primary"
-              style={{ background: '#92400E', borderColor: '#92400E' }}
-            >
-              Request Investigation
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+              <button
+                onClick={() => {
+                  requestInvestigation(
+                    'Transesophageal Echocardiography (TEE)',
+                    'Cardiovascular',
+                    'Urgent',
+                    'Urgent TEE to resolve infective endocarditis vegetation stigmata'
+                  );
+                  setOrderFeedback('Urgent TEE successfully requested and logged in case timeline.');
+                  setTimeout(() => setOrderFeedback(null), 5000);
+                }}
+                className="btn btn-primary"
+                style={{ background: '#92400E', borderColor: '#92400E' }}
+              >
+                Request Investigation
+              </button>
+              {orderFeedback && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '11px',
+                    color: '#065F46',
+                    background: '#ECFDF5',
+                    border: '1px solid #A7F3D0',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    fontWeight: 500,
+                  }}
+                >
+                  <CheckCircle2 size={12} color="#059669" />
+                  {orderFeedback}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </section>

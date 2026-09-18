@@ -8,7 +8,7 @@ import {
   RegulatoryExportManifest,
   RegulatoryAuditFormat,
 } from '../../domain/regulatory-compliance';
-import { MOCK_AUDIT_EVENTS, DemoAuditEvent } from '../../data/administration/mockAdminData';
+import { DemoAuditEvent } from '../../data/administration/mockAdminData';
 import { toFhirAuditEvent, NexusAuditRecord } from '../interoperability/mappers/audit-event';
 import type { FhirBundle } from '../interoperability/fhir/types';
 
@@ -44,7 +44,7 @@ export async function generateRegulatoryAuditBundle(
   targetAuthority: RegulatoryExportManifest['targetAuthority'] = 'EU_NOTIFIED_BODY',
   customEvents?: DemoAuditEvent[]
 ): Promise<RegulatoryExportManifest> {
-  const sourceEvents = customEvents && customEvents.length > 0 ? customEvents : MOCK_AUDIT_EVENTS;
+  const sourceEvents = customEvents ?? [];
 
   const fhirAuditEvents = sourceEvents.map((evt) => {
     const nexusAudit: NexusAuditRecord = {

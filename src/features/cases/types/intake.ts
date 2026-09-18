@@ -83,16 +83,18 @@ export interface IntakeAllergyInput {
 
 export interface ExtractedFindingCandidate {
   id: string;
-  category: 'vital-signs' | 'laboratory' | 'exam' | 'imaging';
+  category: 'vital-signs' | 'laboratory' | 'exam' | 'imaging' | 'medication' | 'diagnosis';
   label: string;
   value: string;
   unit?: string;
   referenceRange?: string;
+  interpretation?: 'NORMAL' | 'HIGH' | 'LOW' | 'CRITICAL' | 'ABNORMAL';
   sourceDocumentTitle: string;
   sourcePage: number;
   sourceSnippet: string;
-  provenanceType: 'AI_EXTRACTED';
-  verificationStatus: 'REVIEW_REQUIRED';
+  provenanceType: 'AI_EXTRACTED' | 'CLINICIAN_VERIFIED';
+  verificationStatus: 'REVIEW_REQUIRED' | 'VERIFIED' | 'REJECTED';
+  isAccepted?: boolean;
 }
 
 export interface IntakeDocumentInput {
@@ -103,6 +105,9 @@ export interface IntakeDocumentInput {
   fileSize?: number;
   uploadedAt: string;
   rawText?: string;
+  fileUrl?: string;
+  fileType?: 'pdf' | 'image' | 'text';
+  pageCount?: number;
   extractedFindings: ExtractedFindingCandidate[];
 }
 

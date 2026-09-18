@@ -3,12 +3,15 @@ import { useCase } from '../../../app/providers/CaseContext';
 import { usePersona } from '../../../app/providers/PersonaContext';
 import { CheckCircle2, XCircle, Edit3, ArrowRight, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { ClinicalFinding } from '../../../domain/finding';
+import { CandidateHypothesis } from '../../../domain/hypothesis';
 import { RejectionReasonModal } from '../../../components/ui/RejectionReasonModal';
+import { HypothesisRejectionModal } from '../../../components/ui/HypothesisRejectionModal';
 
 export const ReviewTab: React.FC = () => {
-  const { activeCase, updateFindingStatus, setActiveCaseSubTab } = useCase();
+  const { activeCase, updateFindingStatus, adjudicateHypothesis, setActiveCaseSubTab } = useCase();
   const { currentPersona } = usePersona();
   const [rejectingFinding, setRejectingFinding] = useState<ClinicalFinding | null>(null);
+  const [rejectingHypothesis, setRejectingHypothesis] = useState<CandidateHypothesis | null>(null);
 
   const { findings, hypotheses, informationGaps } = activeCase;
 
@@ -163,63 +166,108 @@ export const ReviewTab: React.FC = () => {
         </h3>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {hypotheses.map((h, idx) => (
-            <div
-              key={h.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px 14px',
-                background: '#F8FAFC',
-                border: '1px solid #E2E8F0',
-                borderRadius: '6px',
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <strong style={{ fontSize: '13px', color: '#0F172A' }}>
-                    0{idx + 1}. {h.title}
-                  </strong>
-                  <span
-                    style={{
-                      fontSize: '10px',
-                      fontWeight: 700,
-                      color: h.status === 'Supported' ? '#047857' : h.status === 'Uncertain' ? '#B45309' : '#B91C1C',
-                      background: h.status === 'Supported' ? '#ECFDF5' : h.status === 'Uncertain' ? '#FEF3C7' : '#FEF2F2',
-                      padding: '2px 5px',
-                      borderRadius: '3px',
-                    }}
-                  >
-                    ● {h.status}
-                  </span>
+          {hypotheses.map((h, idx) => {
+            const isAccepted = h.clinicalReviewStatus === 'Accepted';
+            const isRejected = h.clinicalReviewStatus === 'Rejected';
+
+            return (
+              <div
+                key={h.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 14px',
+                  background: isAccepted ? '#F0FDF4' : isRejected ? '#FEF2F2' : '#F8FAFC',
+                  border: `1px solid ${isAccepted ? '#BBF7D0' : isRejected ? '#FECACA' : '#E2E8F0'}`,
+                  borderRadius: '6px',
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <strong style={{ fontSize: '13px', color: isRejected ? '#991B1B' : '#0F172A' }}>
+                      0{idx + 1}. {h.title}
+                    </strong>
+                    <span
+                      style={{
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        color: h.status === 'Supported' ? '#047857' : h.status === 'Uncertain' ? '#B45309' : '#B91C1C',
+                        background: h.status === 'Supported' ? '#ECFDF5' : h.status === 'Uncertain' ? '#FEF3C7' : '#FEF2F2',
+                        padding: '2px 5px',
+                        borderRadius: '3px',
+                      }}
+                    >
+                      ● {h.status}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#64748B', marginTop: '3px' }}>
+                    Review Status: <strong style={{ color: isAccepted ? '#059669' : isRejected ? '#DC2626' : '#64748B' }}>{h.clinicalReviewStatus}</strong>
+                    {h.reviewNote && (
+                      <span style={{ color: '#475569', marginLeft: '6px' }}>
+                        ({h.reviewNote})
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div style={{ fontSize: '11px', color: '#64748B', marginTop: '3px' }}>
-                  Review Status: <strong>{h.clinicalReviewStatus}</strong>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {isAccepted ? (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#059669', fontWeight: 600 }}>
+                      <CheckCircle2 size={14} /> Accepted
+                    </span>
+                  ) : isRejected ? (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#DC2626', fontWeight: 600 }}>
+                      <XCircle size={14} /> Rejected
+                    </span>
+                  ) : null}
+
+                  {currentPersona.allowedActions.canReviewNexusFindings && (
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button
+                        onClick={() => adjudicateHypothesis(h.id, 'ACCEPT')}
+                        disabled={isAccepted}
+                        className="btn btn-sm btn-success"
+                        style={{ fontSize: '11px', padding: '3px 8px' }}
+                      >
+                        <CheckCircle2 size={12} /> Accept
+                      </button>
+                      <button
+                        onClick={() => setRejectingHypothesis(h)}
+                        disabled={isRejected}
+                        className="btn btn-sm btn-danger"
+                        style={{ fontSize: '11px', padding: '3px 8px' }}
+                      >
+                        <XCircle size={12} /> Reject
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
-
-              {currentPersona.allowedActions.canReviewNexusFindings && (
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <button
-                    onClick={() => alert(`Hypothesis "${h.title}" confirmed for inclusion in diagnostic differential.`)}
-                    className="btn btn-sm btn-success"
-                  >
-                    <CheckCircle2 size={12} /> Accept Hypothesis
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
-      {/* Rejection Modal Dialog */}
+      {/* Finding Rejection Modal Dialog */}
       {rejectingFinding && (
         <RejectionReasonModal
           finding={rejectingFinding}
           onConfirm={handleConfirmRejection}
           onCancel={() => setRejectingFinding(null)}
+        />
+      )}
+
+      {/* Hypothesis Rejection Modal Dialog */}
+      {rejectingHypothesis && (
+        <HypothesisRejectionModal
+          hypothesis={rejectingHypothesis}
+          onConfirm={(reason, note) => {
+            const combinedReason = note.trim() ? `${reason}: ${note.trim()}` : reason;
+            adjudicateHypothesis(rejectingHypothesis.id, 'REJECT', combinedReason);
+            setRejectingHypothesis(null);
+          }}
+          onCancel={() => setRejectingHypothesis(null)}
         />
       )}
     </div>

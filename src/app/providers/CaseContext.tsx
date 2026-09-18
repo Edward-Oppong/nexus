@@ -37,6 +37,7 @@ import {
 import { runNexusAnalysis } from '../../lib/intelligence/reasoning-orchestrator';
 import { testProvider, getDefaultReasoningProvider } from '../../lib/intelligence/reasoning-provider';
 import { getCaseDetail } from '../../features/cases/api/getCaseDetail';
+import { deleteCase as deleteCaseApi } from '../../features/cases/api/deleteCase';
 import { getCases } from '../../features/cases/api/getCases';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase/client';
 
@@ -87,9 +88,11 @@ interface CaseContextType {
   casesList: CaseOverview[];
   openCaseById: (caseId: string, targetTab?: CaseSubTab) => void;
   registerCreatedCase: (draft: CaseIntakeDraft, options: RegisterCaseOptions) => Promise<{ success: boolean; error: string | null }>;
+  deleteCase: (caseId: string) => Promise<{ success: boolean; error: string | null }>;
 
   // Findings & Investigations
   updateFindingStatus: (findingId: string, status: VerificationStatus, reason?: string, note?: string) => void;
+  adjudicateHypothesis: (hypothesisId: string, action: 'ACCEPT' | 'REJECT', reason?: string) => void;
   requestInvestigation: (
     testName: string,
     category: 'Laboratory' | 'Imaging' | 'Cardiovascular' | 'Microbiology',
@@ -265,6 +268,87 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setNexusAssessment(fullCase.nexusAssessment ?? null);
       }
     }
+
+    // Hydrate workflow records (decisions, safety concerns, tasks) from Supabase if configured
+    if (isSupabaseConfigured) {
+      try {
+        const [decisionsRes, safetyRes, tasksRes] = await Promise.all([
+          supabase.from('decisions').select('*').eq('case_id', caseId).order('recorded_at', { ascending: false }),
+          supabase.from('safety_concerns').select('*').eq('case_id', caseId).order('created_at', { ascending: false }),
+          supabase.from('tasks').select('*').eq('case_id', caseId).order('created_at', { ascending: false }),
+        ]);
+
+        if (decisionsRes.data && decisionsRes.data.length > 0) {
+          const mappedDecisions: Decision[] = decisionsRes.data.map((d: any) => ({
+            id: d.id,
+            caseId: d.case_id,
+            decisionType: d.decision_type || 'CLINICAL_ASSESSMENT',
+            summary: d.summary,
+            rationale: d.rationale || '',
+            recordedBy: activeUserDisplayName,
+            recordedByRole: profile?.profession || 'Attending Physician',
+            status: d.status || 'ACTIVE',
+            recordedAt: d.recorded_at,
+            amendedFromId: d.amended_from || undefined,
+            amendmentReason: d.amendment_reason || undefined,
+            relatedAssessmentId: d.related_assessment_id || undefined,
+            legalDisclaimerAcknowledged: d.legal_disclaimer_acknowledged ?? true,
+          }));
+          setDecisions((prev) => [
+            ...mappedDecisions,
+            ...prev.filter((p) => !mappedDecisions.some((m) => m.id === p.id)),
+          ]);
+        }
+
+        if (safetyRes.data && safetyRes.data.length > 0) {
+          const mappedSafety: SafetyConcern[] = safetyRes.data.map((s: any) => ({
+            id: s.id,
+            caseId: s.case_id,
+            severity: s.severity || 'ATTENTION',
+            category: s.category || 'CLINICAL_HAZARD',
+            description: s.description,
+            triggerSource: s.trigger_source || 'SYSTEM',
+            recommendedAction: s.recommended_action || '',
+            status: s.status || 'OPEN',
+            createdAt: s.created_at,
+            acknowledgedBy: s.acknowledged_by || undefined,
+            acknowledgedAt: s.acknowledged_at || undefined,
+            resolvedBy: s.resolved_by || undefined,
+            resolvedAt: s.resolved_at || undefined,
+            clinicalNotes: s.clinical_notes || undefined,
+          }));
+          setSafetyConcerns((prev) => [
+            ...mappedSafety,
+            ...prev.filter((p) => !mappedSafety.some((m) => m.id === p.id)),
+          ]);
+        }
+
+        if (tasksRes.data && tasksRes.data.length > 0) {
+          const mappedTasks: ClinicalTask[] = tasksRes.data.map((t: any) => ({
+            id: t.id,
+            caseId: t.case_id,
+            patientIdentifier: 'Clinical Patient',
+            title: t.title,
+            description: t.description || undefined,
+            priority: (t.priority?.toUpperCase() || 'ROUTINE') as any,
+            status: (t.status?.toUpperCase() || 'OPEN') as any,
+            createdAt: t.created_at,
+            dueAt: t.due_at || undefined,
+            assignedTo: t.assigned_to || undefined,
+            assignedToName: 'Attending Clinician',
+            createdBy: t.created_by || 'system',
+            createdByName: activeUserDisplayName,
+            completedAt: t.completed_at || undefined,
+          }));
+          setTasks((prev) => [
+            ...mappedTasks,
+            ...prev.filter((p) => !mappedTasks.some((m) => m.id === p.id)),
+          ]);
+        }
+      } catch (workflowErr) {
+        console.warn('[openCaseById] Workflow hydration notice:', workflowErr);
+      }
+    }
   };
 
   // ── Phase 14: Case Registration from Intake ──────────────
@@ -321,6 +405,22 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return { success: true, error: null };
   }, [casesList]);
+
+  // ── Case Deletion ─────────────────────────────────────────
+  const handleDeleteCase = useCallback(async (
+    caseId: string
+  ): Promise<{ success: boolean; error: string | null }> => {
+    const result = await deleteCaseApi(caseId, activeUserDisplayName);
+    if (result.success) {
+      // Remove from local cases list immediately
+      setCasesList((prev) => prev.filter((c) => c.id !== caseId));
+      // If the deleted case is currently open, navigate to cases list
+      if (activeCase.overview.id === caseId) {
+        setActiveView('cases');
+      }
+    }
+    return result;
+  }, [activeUserDisplayName, activeCase.overview.id]);
 
   // ── Findings Status Update ──────────────────────────────
   const updateFindingStatus = (findingId: string, status: VerificationStatus, reason?: string, note?: string) => {
@@ -427,6 +527,61 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { ...prev, investigations: [newOrder, ...prev.investigations], timeline: [auditEvent, ...prev.timeline] };
     });
   };
+
+  // ── Hypothesis Review & Adjudication ──────────────────────
+  const adjudicateHypothesis = useCallback((
+    hypothesisId: string,
+    action: 'ACCEPT' | 'REJECT',
+    reason?: string
+  ) => {
+    setActiveCase((prev) => {
+      const targetHyp = prev.hypotheses.find((h) => h.id === hypothesisId);
+      const updatedHypotheses = prev.hypotheses.map((h) => {
+        if (h.id === hypothesisId) {
+          return {
+            ...h,
+            clinicalReviewStatus: action === 'ACCEPT' ? ('Accepted' as const) : ('Rejected' as const),
+            reviewNote: reason || (action === 'ACCEPT' ? 'Confirmed for inclusion in diagnostic differential by clinician.' : 'Rejected by clinician.'),
+            status: action === 'ACCEPT' ? ('Supported' as const) : ('Contradicted' as const),
+          };
+        }
+        return h;
+      });
+
+      const auditEvent: TimelineEvent = {
+        id: `evt-${Date.now()}`,
+        time: 'Just now',
+        actor: 'CLINICIAN',
+        actorName: activeUserDisplayName,
+        eventType: action === 'ACCEPT' ? 'REVIEWED' : 'REJECTED',
+        title: `Hypothesis ${action === 'ACCEPT' ? 'Accepted' : 'Rejected'}: ${targetHyp?.title || 'Diagnostic Hypothesis'}`,
+        description:
+          action === 'ACCEPT'
+            ? 'Hypothesis confirmed for inclusion in diagnostic differential by clinician.'
+            : `Rejection reason: ${reason || 'Not specified'}.`,
+        isNexusSimulated: false,
+      };
+
+      if (isSupabaseConfigured) {
+        supabase
+          .from('hypotheses')
+          .update({
+            status: action === 'ACCEPT' ? 'SUPPORTED' : 'CONTRADICTED',
+            rationale: reason ? `Clinician review note: ${reason}` : targetHyp?.rationale,
+          })
+          .eq('id', hypothesisId)
+          .then(({ error }) => {
+            if (error) console.warn('[adjudicateHypothesis] Supabase sync notice:', error.message);
+          });
+      }
+
+      return {
+        ...prev,
+        hypotheses: updatedHypotheses,
+        timeline: [auditEvent, ...prev.timeline],
+      };
+    });
+  }, [activeUserDisplayName]);
 
   // ── Phase 6F: Run Nexus Analysis ─────────────────────────
   const handleRunNexusAnalysis = useCallback(async () => {
@@ -563,6 +718,20 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
       prev.map((c) => (c.id === concernId ? acknowledgeConcern(c, userId, activeUserDisplayName, note) : c))
     );
 
+    if (isSupabaseConfigured) {
+      supabase
+        .from('safety_concerns')
+        .update({
+          status: 'ACKNOWLEDGED',
+          acknowledged_at: new Date().toISOString(),
+          clinical_notes: note,
+        })
+        .eq('id', concernId)
+        .then(({ error }) => {
+          if (error) console.warn('[acknowledgeSafetyConcern] Supabase sync notice:', error.message);
+        });
+    }
+
     setActiveCase((prev) => {
       const concern = safetyConcerns.find((c) => c.id === concernId);
       const auditEvent: TimelineEvent = {
@@ -584,6 +753,20 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSafetyConcerns((prev) =>
       prev.map((c) => (c.id === concernId ? resolveConcern(c, userId, activeUserDisplayName, note) : c))
     );
+
+    if (isSupabaseConfigured) {
+      supabase
+        .from('safety_concerns')
+        .update({
+          status: 'RESOLVED',
+          resolved_at: new Date().toISOString(),
+          clinical_notes: note,
+        })
+        .eq('id', concernId)
+        .then(({ error }) => {
+          if (error) console.warn('[resolveSafetyConcern] Supabase sync notice:', error.message);
+        });
+    }
 
     setActiveCase((prev) => {
       const concern = safetyConcerns.find((c) => c.id === concernId);
@@ -621,20 +804,36 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
     reasonCategory?: RejectReasonCategory,
     reason?: string
   ) => {
+    const item = reviewQueue.find((r) => r.id === itemId);
+
     setReviewQueue((prev) =>
-      prev.map((item) =>
-        item.id === itemId
+      prev.map((it) =>
+        it.id === itemId
           ? {
-              ...item,
+              ...it,
               status: 'COMPLETED',
               payload: { action, revisedContent, reasonCategory, reason, reviewedAt: new Date().toISOString() },
             }
-          : item
+          : it
       )
     );
 
+    if (isSupabaseConfigured) {
+      supabase
+        .from('reviews')
+        .insert({
+          action,
+          original_content: item?.description || item?.title || null,
+          revised_content: revisedContent || null,
+          reason: reason || (reasonCategory ? `Category: ${reasonCategory}` : null),
+          reviewed_at: new Date().toISOString(),
+        })
+        .then(({ error }) => {
+          if (error) console.warn('[adjudicateReviewItem] Supabase sync notice:', error.message);
+        });
+    }
+
     setActiveCase((prev) => {
-      const item = reviewQueue.find((r) => r.id === itemId);
       const auditEvent: TimelineEvent = {
         id: `evt-${Date.now()}`,
         time: 'Just now',
@@ -678,6 +877,24 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     setDecisions((prev) => [newDec, ...prev]);
+
+    if (isSupabaseConfigured) {
+      supabase
+        .from('decisions')
+        .insert({
+          case_id: draft.caseId,
+          decision_type: draft.decisionType,
+          summary: draft.summary,
+          rationale: draft.rationale || null,
+          status: 'ACTIVE',
+          recorded_at: newDec.recordedAt,
+          related_assessment_id: draft.relatedAssessmentId || null,
+          legal_disclaimer_acknowledged: draft.legalDisclaimerAcknowledged,
+        })
+        .then(({ error }) => {
+          if (error) console.warn('[recordDecision] Supabase sync notice:', error.message);
+        });
+    }
 
     setActiveCase((prev) => {
       const auditEvent: TimelineEvent = {
@@ -733,6 +950,33 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
       prev.map((d) => (d.id === amendedPrior.id ? amendedPrior : d)).concat([activeNew])
     );
 
+    if (isSupabaseConfigured) {
+      supabase
+        .from('decisions')
+        .update({ status: 'AMENDED' })
+        .eq('id', amendedPrior.id)
+        .then(({ error }) => {
+          if (error) console.warn('[amendActiveDecision] Supabase update notice:', error.message);
+        });
+
+      supabase
+        .from('decisions')
+        .insert({
+          case_id: activeDecision.caseId,
+          decision_type: activeNew.decisionType,
+          summary: activeNew.summary,
+          rationale: activeNew.rationale || null,
+          status: 'ACTIVE',
+          recorded_at: activeNew.recordedAt,
+          amended_from: amendedPrior.id,
+          amendment_reason: amendment.amendmentReason,
+          legal_disclaimer_acknowledged: activeNew.legalDisclaimerAcknowledged,
+        })
+        .then(({ error }) => {
+          if (error) console.warn('[amendActiveDecision] Supabase insert notice:', error.message);
+        });
+    }
+
     setActiveCase((prev) => {
       const auditEvent: TimelineEvent = {
         id: `evt-${Date.now()}`,
@@ -778,6 +1022,23 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const newTask = createClinicalTask(draft);
     setTasks((prev) => [newTask, ...prev]);
 
+    if (isSupabaseConfigured) {
+      supabase
+        .from('tasks')
+        .insert({
+          case_id: draft.caseId,
+          title: draft.title,
+          description: draft.description || null,
+          priority: draft.priority,
+          status: 'OPEN',
+          due_at: draft.dueAt || null,
+          created_at: new Date().toISOString(),
+        })
+        .then(({ error }) => {
+          if (error) console.warn('[createTask] Supabase sync notice:', error.message);
+        });
+    }
+
     setActiveCase((prev) => {
       const auditEvent: TimelineEvent = {
         id: `evt-${Date.now()}`,
@@ -797,6 +1058,19 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setTasks((prev) =>
       prev.map((t) => (t.id === taskId ? completeClinicalTask(t, activeUserDisplayName) : t))
     );
+
+    if (isSupabaseConfigured) {
+      supabase
+        .from('tasks')
+        .update({
+          status: 'COMPLETED',
+          completed_at: new Date().toISOString(),
+        })
+        .eq('id', taskId)
+        .then(({ error }) => {
+          if (error) console.warn('[completeTask] Supabase sync notice:', error.message);
+        });
+    }
 
     setActiveCase((prev) => {
       const task = tasks.find((t) => t.id === taskId);
@@ -818,6 +1092,18 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setTasks((prev) =>
       prev.map((t) => (t.id === taskId ? cancelClinicalTask(t) : t))
     );
+
+    if (isSupabaseConfigured) {
+      supabase
+        .from('tasks')
+        .update({
+          status: 'CANCELLED',
+        })
+        .eq('id', taskId)
+        .then(({ error }) => {
+          if (error) console.warn('[cancelTask] Supabase sync notice:', error.message);
+        });
+    }
   };
 
   // ── Phase 6G: Case State Machine ─────────────────────────
@@ -880,7 +1166,9 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         casesList,
         openCaseById,
         registerCreatedCase,
+        deleteCase: handleDeleteCase,
         updateFindingStatus,
+        adjudicateHypothesis,
         requestInvestigation,
         nexusAssessment,
         isRunningAnalysis,

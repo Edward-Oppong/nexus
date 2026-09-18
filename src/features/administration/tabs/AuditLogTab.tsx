@@ -9,7 +9,6 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../authentication/AuthProvider';
 import {
-  MOCK_AUDIT_EVENTS,
   DemoAuditEvent,
   AUDIT_ACTION_LABELS,
 } from '../../../data/administration/mockAdminData';
@@ -88,7 +87,9 @@ export const AuditLogTab: React.FC = () => {
   const hasAuditView = can('audit.view');
 
   const orgEvents = useMemo(
-    () => MOCK_AUDIT_EVENTS.filter((e) => e.organizationId === activeOrganization?.id),
+    // Events will come from Supabase audit_events query when wired up.
+    // Empty array shows the 'No audit events' empty state until then.
+    () => ([] as DemoAuditEvent[]).filter((e) => e.organizationId === activeOrganization?.id),
     [activeOrganization]
   );
 

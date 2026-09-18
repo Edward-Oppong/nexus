@@ -255,25 +255,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     async (email: string, password: string): Promise<{ error: Error | null }> => {
       setLoading(true);
       try {
-        const isDemoSarah = email.toLowerCase().includes('sarah') || email.toLowerCase().includes('chen');
-        const isDemoAdmin = email.toLowerCase().includes('admin');
-
+        // When Supabase is not configured: activate demo persona immediately
         if (!isSupabaseConfigured) {
-          if (isDemoAdmin) {
-            signInDemo('organization_admin');
-            return { error: null };
-          }
-          signInDemo('clinician');
+          const isDemoAdmin = email.toLowerCase().includes('admin');
+          signInDemo(isDemoAdmin ? 'organization_admin' : 'clinician');
           return { error: null };
         }
 
+        // When Supabase IS configured: always use real auth.
+        // Do NOT fall back to demo — that would create a JWT-less session
+        // that Supabase treats as anon, causing all DB calls to fail with 401.
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
-          // If Supabase authentication encounters an issue for demo credentials, seamlessly activate demo persona
-          if (isDemoSarah || isDemoAdmin) {
-            signInDemo(isDemoAdmin ? 'organization_admin' : 'clinician');
-            return { error: null };
-          }
           throw error;
         }
 
