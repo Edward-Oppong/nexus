@@ -133,7 +133,7 @@ export class TestProvider implements ReasoningProvider {
 import { huggingFaceClient } from './services/huggingface-api';
 
 export class HuggingFaceMedGemmaProvider implements ReasoningProvider {
-  readonly name = 'google/medgemma-4b-it';
+  readonly name = 'Falconsai/medical_summarization';
   readonly version = '1.0.0-hf';
 
   async generateAssessment(input: ReasoningInput): Promise<RawReasoningOutput> {
@@ -181,7 +181,7 @@ SYSTEM CONSTRAINTS (MANDATORY):
   "limitations": ["Clinical limitation statement"]
 }`;
 
-      const { text } = await huggingFaceClient.generateClinicalSynthesis(prompt, 'google/medgemma-4b-it');
+      const { text } = await huggingFaceClient.generateClinicalSynthesis(prompt, 'Falconsai/medical_summarization');
 
       // Extract JSON if wrapped in markdown code fence
       const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -212,7 +212,7 @@ SYSTEM CONSTRAINTS (MANDATORY):
             contradictions: Array.isArray(parsed.contradictions) ? parsed.contradictions : [],
             limitations: Array.isArray(parsed.limitations)
               ? parsed.limitations.map(String)
-              : ['Generated with google/medgemma-4b-it under clinician supervision.'],
+              : ['Generated with Falconsai/medical_summarization under clinician supervision.'],
           };
         }
       }

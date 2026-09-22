@@ -162,7 +162,7 @@ export interface ContractFinding {
 }
 
 // ------------------------------------------------------------
-// LAYER 3: MEDICAL NER EXTRACTION (ribhu/medbert-clinical-ner)
+// LAYER 3: MEDICAL NER EXTRACTION (d4data/biomedical-ner-all)
 // ------------------------------------------------------------
 
 export interface ExtractionInput {

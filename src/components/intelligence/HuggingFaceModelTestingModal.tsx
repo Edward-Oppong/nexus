@@ -22,12 +22,12 @@ interface Props {
 }
 
 const REGISTERED_MODELS = [
-  { id: 'ribhu/medbert-clinical-ner', name: 'MedBERT Clinical NER', role: 'Clinical Named Entity Recognition' },
-  { id: 'ParamDev/clinicalbert-medical-doc-classifier', name: 'ClinicalBERT Doc Classifier', role: 'Document Type Classification' },
-  { id: 'emilyalsentzer/Bio_ClinicalBERT-ft', name: 'Bio_ClinicalBERT Finding Classifier', role: 'Finding Severity & Type' },
+  { id: 'd4data/biomedical-ner-all', name: 'Biomedical NER (All Entities)', role: 'Clinical Named Entity Recognition' },
+  { id: 'facebook/bart-large-mnli', name: 'BART Clinical Doc Classifier', role: 'Zero-Shot Clinical Document Classification' },
+  { id: 'emilyalsentzer/Bio_ClinicalBERT', name: 'Bio_ClinicalBERT Representation', role: 'Clinical BERT Representation & Findings' },
   { id: 'ncbi/MedCPT-Query-Encoder', name: 'MedCPT Query Encoder', role: 'Dense Clinical Query Embedding (768-d)' },
   { id: 'ncbi/MedCPT-Cross-Encoder', name: 'MedCPT Cross-Encoder', role: 'Query-Evidence Reranker' },
-  { id: 'google/medgemma-4b-it', name: 'MedGemma 4B Instruct', role: 'Clinical Synthesis & Hypotheses Formulation' },
+  { id: 'Falconsai/medical_summarization', name: 'Falconsai Clinical Summarizer', role: 'Clinical Medical Summarization & Synthesis' },
 ];
 
 export const HuggingFaceModelTestingModal: React.FC<Props> = ({ isOpen, onClose }) => {
@@ -121,7 +121,7 @@ export const HuggingFaceModelTestingModal: React.FC<Props> = ({ isOpen, onClose 
         const { entities, latencyMs } = await huggingFaceClient.extractNER(nerInput);
         setNerResults(entities);
         setNerLatency(latencyMs);
-        setRawJson(JSON.stringify({ model: 'ribhu/medbert-clinical-ner', latencyMs, entities }, null, 2));
+        setRawJson(JSON.stringify({ model: 'd4data/biomedical-ner-all', latencyMs, entities }, null, 2));
       } else {
         const start = performance.now();
         const entities = await extractionService.extractEntities({
@@ -156,7 +156,7 @@ export const HuggingFaceModelTestingModal: React.FC<Props> = ({ isOpen, onClose 
         const { predictions, latencyMs } = await huggingFaceClient.classifyDocument(docInput);
         setDocResults(predictions);
         setDocLatency(latencyMs);
-        setRawJson(JSON.stringify({ model: 'ParamDev/clinicalbert-medical-doc-classifier', latencyMs, predictions }, null, 2));
+        setRawJson(JSON.stringify({ model: 'facebook/bart-large-mnli', latencyMs, predictions }, null, 2));
       } else {
         const start = performance.now();
         const res = await classificationService.classifyDocument('doc-test', docInput);
@@ -180,7 +180,7 @@ export const HuggingFaceModelTestingModal: React.FC<Props> = ({ isOpen, onClose 
       const res = await classificationService.classifyFinding({ text: findingInput });
       const latencyMs = Math.round(performance.now() - start);
       setFindingResult({ ...res, latencyMs });
-      setRawJson(JSON.stringify({ model: 'emilyalsentzer/Bio_ClinicalBERT-ft', latencyMs, result: res }, null, 2));
+      setRawJson(JSON.stringify({ model: 'emilyalsentzer/Bio_ClinicalBERT', latencyMs, result: res }, null, 2));
     } catch (err: any) {
       alert(`Finding Classifier error: ${err.message}`);
     } finally {
@@ -217,25 +217,25 @@ export const HuggingFaceModelTestingModal: React.FC<Props> = ({ isOpen, onClose 
     }
   };
 
-  // 5. Run MedGemma Synthesis
+  // 5. Run Clinical Summarization
   const runLiveMedGemma = async () => {
     setIsExecuting(true);
     try {
       if (huggingFaceClient.isConfigured()) {
         const { text, latencyMs } = await huggingFaceClient.generateClinicalSynthesis(
-          `Formulate 2 candidate differential hypotheses in JSON format for the following case:\n${gemmaInput}`
+          `Case summary: ${gemmaInput}`
         );
-        setGemmaResult({ text, latencyMs, model: 'google/medgemma-4b-it' });
-        setRawJson(JSON.stringify({ model: 'google/medgemma-4b-it', latencyMs, output: text }, null, 2));
+        setGemmaResult({ text, latencyMs, model: 'Falconsai/medical_summarization' });
+        setRawJson(JSON.stringify({ model: 'Falconsai/medical_summarization', latencyMs, output: text }, null, 2));
       } else {
         setGemmaResult({
-          text: 'No Hugging Face token configured. MedGemma 4B requires an active Hugging Face token.',
+          text: 'No Hugging Face token configured.',
           latencyMs: 0,
           model: 'unauthenticated',
         });
       }
     } catch (err: any) {
-      alert(`MedGemma error: ${err.message}`);
+      alert(`Summarizer error: ${err.message}`);
     } finally {
       setIsExecuting(false);
     }
@@ -461,12 +461,20 @@ export const HuggingFaceModelTestingModal: React.FC<Props> = ({ isOpen, onClose 
                                   ? 'rgba(34, 197, 94, 0.2)'
                                   : status.status === 'LOADING'
                                   ? 'rgba(234, 179, 8, 0.2)'
+                                  : status.status === 'OFFLINE'
+                                  ? 'rgba(100, 116, 139, 0.25)'
+                                  : status.status === 'UNAUTHENTICATED'
+                                  ? 'rgba(249, 115, 22, 0.2)'
                                   : 'rgba(239, 68, 68, 0.2)',
                               color:
                                 status.status === 'READY'
                                   ? '#4ade80'
                                   : status.status === 'LOADING'
                                   ? '#facc15'
+                                  : status.status === 'OFFLINE'
+                                  ? '#94a3b8'
+                                  : status.status === 'UNAUTHENTICATED'
+                                  ? '#fb923c'
                                   : '#f87171',
                             }}
                           >
@@ -480,8 +488,12 @@ export const HuggingFaceModelTestingModal: React.FC<Props> = ({ isOpen, onClose 
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px' }}>
-                      <span style={{ fontSize: '10px', color: '#475569' }}>
-                        {status?.errorMessage ? status.errorMessage.slice(0, 32) + '...' : 'Ready for test'}
+                      <span style={{ fontSize: '10px', color: status?.status === 'OFFLINE' ? '#64748b' : '#475569' }}>
+                        {status?.errorMessage
+                          ? status.status === 'OFFLINE'
+                            ? status.errorMessage  // friendly message — show in full
+                            : status.errorMessage.slice(0, 40) + '...'
+                          : 'Ready for test'}
                       </span>
                       <button
                         onClick={() => handleTestSingleModel(model.id)}
@@ -523,11 +535,11 @@ export const HuggingFaceModelTestingModal: React.FC<Props> = ({ isOpen, onClose 
               }}
             >
               {[
-                { key: 'NER', label: '1. NER Extraction (medbert-ner)' },
-                { key: 'DOC_CLF', label: '2. Doc Classifier (clinicalbert)' },
-                { key: 'FINDING', label: '3. Finding Classifier (Bio_ClinicalBERT)' },
+                { key: 'NER', label: '1. Biomedical NER (d4data)' },
+                { key: 'DOC_CLF', label: '2. Doc Classifier (BART-MNLI)' },
+                { key: 'FINDING', label: '3. Clinical BERT (Bio_ClinicalBERT)' },
                 { key: 'MEDCPT', label: '4. MedCPT Embed & Rerank' },
-                { key: 'MEDGEMMA', label: '5. MedGemma 4B Reasoning' },
+                { key: 'MEDGEMMA', label: '5. Clinical Summarizer (Falconsai)' },
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -853,7 +865,7 @@ export const HuggingFaceModelTestingModal: React.FC<Props> = ({ isOpen, onClose 
               {activeTestTab === 'MEDGEMMA' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>
-                    Structured Case Input for MedGemma 4B Clinical Reasoning:
+                    Structured Case Input for Falconsai Clinical Summarizer:
                   </label>
                   <textarea
                     rows={4}
@@ -886,7 +898,7 @@ export const HuggingFaceModelTestingModal: React.FC<Props> = ({ isOpen, onClose 
                         cursor: isExecuting ? 'not-allowed' : 'pointer',
                       }}
                     >
-                      {isExecuting ? 'Synthesizing...' : 'Invoke MedGemma 4B'}
+                      {isExecuting ? 'Synthesizing...' : 'Invoke Clinical Summarizer'}
                     </button>
                   </div>
 

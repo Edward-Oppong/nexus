@@ -316,12 +316,19 @@ export const OverviewView: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {casesList.map((c) => (
-                  <tr
-                    key={c.id}
-                    onClick={() => openCaseById(c.id)}
-                    style={{ cursor: 'pointer' }}
-                  >
+                {casesList.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '32px 16px', color: '#64748B' }}>
+                      No active cases found. All cases have been resolved or closed.
+                    </td>
+                  </tr>
+                ) : (
+                  casesList.map((c) => (
+                    <tr
+                      key={c.id}
+                      onClick={() => openCaseById(c.id)}
+                      style={{ cursor: 'pointer' }}
+                    >
                     <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: '#0F172A' }}>
                       #{c.id}
                     </td>
@@ -375,7 +382,7 @@ export const OverviewView: React.FC = () => {
                       </button>
                     </td>
                   </tr>
-                ))}
+                )))}
               </tbody>
             </table>
           </div>

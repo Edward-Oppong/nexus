@@ -68,8 +68,18 @@ export const SYNTHETIC_DEMO_CASES: Case[] = [
 ];
 
 export async function getCases(organizationId: string): Promise<Case[]> {
+  const deletedIds: string[] = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
+    } catch {
+      return [];
+    }
+  })();
+
   if (!isSupabaseConfigured) {
-    return SYNTHETIC_DEMO_CASES.filter((c) => c.organizationId === organizationId || true);
+    return SYNTHETIC_DEMO_CASES
+      .filter((c) => c.organizationId === organizationId || true)
+      .filter((c) => !deletedIds.includes(c.id) && (c.status as string) !== 'RESOLVED');
   }
 
   try {
@@ -77,34 +87,39 @@ export async function getCases(organizationId: string): Promise<Case[]> {
       .from('cases')
       .select('id, organization_id, patient_id, encounter_id, case_number, title, status, priority, opened_at, closed_at, created_by, created_at, updated_at')
       .eq('organization_id', organizationId)
+      .neq('status', 'RESOLVED')
       .order('updated_at', { ascending: false });
 
     if (error) {
       console.warn('Database fetch failed, utilizing synthetic fallback:', error.message);
-      return SYNTHETIC_DEMO_CASES;
+      return SYNTHETIC_DEMO_CASES.filter((c) => !deletedIds.includes(c.id) && (c.status as string) !== 'RESOLVED');
     }
 
+    // If query succeeded and returned 0 active cases, return empty list!
+    // Do NOT resurrect synthetic demo cases when active cases have been deleted.
     if (!data || data.length === 0) {
-      return SYNTHETIC_DEMO_CASES;
+      return [];
     }
 
-    return data.map((row: any) => ({
-      id: row.id,
-      organizationId: row.organization_id,
-      patientId: row.patient_id,
-      encounterId: row.encounter_id,
-      caseNumber: row.case_number,
-      title: row.title,
-      status: row.status,
-      priority: row.priority,
-      openedAt: row.opened_at,
-      closedAt: row.closed_at,
-      createdBy: row.created_by,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    }));
+    return (data || [])
+      .filter((row: any) => !deletedIds.includes(row.id) && row.status !== 'RESOLVED')
+      .map((row: any) => ({
+        id: row.id,
+        organizationId: row.organization_id,
+        patientId: row.patient_id,
+        encounterId: row.encounter_id,
+        caseNumber: row.case_number,
+        title: row.title,
+        status: row.status,
+        priority: row.priority,
+        openedAt: row.opened_at,
+        closedAt: row.closed_at,
+        createdBy: row.created_by,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
   } catch (err) {
     console.error('getCases error:', err);
-    return SYNTHETIC_DEMO_CASES;
+    return SYNTHETIC_DEMO_CASES.filter((c) => !deletedIds.includes(c.id) && (c.status as string) !== 'RESOLVED');
   }
 }

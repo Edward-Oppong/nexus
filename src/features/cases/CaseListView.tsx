@@ -114,6 +114,16 @@ export const CaseListView: React.FC = () => {
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const filteredCases = casesList.filter((c) => {
+    // Suppress soft-deleted or resolved cases
+    if ((c.state as string) === 'RESOLVED') return false;
+
+    try {
+      const deletedIds: string[] = JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
+      if (deletedIds.includes(c.id)) return false;
+    } catch {
+      // ignore
+    }
+
     const matchesSearch =
       c.id.includes(searchQuery) ||
       c.patient.syntheticIdentifier.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -283,14 +293,26 @@ export const CaseListView: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredCases.map((c) => (
-                <tr
-                  key={c.id}
-                  onClick={() => openCaseById(c.id)}
-                  style={{ cursor: 'pointer', borderBottom: '1px solid #F1F5F9', transition: 'background 0.1s' }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = '#F8FAFC')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = '')}
-                >
+              {filteredCases.length === 0 ? (
+                <tr>
+                  <td colSpan={9} style={{ textAlign: 'center', padding: '48px 16px', color: '#64748B' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#334155' }}>No active cases found</span>
+                      <span style={{ fontSize: '12px', color: '#94A3B8' }}>
+                        {searchQuery ? 'No cases match your search criteria.' : 'All clinical cases have been resolved or closed.'}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredCases.map((c) => (
+                  <tr
+                    key={c.id}
+                    onClick={() => openCaseById(c.id)}
+                    style={{ cursor: 'pointer', borderBottom: '1px solid #F1F5F9', transition: 'background 0.1s' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = '#F8FAFC')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = '')}
+                  >
                   <td style={{ padding: '12px 16px', fontFamily: 'var(--font-mono)', fontWeight: 600, color: '#0F172A' }}>
                     CASE-{c.id}
                   </td>
@@ -399,7 +421,7 @@ export const CaseListView: React.FC = () => {
                     </div>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>

@@ -39,12 +39,12 @@ function mapEntityTypeToFindingCategory(type: ExtractedEntity['entityType']): Co
 import { huggingFaceClient } from './huggingface-api';
 
 export class HuggingFaceNERService implements MedicalNERService {
-  readonly modelId = 'ribhu/medbert-clinical-ner';
+  readonly modelId = 'd4data/biomedical-ner-all';
   readonly modelVersion = '1.0.0';
 
   /**
    * Token classification extraction
-   * When Hugging Face API token is available, connects to ribhu/medbert-clinical-ner.
+   * When Hugging Face API token is available, connects to d4data/biomedical-ner-all.
    * Gracefully falls back to high-fidelity clinical pattern extraction if offline or unauthenticated.
    */
   async extractEntities(input: ExtractionInput): Promise<ExtractedEntity[]> {

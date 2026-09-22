@@ -21,8 +21,8 @@ export interface ClinicalClassificationService {
 import { huggingFaceClient } from './huggingface-api';
 
 export class HuggingFaceClassificationService implements ClinicalClassificationService {
-  readonly docClassifierModel = 'ParamDev/clinicalbert-medical-doc-classifier';
-  readonly findingClassifierModel = 'emilyalsentzer/Bio_ClinicalBERT-ft';
+  readonly docClassifierModel = 'facebook/bart-large-mnli';
+  readonly findingClassifierModel = 'emilyalsentzer/Bio_ClinicalBERT';
 
   async classifyDocument(documentId: string, text: string): Promise<DocumentClassificationResult> {
     // 1. Live Hugging Face Inference Attempt

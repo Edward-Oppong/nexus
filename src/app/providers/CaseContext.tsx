@@ -156,7 +156,16 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [activeView, setActiveView] = useState<MainView>('case-workspace');
   const [activeCaseSubTab, setActiveCaseSubTab] = useState<CaseSubTab>('reasoning');
   const [activeCase, setActiveCase] = useState<FullSyntheticCase>(SYNTHETIC_CASE_10482);
-  const [casesList, setCasesList] = useState<CaseOverview[]>(MOCK_CASES_LIST);
+  const [casesList, setCasesList] = useState<CaseOverview[]>(() => {
+    try {
+      const deletedIds: string[] = JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
+      return MOCK_CASES_LIST.filter(
+        (c) => !deletedIds.includes(c.id) && (c.state as string) !== 'RESOLVED'
+      );
+    } catch {
+      return MOCK_CASES_LIST;
+    }
+  });
 
   // Derive the logged-in user's display name for audit events
   const activeUserDisplayName = profile?.fullName || 'Clinician';
@@ -218,34 +227,44 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (isSupabaseConfigured && profile) {
       const orgId = activeOrganizationId;
       getCases(orgId).then((dbCases) => {
-        if (dbCases && dbCases.length > 0) {
-          setCasesList(
-            dbCases.map((c) => ({
-              id: c.id,
-              patient: {
-                id: c.patientId || `pat-${c.id}`,
-                syntheticIdentifier: 'Clinical Patient',
-                age: 58,
-                gender: 'Female',
-                encounterNumber: `#${c.caseNumber}`,
-                encounterType: 'Inpatient admission',
-                encounterDate: 'Recently',
-                allergiesCount: 0,
-                activeMedicationsCount: 0,
-                allergies: [],
-                medications: [],
-              },
-              state: c.status as any,
-              priority: (c.priority?.toLowerCase() || 'normal') as any,
-              assignedClinician: 'Attending Clinician',
-              assignedTeam: ['Attending Clinician (Lead)'],
-              lastUpdate: 'Recently',
-              safetyIssueCount: 0,
-              gapsCount: 0,
-              hypothesesCount: 0,
-            }))
-          );
-        }
+        const deletedIds: string[] = (() => {
+          try {
+            return JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
+          } catch {
+            return [];
+          }
+        })();
+
+        const activeCases = (dbCases || []).filter(
+          (c) => !deletedIds.includes(c.id) && (c.status as string) !== 'RESOLVED'
+        );
+
+        setCasesList(
+          activeCases.map((c) => ({
+            id: c.id,
+            patient: {
+              id: c.patientId || `pat-${c.id}`,
+              syntheticIdentifier: 'Clinical Patient',
+              age: 58,
+              gender: 'Female',
+              encounterNumber: `#${c.caseNumber}`,
+              encounterType: 'Inpatient admission',
+              encounterDate: 'Recently',
+              allergiesCount: 0,
+              activeMedicationsCount: 0,
+              allergies: [],
+              medications: [],
+            },
+            state: c.status as any,
+            priority: (c.priority?.toLowerCase() || 'normal') as any,
+            assignedClinician: 'Attending Clinician',
+            assignedTeam: ['Attending Clinician (Lead)'],
+            lastUpdate: 'Recently',
+            safetyIssueCount: 0,
+            gapsCount: 0,
+            hypothesesCount: 0,
+          }))
+        );
       });
     }
   }, [activeOrganizationId, profile]);
@@ -367,6 +386,19 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const newFullCase = result.fullCase;
+
+    // Un-suppress from localStorage if previously deleted
+    try {
+      const deletedIds: string[] = JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
+      if (deletedIds.includes(result.caseId)) {
+        localStorage.setItem(
+          'nexus_deleted_cases',
+          JSON.stringify(deletedIds.filter((id) => id !== result.caseId))
+        );
+      }
+    } catch {
+      // Ignore
+    }
 
     // Persist the new case into context state
     setActiveCase(newFullCase);

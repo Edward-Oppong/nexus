@@ -445,7 +445,7 @@ export async function extractClinicalDataFromFile(file: File): Promise<DocumentE
         if (entities.length > 0) {
           findings = mapEntitiesToFindings(entities, title, rawText);
           source = 'HF_NER';
-          modelUsed = 'ribhu/medbert-clinical-ner';
+          modelUsed = 'd4data/biomedical-ner-all';
         }
       } catch (nerErr) {
         console.warn('[doc-extraction] HF NER failed, using clinical heuristic:', nerErr);
