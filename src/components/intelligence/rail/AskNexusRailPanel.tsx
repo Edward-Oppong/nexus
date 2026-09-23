@@ -7,6 +7,7 @@
 import React, { useState } from 'react';
 import { useCase } from '../../../app/providers/CaseContext';
 import { Sparkles, Send } from 'lucide-react';
+import { huggingFaceClient } from '../../../lib/intelligence/services/huggingface-api';
 
 export const AskNexusRailPanel: React.FC = () => {
   const { activeCase } = useCase();
@@ -14,32 +15,48 @@ export const AskNexusRailPanel: React.FC = () => {
   const [response, setResponse] = useState<string | null>(null);
   const [isAnswering, setIsAnswering] = useState(false);
 
-  const handleAsk = (e: React.FormEvent) => {
+  const handleAsk = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!query.trim()) return;
+    const userQuery = query.trim();
+    if (!userQuery) return;
 
     setIsAnswering(true);
-    // Grounded deterministic / case-aware answer generator
-    setTimeout(() => {
-      const q = query.toLowerCase();
-      let ans = '';
 
-      if (q.includes('why') || q.includes('hypothesis') || q.includes('consider')) {
-        const topHyp = activeCase.hypotheses?.[0];
-        ans = topHyp
-          ? `"${topHyp.title}" is considered based on ${topHyp.supportingFindingIds?.length || 0} verified findings. It is contradicted by ${topHyp.contradictingFindingIds?.length || 0} finding(s).`
-          : 'No candidate hypotheses generated for this case yet.';
-      } else if (q.includes('evidence') || q.includes('guideline') || q.includes('paper')) {
-        ans = `Retrieved evidence includes clinical guidelines regarding Case ${activeCase.overview.id}. All retrieved sources are indexed in the Evidence Library.`;
-      } else if (q.includes('missing') || q.includes('pending') || q.includes('gap')) {
-        ans = `${activeCase.informationGaps.length} information gaps identified, including: ${activeCase.informationGaps.map((g) => g.testName || g.whyItMatters).slice(0, 2).join(', ')}.`;
-      } else {
-        ans = `Grounded assessment for Case ${activeCase.overview.id}: Patient has ${activeCase.findings.length} findings and ${activeCase.safetyIssues.length} safety alerts recorded.`;
+    // 1. Try Live Hugging Face Clinical Summarization / Synthesis when configured
+    if (huggingFaceClient.isConfigured()) {
+      try {
+        const topFindings = (activeCase.findings || []).slice(0, 5).map((f) => f.label).join(', ');
+        const prompt = `Clinical Question: ${userQuery}. Patient Findings: ${topFindings || 'None'}. Summarize clinical assessment:`;
+        const { text } = await huggingFaceClient.generateClinicalSynthesis(prompt);
+        if (text && text.trim().length > 5) {
+          setResponse(text.trim());
+          setIsAnswering(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('[AskNexus] Live HF synthesis notice, utilizing case-grounded engine:', err);
       }
+    }
 
-      setResponse(ans);
-      setIsAnswering(false);
-    }, 450);
+    // 2. Grounded deterministic case-aware answer generator fallback
+    const q = userQuery.toLowerCase();
+    let ans = '';
+
+    if (q.includes('why') || q.includes('hypothesis') || q.includes('consider')) {
+      const topHyp = activeCase.hypotheses?.[0];
+      ans = topHyp
+        ? `"${topHyp.title}" is considered based on ${topHyp.supportingFindingIds?.length || 0} verified findings. It is contradicted by ${topHyp.contradictingFindingIds?.length || 0} finding(s).`
+        : 'No candidate hypotheses generated for this case yet.';
+    } else if (q.includes('evidence') || q.includes('guideline') || q.includes('paper')) {
+      ans = `Retrieved evidence includes clinical guidelines regarding Case ${activeCase.overview.id}. All retrieved sources are indexed in the Evidence Library.`;
+    } else if (q.includes('missing') || q.includes('pending') || q.includes('gap')) {
+      ans = `${activeCase.informationGaps.length} information gaps identified, including: ${activeCase.informationGaps.map((g) => g.testName || g.whyItMatters).slice(0, 2).join(', ')}.`;
+    } else {
+      ans = `Grounded assessment for Case ${activeCase.overview.id}: Patient has ${activeCase.findings.length} findings and ${activeCase.safetyIssues.length} safety alerts recorded.`;
+    }
+
+    setResponse(ans);
+    setIsAnswering(false);
   };
 
   return (

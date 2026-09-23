@@ -607,7 +607,7 @@ export const ProblemSolutionSection: React.FC = () => {
             <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
               <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#0F766E', marginTop: '7px', flexShrink: 0 }} />
               <div style={{ fontSize: '13px', color: '#334155' }}>
-                <strong>Unified Context Engine:</strong> Automatically builds a patient context graph from FHIR, HL7, DICOM, and unstructured notes.
+                <strong>Unified Context Engine:</strong> Automatically builds a patient context graph from FHIR, HL7, clinical diagnostic reports, and unstructured notes.
               </div>
             </div>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>

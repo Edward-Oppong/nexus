@@ -157,7 +157,7 @@ export const TechnicalArchitectureModal: React.FC<TechnicalArchitectureModalProp
        ^
 [ Persistence & Edge Functions ] <-- Supabase PostgreSQL, RLS, SyncQueue
        ^
-[ External Interoperability ]   <-- FHIR R4, DICOMweb, HL7 v2.5.1 ER7`}
+[ External Interoperability ]   <-- FHIR R4, MedCPT Search, HL7 v2.5.1 ER7`}
               </pre>
               <p style={{ marginTop: '12px' }}>
                 All mutations flow through dedicated action handlers. PostgreSQL serves as the authoritative source of truth with database-level state machine validation via stored procedures.
@@ -207,7 +207,7 @@ export const TechnicalArchitectureModal: React.FC<TechnicalArchitectureModalProp
               </h4>
               <ul style={{ paddingLeft: '20px', margin: '10px 0' }}>
                 <li><strong>HL7 FHIR R4:</strong> US Core 6.1 profiles, 7-step schema validation, and SMART on FHIR v1/v2 launch context.</li>
-                <li><strong>DICOMweb:</strong> QIDO-RS search, WADO-RS retrieval, and procedural multi-slice canvas rendering with W/L presets.</li>
+                <li><strong>MedCPT & Clinical AI:</strong> Dense 768-d semantic query retrieval, Cross-Encoder deep passage reranking, and token-level NER.</li>
                 <li><strong>HL7 v2.5.1 ER7:</strong> Pure segment parsing for ADT^A01 (Admit) and ORU^R01 (Observation Results).</li>
                 <li><strong>IHE XDS.b:</strong> ITI-18 registry query and ITI-43 document retrieval for cross-enterprise health information exchanges.</li>
               </ul>

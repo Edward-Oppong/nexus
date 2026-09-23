@@ -20,7 +20,7 @@ export const ContextPipelineSection: React.FC = () => {
       title: 'Clinical Data',
       icon: <Database size={18} color="#64748B" />,
       tag: 'INGESTION',
-      desc: 'Raw EHR records, FHIR bundles, DICOM studies, and HL7 feeds arrive from clinical sources.',
+      desc: 'Raw EHR records, FHIR bundles, diagnostic reports, and HL7 feeds arrive from clinical sources.',
       example: 'Blood culture report + TEE study + ED triage notes',
     },
     {

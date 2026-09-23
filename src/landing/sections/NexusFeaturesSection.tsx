@@ -29,10 +29,10 @@ export const NexusFeaturesSection: React.FC<NexusFeaturesSectionProps> = ({
       tag: '01 · UNIFIED WORKSPACE',
       title: 'Contextual Clinical Workstation',
       summary:
-        'A single pane of glass uniting multi-source patient context, high-resolution diagnostic timelines, laboratory feeds, and DICOM imaging without system hopping.',
+        'A single pane of glass uniting multi-source patient context, high-resolution diagnostic timelines, laboratory feeds, and clinical evidence retrieval without system hopping.',
       details: [
         'Multi-column clinical overview with active case navigation',
-        'Direct DICOM and LIS result preview alongside patient history',
+        'Direct evidence retrieval and LIS result preview alongside patient history',
         'Integrated clinical calculators and guideline scoring systems',
       ],
     },

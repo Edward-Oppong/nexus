@@ -43,7 +43,7 @@ export const TechnicalCredibilitySection: React.FC<TechnicalCredibilitySectionPr
     {
       title: 'Healthcare Interoperability',
       icon: <Share2 size={16} color="#0F766E" />,
-      desc: 'Native FHIR R4, SMART on FHIR, DICOMweb PACS, HL7 v2.5.1 ER7, and IHE XDS.b exchange.',
+      desc: 'Native FHIR R4, SMART on FHIR, MedCPT Semantic Search, HL7 v2.5.1 ER7, and IHE XDS.b exchange.',
     },
     {
       title: 'Auditability',

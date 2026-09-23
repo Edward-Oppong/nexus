@@ -2,13 +2,17 @@ import React from 'react';
 import { useCase } from '../../app/providers/CaseContext';
 import { usePersona } from '../../app/providers/PersonaContext';
 import { useDrawer } from '../../app/providers/DrawerContext';
+import { useAuth } from '../../features/authentication/AuthProvider';
 import { huggingFaceClient } from '../../lib/intelligence/services/huggingface-api';
+import { isSupabaseConfigured } from '../../lib/supabase/client';
 import { AlertCircle, Eye, ArrowRight, UserCheck, Sparkles } from 'lucide-react';
 
 export const DemoBanner: React.FC = () => {
   const { activeView, setActiveView } = useCase();
   const { currentPersona } = usePersona();
   const { openHfTesting } = useDrawer();
+  const { role, isAuthenticated } = useAuth();
+  const isAdmin = role === 'organization_admin' || role === 'platform_admin';
 
   const isHfReady = huggingFaceClient.isConfigured();
 
@@ -29,22 +33,41 @@ export const DemoBanner: React.FC = () => {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <span
-          style={{
-            background: '#D97706',
-            color: '#FFFFFF',
-            fontWeight: 700,
-            fontSize: '9px',
-            padding: '2px 6px',
-            borderRadius: '2px',
-            letterSpacing: '0.06em',
-            textTransform: 'uppercase',
-          }}
-        >
-          DEMO ENVIRONMENT
-        </span>
+        {isSupabaseConfigured && isAuthenticated ? (
+          <span
+            style={{
+              background: '#059669',
+              color: '#FFFFFF',
+              fontWeight: 700,
+              fontSize: '9px',
+              padding: '2px 6px',
+              borderRadius: '2px',
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+            }}
+          >
+            LIVE
+          </span>
+        ) : (
+          <span
+            style={{
+              background: '#D97706',
+              color: '#FFFFFF',
+              fontWeight: 700,
+              fontSize: '9px',
+              padding: '2px 6px',
+              borderRadius: '2px',
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+            }}
+          >
+            DEMO ENVIRONMENT
+          </span>
+        )}
         <span style={{ color: '#94A3B8' }}>
-          Synthetic clinical data · AI reasoning outputs simulated for demonstration purposes only.
+          {isSupabaseConfigured && isAuthenticated
+            ? 'Connected to live Supabase · Clinical data is real and persisted.'
+            : 'Synthetic clinical data · AI reasoning outputs simulated for demonstration purposes only.'}
         </span>
       </div>
 
@@ -54,27 +77,29 @@ export const DemoBanner: React.FC = () => {
           Signed in: <strong style={{ color: '#F8FAFC' }}>{currentPersona.name} ({currentPersona.roleDisplay})</strong>
         </span>
 
-        {/* Hugging Face Model Test Bench Trigger */}
-        <button
-          onClick={openHfTesting}
-          style={{
-            background: isHfReady ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.08)',
-            color: isHfReady ? '#38BDF8' : '#CBD5E1',
-            border: isHfReady ? '1px solid rgba(56, 189, 248, 0.4)' : '1px solid rgba(255, 255, 255, 0.15)',
-            padding: '2px 9px',
-            borderRadius: '4px',
-            fontSize: '11px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '5px',
-          }}
-          title="Open Hugging Face Model Test Bench and Token Console"
-        >
-          <span>🤗</span>
-          <span>HF Models {isHfReady ? '✓' : '(Setup)'}</span>
-        </button>
+        {/* Hugging Face Model Test Bench Trigger - Admin Only */}
+        {isAdmin && (
+          <button
+            onClick={openHfTesting}
+            style={{
+              background: isHfReady ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.08)',
+              color: isHfReady ? '#38BDF8' : '#CBD5E1',
+              border: isHfReady ? '1px solid rgba(56, 189, 248, 0.4)' : '1px solid rgba(255, 255, 255, 0.15)',
+              padding: '2px 9px',
+              borderRadius: '4px',
+              fontSize: '11px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+            }}
+            title="Open Hugging Face Model Test Bench and Token Console (Admin Only)"
+          >
+            <span>🤗</span>
+            <span>HF Models {isHfReady ? '✓' : '(Setup)'}</span>
+          </button>
+        )}
 
         {activeView === 'landing' ? (
           <button

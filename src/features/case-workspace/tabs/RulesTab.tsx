@@ -94,6 +94,59 @@ export const RulesTab: React.FC = () => {
   );
 
   // ------------------------------------------------------------
+  // AUTO-DETECTION: scan finding labels for rule criteria signals
+  // ------------------------------------------------------------
+  const autoDetectedCriteria = useMemo<Record<string, string[]>>(() => {
+    const findingText = activeCase.findings
+      .map((f) => (f.label + ' ' + (f.description || '')).toLowerCase())
+      .join(' ');
+    const patientAge = activeCase.overview.patient.age ?? 0;
+
+    const detected: Record<string, string[]> = {};
+
+    // CURB-65
+    const curb: string[] = [];
+    if (/confusion|disoriented|altered mental|encephalopathy/.test(findingText)) curb.push('curb-c');
+    if (/bun|urea|blood urea nitrogen/.test(findingText)) curb.push('curb-u');
+    if (/respiratory rate|tachypnea|rr \d|resp rate/.test(findingText)) curb.push('curb-r');
+    if (/hypotension|low bp|sbp|systolic/.test(findingText)) curb.push('curb-b');
+    if (patientAge >= 65) curb.push('curb-65');
+    if (curb.length) detected['rule-curb-65'] = curb;
+
+    // Wells PE
+    const wells: string[] = [];
+    if (/dvt|deep vein thromb|leg swelling|calf|phlebitis/.test(findingText)) wells.push('wells-dvt-signs');
+    if (/tachycardia|heart rate.*[1-9]\d{2}|hr.*[1-9]\d{2}/.test(findingText)) wells.push('wells-tachycardia');
+    if (/hemoptysis|coughing blood|blood.*sputum/.test(findingText)) wells.push('wells-hemoptysis');
+    if (/immobil|bed rest|surgery.*week|post.?op/.test(findingText)) wells.push('wells-immobilization');
+    if (/prior dvt|prior pe|previous.*thromb/.test(findingText)) wells.push('wells-prior-dvt-pe');
+    if (wells.length) detected['rule-wells-pe'] = wells;
+
+    // Modified Duke Criteria
+    const duke: string[] = [];
+    if (/blood culture|bacteremia|viridans|staph|strep|enterococ/.test(findingText)) duke.push('duke-major-1');
+    if (/echocardiogram|vegetation|abscess|tee|tte/.test(findingText)) duke.push('duke-major-2');
+    if (/fever|temperature.*38|pyrexia/.test(findingText)) duke.push('duke-minor-2');
+    if (/emboli|septic.*infarct|janeway|splinter/.test(findingText)) duke.push('duke-minor-3');
+    if (/osler|roth|glomerulo|rheumatoid factor/.test(findingText)) duke.push('duke-minor-4');
+    if (duke.length) detected['rule-duke-endocarditis'] = duke;
+
+    return detected;
+  }, [activeCase.findings, activeCase.overview.patient.age]);
+
+  const autoForCurrentRule = autoDetectedCriteria[selectedRule.id] ?? [];
+  const unappliedAuto = autoForCurrentRule.filter((id) => !currentRuleActiveCriteria.includes(id));
+
+  const applyAutoDetected = () => {
+    if (!unappliedAuto.length) return;
+    setActiveCriteria((prev) => {
+      const existing = prev[selectedRule.id] || [];
+      const merged = Array.from(new Set([...existing, ...unappliedAuto]));
+      return { ...prev, [selectedRule.id]: merged };
+    });
+  };
+
+  // ------------------------------------------------------------
   // SUB-SECTION 2: DOSING & RENAL STATE
   // ------------------------------------------------------------
   const [patientMetrics, setPatientMetrics] = useState<PatientDosingMetrics>({
@@ -394,9 +447,55 @@ export const RulesTab: React.FC = () => {
                 </span>
               </div>
 
+              {/* Auto-Detected Banner */}
+              {autoForCurrentRule.length > 0 && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  background: 'linear-gradient(135deg, #F0FDF4, #ECFDF5)',
+                  border: '1px solid #86EFAC',
+                  borderRadius: '6px', padding: '10px 14px', marginBottom: '14px',
+                  flexWrap: 'wrap', gap: '8px',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Sparkles size={13} color="#059669" />
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#065F46' }}>
+                      {autoForCurrentRule.length} criteria auto-detected from case findings
+                    </span>
+                    <span style={{
+                      fontSize: '10px', fontWeight: 700,
+                      background: '#DCFCE7', color: '#166534',
+                      padding: '1px 7px', borderRadius: '10px',
+                      border: '1px solid #86EFAC',
+                    }}>
+                      Auto-detected
+                    </span>
+                  </div>
+                  {unappliedAuto.length > 0 && (
+                    <button
+                      onClick={applyAutoDetected}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '5px',
+                        background: '#059669', color: '#FFFFFF',
+                        border: 'none', borderRadius: '5px',
+                        padding: '5px 12px', fontSize: '11px', fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <Check size={11} /> Apply {unappliedAuto.length} unselected
+                    </button>
+                  )}
+                  {unappliedAuto.length === 0 && (
+                    <span style={{ fontSize: '11px', color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <CheckCircle2 size={12} /> All applied
+                    </span>
+                  )}
+                </div>
+              )}
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {selectedRule.criteria.map((criterion) => {
                   const isChecked = currentRuleActiveCriteria.includes(criterion.id);
+                  const isAutoDetected = autoForCurrentRule.includes(criterion.id);
                   return (
                     <div
                       key={criterion.id}
@@ -408,7 +507,9 @@ export const RulesTab: React.FC = () => {
                         padding: '12px 14px',
                         borderRadius: '6px',
                         background: isChecked ? '#F8FAFC' : '#FFFFFF',
-                        border: isChecked ? '1px solid #CBD5E1' : '1px solid #F1F5F9',
+                        border: isAutoDetected && !isChecked
+                          ? '1px solid #86EFAC'
+                          : isChecked ? '1px solid #CBD5E1' : '1px solid #F1F5F9',
                         cursor: 'pointer',
                         transition: 'background 0.1s ease',
                       }}
@@ -431,7 +532,7 @@ export const RulesTab: React.FC = () => {
                       </div>
 
                       <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                           <span style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>
                             {criterion.name}
                           </span>
@@ -452,6 +553,17 @@ export const RulesTab: React.FC = () => {
                           {criterion.points !== undefined && (
                             <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>
                               +{criterion.points} pts
+                            </span>
+                          )}
+                          {isAutoDetected && (
+                            <span style={{
+                              fontSize: '9px', fontWeight: 700,
+                              background: '#DCFCE7', color: '#166534',
+                              padding: '1px 6px', borderRadius: '10px',
+                              border: '1px solid #86EFAC',
+                              display: 'flex', alignItems: 'center', gap: '3px',
+                            }}>
+                              <Sparkles size={9} /> Auto-detected
                             </span>
                           )}
                         </div>

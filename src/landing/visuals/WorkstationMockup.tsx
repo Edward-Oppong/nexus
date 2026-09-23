@@ -392,8 +392,8 @@ export const WorkstationMockup: React.FC<WorkstationMockupProps> = ({
                 <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
                   Investigations & Imaging Orders
                 </h4>
-                <span style={{ fontSize: '11px', color: '#2563EB', fontWeight: 600 }}>
-                  DICOMweb Connected
+                <span style={{ fontSize: '11px', color: '#0F766E', fontWeight: 600 }}>
+                  Clinical LIS & Radiology
                 </span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -403,7 +403,7 @@ export const WorkstationMockup: React.FC<WorkstationMockupProps> = ({
                       Transesophageal Echocardiogram (TEE)
                     </span>
                     <span style={{ fontSize: '10px', color: '#0F766E', background: '#F0FDFA', border: '1px solid #99F6E4', padding: '2px 6px', borderRadius: '3px', fontWeight: 700 }}>
-                      PACS DICOM ATTACHED
+                      REPORT VERIFIED
                     </span>
                   </div>
                   <p style={{ margin: '6px 0 0', fontSize: '11px', color: '#334155' }}>

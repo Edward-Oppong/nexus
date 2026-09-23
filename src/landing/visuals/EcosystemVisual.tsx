@@ -9,6 +9,7 @@ import {
   Server,
   Share2,
   CheckCircle2,
+  BrainCircuit,
 } from 'lucide-react';
 
 export const EcosystemVisual: React.FC = () => {
@@ -24,12 +25,12 @@ export const EcosystemVisual: React.FC = () => {
       desc: 'Seamlessly launches within Epic, Cerner, or independent EHRs via SMART OAuth2 protocols, reading patient demographics and encounters without bespoke database connectors.',
     },
     {
-      id: 'dicom',
-      title: 'DICOMweb PACS Imaging',
-      category: 'RADIOLOGY & CARDIOLOGY',
-      icon: <HeartPulse size={18} color="#DC2626" />,
-      protocols: ['QIDO-RS', 'WADO-RS', 'Window/Level Presets', 'Caliper Measurements'],
-      desc: 'Connects directly to hospital picture archiving systems. Renders multi-slice echocardiograms and CT scans directly inside clinical investigations with physical millimeter measurements.',
+      id: 'medcpt',
+      title: 'MedCPT Evidence & Clinical AI',
+      category: 'EVIDENCE-BASED RETRIEVAL',
+      icon: <BrainCircuit size={18} color="#0284C7" />,
+      protocols: ['MedCPT-Query-Encoder', 'MedCPT-Cross-Encoder', 'Dense Vector Search', 'Top-10 Reranking'],
+      desc: 'Connects directly to PubMed guidelines and peer-reviewed literature. Generates 768-d dense semantic vectors and cross-encoder relevance scores for evidence-grounded differential reasoning.',
     },
     {
       id: 'hl7',
@@ -157,7 +158,7 @@ export const EcosystemVisual: React.FC = () => {
             fontFamily: 'var(--nexus-font-mono)',
           }}
         >
-          <CheckCircle2 size={14} /> Zero vendor lock-in · Built directly on HL7 International and DICOM open standards
+          <CheckCircle2 size={14} /> Zero vendor lock-in · Built directly on HL7 International and open clinical AI standards
         </div>
       </div>
     </div>

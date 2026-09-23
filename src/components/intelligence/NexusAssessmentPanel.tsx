@@ -21,6 +21,7 @@ export const NexusAssessmentPanel: React.FC = () => {
   const {
     nexusAssessment,
     isRunningAnalysis,
+    analysisStage,
     runNexusAnalysis,
     reviewNexusFinding,
   } = useCase();
@@ -80,6 +81,130 @@ export const NexusAssessmentPanel: React.FC = () => {
             {isRunningAnalysis ? 'Synthesizing...' : 'Run Nexus Analysis'}
           </button>
         </div>
+      </div>
+    );
+  }
+
+  // ── Live Pipeline Progress Stepper ─────────────────────────
+  if (isRunningAnalysis) {
+    const stages = [
+      { index: 1, label: 'Data Quality & Bounds Check', shortLabel: 'Data QA' },
+      { index: 2, label: 'MedCPT Dense Semantic Retrieval', shortLabel: 'Evidence' },
+      { index: 3, label: 'Falconsai Clinical Synthesis', shortLabel: 'Synthesis' },
+      { index: 4, label: '18-Rule Grounding Validation', shortLabel: 'Grounding' },
+    ];
+    const currentStageIdx = analysisStage?.stageIndex ?? 1;
+    return (
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+          borderRadius: '10px',
+          padding: '24px 28px',
+          color: '#F8FAFC',
+          marginBottom: '20px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+          border: '1px solid rgba(56,189,248,0.15)',
+        }}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '22px' }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: '8px',
+            background: 'rgba(56,189,248,0.15)',
+            border: '1px solid rgba(56,189,248,0.35)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            animation: 'pulse 1.6s ease-in-out infinite',
+          }}>
+            <Sparkles size={16} color="#38BDF8" />
+          </div>
+          <div>
+            <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#F1F5F9' }}>
+              Nexus Clinical Intelligence Engine
+            </div>
+            <div style={{ fontSize: '11px', color: '#64748B', marginTop: '1px' }}>Pipeline running&hellip;</div>
+          </div>
+        </div>
+
+        {/* Stage Progress Track */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 0, marginBottom: '20px', position: 'relative' }}>
+          {/* Connector bar behind steps */}
+          <div style={{
+            position: 'absolute', top: '14px', left: '14px',
+            right: '14px', height: '2px',
+            background: 'rgba(255,255,255,0.08)',
+            zIndex: 0,
+          }} />
+          {stages.map((stage, i) => {
+            const done = currentStageIdx > stage.index;
+            const active = currentStageIdx === stage.index;
+            return (
+              <div key={stage.index} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', position: 'relative', zIndex: 1 }}>
+                {/* Circle */}
+                <div style={{
+                  width: 28, height: 28, borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '11px', fontWeight: 700,
+                  background: done ? '#059669' : active ? '#0284C7' : 'rgba(255,255,255,0.06)',
+                  border: done ? '2px solid #059669' : active ? '2px solid #38BDF8' : '2px solid rgba(255,255,255,0.12)',
+                  color: done ? '#fff' : active ? '#fff' : '#475569',
+                  transition: 'all 0.3s ease',
+                  boxShadow: active ? '0 0 12px rgba(56,189,248,0.5)' : 'none',
+                  animation: active ? 'pulse 1.2s ease-in-out infinite' : 'none',
+                }}>
+                  {done ? <CheckCircle2 size={13} /> : stage.index}
+                </div>
+                {/* Label */}
+                <div style={{
+                  fontSize: '10px', fontWeight: active ? 700 : 500,
+                  color: done ? '#34D399' : active ? '#38BDF8' : '#475569',
+                  textAlign: 'center', lineHeight: '1.25',
+                  maxWidth: '72px',
+                  transition: 'color 0.3s ease',
+                }}>
+                  {stage.shortLabel}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Current stage detail */}
+        {analysisStage && (
+          <div style={{
+            background: 'rgba(56,189,248,0.06)',
+            border: '1px solid rgba(56,189,248,0.15)',
+            borderRadius: '6px',
+            padding: '10px 14px',
+          }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, color: '#38BDF8', marginBottom: '3px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              Stage {analysisStage.stageIndex} / {analysisStage.totalStages} &mdash; {analysisStage.stageName}
+            </div>
+            <div style={{ fontSize: '11px', color: '#94A3B8', lineHeight: '1.4' }}>
+              {analysisStage.detail}
+            </div>
+          </div>
+        )}
+
+        {/* Indeterminate progress bar */}
+        <div style={{ marginTop: '16px', height: '3px', borderRadius: '2px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+          <div style={{
+            height: '100%', width: '40%',
+            background: 'linear-gradient(90deg, transparent, #38BDF8, transparent)',
+            borderRadius: '2px',
+            animation: 'shimmer 1.4s ease-in-out infinite',
+          }} />
+        </div>
+
+        <style>{`
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.65; }
+          }
+          @keyframes shimmer {
+            0% { transform: translateX(-200%); }
+            100% { transform: translateX(350%); }
+          }
+        `}</style>
       </div>
     );
   }

@@ -18,7 +18,7 @@ export const EcosystemSection: React.FC = () => {
         </h2>
 
         <p className="nexus-section-subhead" style={{ margin: '0 auto' }}>
-          Nexus operates as a contextual reasoning layer on top of existing healthcare infrastructure—ingesting FHIR R4, DICOMweb PACS imaging, HL7 v2 hospital feeds, and IHE XDS document registries without proprietary vendor lock-in.
+          Nexus operates as a contextual reasoning layer on top of existing healthcare infrastructure—ingesting FHIR R4, PubMed & MedCPT evidence, HL7 v2 hospital feeds, and IHE XDS document registries without proprietary vendor lock-in.
         </p>
       </div>
 

@@ -148,23 +148,42 @@ export const ReviewQueueView: React.FC = () => {
 
       {/* Review Queue Items List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        {filteredItems.map((item) => {
-          const isEditing = editingItemId === item.id;
-          const isCompleted = item.status === 'COMPLETED';
-          const pStyle = getPriorityStyle(item.priority);
+        {filteredItems.length === 0 ? (
+          <div
+            style={{
+              background: '#FFFFFF',
+              border: '1px solid #E2E8F0',
+              borderRadius: '8px',
+              padding: '48px 24px',
+              textAlign: 'center',
+            }}
+          >
+            <CheckCircle2 size={40} color="#10B981" style={{ margin: '0 auto 12px' }} />
+            <h3 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 600, color: '#0F172A' }}>
+              Review Queue is Clear
+            </h3>
+            <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>
+              All algorithmic findings, contradictions, and alerts have been reviewed by the clinical team.
+            </p>
+          </div>
+        ) : (
+          filteredItems.map((item) => {
+            const isEditing = editingItemId === item.id;
+            const isCompleted = item.status === 'COMPLETED';
+            const pStyle = getPriorityStyle(item.priority);
 
-          return (
-            <div
-              key={item.id}
-              style={{
-                background: isCompleted ? '#FAFAFA' : '#FFFFFF',
-                border: `1px solid ${isCompleted ? '#CBD5E1' : '#E2E8F0'}`,
-                borderLeft: `4px solid ${isCompleted ? '#94A3B8' : pStyle.text}`,
-                borderRadius: '8px',
-                padding: '16px 20px',
-                boxShadow: isCompleted ? 'none' : '0 2px 6px rgba(0, 0, 0, 0.03)',
-              }}
-            >
+            return (
+              <div
+                key={item.id}
+                style={{
+                  background: isCompleted ? '#FAFAFA' : '#FFFFFF',
+                  border: `1px solid ${isCompleted ? '#CBD5E1' : '#E2E8F0'}`,
+                  borderLeft: `4px solid ${isCompleted ? '#94A3B8' : pStyle.text}`,
+                  borderRadius: '8px',
+                  padding: '16px 20px',
+                  boxShadow: isCompleted ? 'none' : '0 2px 6px rgba(0, 0, 0, 0.03)',
+                }}
+              >
               {/* Item Top Metadata */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -424,7 +443,8 @@ export const ReviewQueueView: React.FC = () => {
               )}
             </div>
           );
-        })}
+        })
+      )}
       </div>
 
       {rejectingItem && (

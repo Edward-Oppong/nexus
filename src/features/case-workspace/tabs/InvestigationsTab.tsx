@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import { useCase } from '../../../app/providers/CaseContext';
 import { usePersona } from '../../../app/providers/PersonaContext';
-import { FlaskConical, Plus, CheckCircle2, Clock, AlertTriangle, TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react';
+import { FlaskConical, Plus, CheckCircle2, Clock, AlertTriangle, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { InvestigationOrder } from '../../../domain/investigation';
-import { DicomViewerModal } from '../../../components/clinical/DicomViewerModal';
 
 export const InvestigationsTab: React.FC = () => {
   const { activeCase, requestInvestigation } = useCase();
   const { currentPersona } = usePersona();
   const [selectedOrder, setSelectedOrder] = useState<InvestigationOrder>(activeCase.investigations[0]);
-  const [showDicomViewer, setShowDicomViewer] = useState(false);
 
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [newTestName, setNewTestName] = useState('');
@@ -43,14 +41,6 @@ export const InvestigationsTab: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            onClick={() => setShowDicomViewer(true)}
-            className="btn btn-sm btn-outline"
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#0284C7', borderColor: '#BAE6FD', background: '#F0F9FF' }}
-          >
-            <Activity size={14} style={{ color: '#0284C7' }} /> Launch DICOM PACS Viewer
-          </button>
-
           {currentPersona.allowedActions.canRequestInvestigations && (
             <button onClick={() => setShowOrderModal(true)} className="btn btn-sm btn-primary">
               <Plus size={13} /> Order Investigation
@@ -346,12 +336,6 @@ export const InvestigationsTab: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Phase 13: Embedded DICOM Medical Imaging PACS Viewer Modal */}
-      <DicomViewerModal
-        isOpen={showDicomViewer}
-        onClose={() => setShowDicomViewer(false)}
-      />
     </div>
   );
 };

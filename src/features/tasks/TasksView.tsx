@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useCase } from '../../app/providers/CaseContext';
+import { useAuth } from '../../features/authentication/AuthProvider';
 import {
   CheckSquare,
   Clock,
@@ -13,17 +14,24 @@ import {
 import { ClinicalTask, TaskPriority, TaskStatus } from '../../domain/workflow';
 
 export const TasksView: React.FC = () => {
-  const { tasks, completeTask, cancelTask, createTask, openCaseById } = useCase();
+  const { tasks, completeTask, cancelTask, createTask, openCaseById, activeCase } = useCase();
+  const { user, profile } = useAuth();
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [filterPriority, setFilterPriority] = useState<string>('ALL');
   const [isCreating, setIsCreating] = useState(false);
+
+  // Active user display name — prefer profile over metadata
+  const activeUserDisplayName =
+    profile?.fullName ||
+    user?.user_metadata?.full_name ||
+    (user?.email ? user.email.split('@')[0] : 'Attending Clinician');
 
   // New task form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('ROUTINE');
-  const [assignedToName, setAssignedToName] = useState('Dr. Edward Vance, MD');
-  const [dueAt, setDueAt] = useState('Today, 17:00');
+  const [assignedToName, setAssignedToName] = useState(activeUserDisplayName);
+  const [dueAt, setDueAt] = useState('');
 
   const filteredTasks = tasks.filter((t) => {
     if (filterStatus !== 'ALL' && t.status !== filterStatus) return false;
@@ -35,17 +43,23 @@ export const TasksView: React.FC = () => {
     e.preventDefault();
     if (!title.trim()) return;
 
+    // Use the live active case ID; fall back to first case in list if no workspace case is open
+    const targetCaseId = activeCase?.overview?.id || (tasks.length > 0 ? tasks[0].caseId : 'global');
+    const patientLabel = activeCase?.overview?.patient?.syntheticIdentifier
+      ? `${activeCase.overview.patient.syntheticIdentifier} (${activeCase.overview.patient.encounterNumber})`
+      : 'Clinical Patient';
+
     createTask({
-      caseId: '10482',
-      patientIdentifier: 'Synthetic Patient A (#00482)',
+      caseId: targetCaseId,
+      patientIdentifier: patientLabel,
       title: title.trim(),
       description: description.trim() || undefined,
       priority,
-      dueAt,
-      assignedTo: 'dr-edward-vance',
-      assignedToName,
-      createdBy: 'dr-edward-vance',
-      createdByName: 'Dr. Edward Vance, MD',
+      dueAt: dueAt || undefined,
+      assignedTo: user?.id || 'current-user',
+      assignedToName: assignedToName || activeUserDisplayName,
+      createdBy: user?.id || 'current-user',
+      createdByName: activeUserDisplayName,
     });
 
     setTitle('');
@@ -259,25 +273,62 @@ export const TasksView: React.FC = () => {
 
         {/* Tasks List */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {filteredTasks.map((t) => {
-            const pBadge = getPriorityBadge(t.priority);
-            const isDone = t.status === 'COMPLETED';
-
-            return (
-              <div
-                key={t.id}
+          {filteredTasks.length === 0 ? (
+            <div
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '8px',
+                padding: '48px 24px',
+                textAlign: 'center',
+              }}
+            >
+              <CheckSquare size={40} color="#0284C7" style={{ margin: '0 auto 12px' }} />
+              <h3 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 600, color: '#0F172A' }}>
+                No Clinical Tasks
+              </h3>
+              <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#64748B' }}>
+                No outstanding clinical tasks or follow-ups matching this filter.
+              </p>
+              <button
+                onClick={() => setIsCreating(true)}
                 style={{
-                  background: isDone ? '#FAFAFA' : '#FFFFFF',
-                  border: `1px solid ${isDone ? '#CBD5E1' : '#E2E8F0'}`,
-                  borderLeft: `4px solid ${isDone ? '#94A3B8' : pBadge.text}`,
+                  padding: '7px 14px',
                   borderRadius: '6px',
-                  padding: '14px 18px',
-                  display: 'flex',
+                  border: 'none',
+                  background: '#0284C7',
+                  color: '#FFFFFF',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '14px',
+                  gap: '6px',
                 }}
               >
+                <Plus size={13} /> Create Task
+              </button>
+            </div>
+          ) : (
+            filteredTasks.map((t) => {
+              const pBadge = getPriorityBadge(t.priority);
+              const isDone = t.status === 'COMPLETED';
+
+              return (
+                <div
+                  key={t.id}
+                  style={{
+                    background: isDone ? '#FAFAFA' : '#FFFFFF',
+                    border: `1px solid ${isDone ? '#CBD5E1' : '#E2E8F0'}`,
+                    borderLeft: `4px solid ${isDone ? '#94A3B8' : pBadge.text}`,
+                    borderRadius: '6px',
+                    padding: '14px 18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '14px',
+                  }}
+                >
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                     <strong style={{ fontSize: '14px', color: isDone ? '#64748B' : '#0F172A', textDecoration: isDone ? 'line-through' : 'none' }}>
@@ -376,7 +427,8 @@ export const TasksView: React.FC = () => {
                 </div>
               </div>
             );
-          })}
+          })
+        )}
         </div>
       </div>
     </main>

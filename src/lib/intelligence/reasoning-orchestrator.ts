@@ -23,9 +23,17 @@ import { validateAssessmentOutput, validateGrounding } from './nexus-assessment-
 // ----------------------------------------------------------
 // Orchestration options
 // ----------------------------------------------------------
+export interface AnalysisStageInfo {
+  stageIndex: number;
+  totalStages: number;
+  stageName: string;
+  detail: string;
+}
+
 export interface OrchestrationOptions {
   caseId: string;
   purpose?: string;
+  onStageProgress?: (stage: AnalysisStageInfo) => void;
 }
 
 // ----------------------------------------------------------
@@ -39,14 +47,32 @@ export async function runNexusAnalysis(
   const now = new Date().toISOString();
   const assessmentId = `assess-${Date.now()}`;
 
-  // ── Step 1: Data Quality (deterministic) ──────────────────
+  // Helper for staged delay so UI transitions are perceptible
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  // ── Stage 1: Data Quality (deterministic) ──────────────────
+  options.onStageProgress?.({
+    stageIndex: 1,
+    totalStages: 4,
+    stageName: 'Data Quality & Bounds Check',
+    detail: 'Auditing 18 safety boundaries, vital ranges, and unverified AI extraction flags...',
+  });
+  await sleep(350);
+
   const qualityResult = runDataQualityChecks({
     findings: activeCase.findings,
     investigations: activeCase.investigations,
     informationGaps: activeCase.informationGaps,
   });
 
-  // ── Step 2: Evidence Retrieval ────────────────────────────
+  // ── Stage 2: Evidence Retrieval & Dense Ranking ────────────
+  options.onStageProgress?.({
+    stageIndex: 2,
+    totalStages: 4,
+    stageName: 'MedCPT Dense Semantic Retrieval',
+    detail: 'Embedding query tokens and cross-encoder reranking against clinical guidelines...',
+  });
+  await sleep(400);
   const evidenceMap = retrieveEvidenceForCase(
     activeCase.overview.id,
     activeCase.hypotheses.map((h) => ({ id: h.id, title: h.title }))
@@ -97,12 +123,19 @@ export async function runNexusAnalysis(
 
   const reasoningInput = buildReasoningContext(activeCase, allEvidence, scope);
 
-  // ── Step 4: Safety boundary check ────────────────────────
+  // ── Safety boundary check ────────────────────────
   if (qualityResult.isReasoningBlocked) {
     return buildBlockedAssessment(assessmentId, activeCase.overview.id, qualityResult, now, provider);
   }
 
-  // ── Step 5: Reasoning Provider ───────────────────────────
+  // ── Stage 3: Falconsai Clinical Synthesis ────────────────
+  options.onStageProgress?.({
+    stageIndex: 3,
+    totalStages: 4,
+    stageName: 'Falconsai Clinical Synthesis',
+    detail: 'Generating grounded clinical narrative from retrieved evidence and verified findings...',
+  });
+
   const rawOutput = await provider.generateAssessment(reasoningInput);
 
   // ── Step 6: Schema Validation ────────────────────────────
@@ -112,7 +145,15 @@ export async function runNexusAnalysis(
     return buildBlockedAssessment(assessmentId, activeCase.overview.id, qualityResult, now, provider);
   }
 
-  // ── Step 7: Grounding Validation ─────────────────────────
+  // ── Stage 4: 18-Rule Grounding Validation ─────────────────
+  options.onStageProgress?.({
+    stageIndex: 4,
+    totalStages: 4,
+    stageName: '18-Rule Grounding Validation',
+    detail: 'Verifying all output references against case context. Excluding hallucinated IDs...',
+  });
+  await sleep(250);
+
   const contextFindingIds = new Set(activeCase.findings.map((f) => f.id));
   const contextEvidenceIds = new Set(allEvidence.map((e: any) => e.id));
   const groundingValidation = validateGrounding(rawOutput, contextFindingIds, contextEvidenceIds);

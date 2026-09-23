@@ -34,7 +34,7 @@ export const WorkflowTourSection: React.FC = () => {
       label: 'STEP 2 · OBJECTIVE DIAGNOSTICS',
       icon: <FlaskConical size={16} />,
       narrative:
-        'Radiology and cardiology imaging (TEE echocardiograms) are loaded via DICOMweb with multi-slice controls, W/L presets, and physical calipers.',
+        'Diagnostic laboratory results and multi-source clinical investigations are evaluated with integrated reference ranges, microbiological culture alerts, and quantitative tracking.',
     },
     {
       id: 'evidence',

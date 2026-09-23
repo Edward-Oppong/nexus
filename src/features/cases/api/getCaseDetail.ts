@@ -7,7 +7,7 @@
 // ============================================================
 
 import { supabase, isSupabaseConfigured } from '../../../lib/supabase/client';
-import { FullSyntheticCase, EMPTY_CASE } from '../../../data/cases/mockCasesData';
+import { FullSyntheticCase, EMPTY_CASE, MOCK_FULL_CASES_REGISTRY, SYNTHETIC_CASE_10482 } from '../../../data/cases/mockCasesData';
 import { CaseOverview, SyntheticPatient } from '../../../domain/case';
 import { ClinicalFinding, FindingCategory, VerificationStatus, FindingProvenance } from '../../../domain/finding';
 import { CandidateHypothesis, HypothesisStatus } from '../../../domain/hypothesis';
@@ -15,64 +15,74 @@ import { InvestigationOrder, InvestigationStatus } from '../../../domain/investi
 import { TimelineEvent } from '../../../domain/timeline';
 
 export async function getCaseDetail(caseId: string): Promise<FullSyntheticCase> {
-  // If Supabase is not configured, return an empty shell — the UI shows a prompt to connect.
+  // If Supabase is not configured, return full synthetic case from registry
   if (!isSupabaseConfigured) {
-    return EMPTY_CASE;
+    return MOCK_FULL_CASES_REGISTRY[caseId] || SYNTHETIC_CASE_10482 || EMPTY_CASE;
   }
 
   try {
-    // 1. Fetch Case Row
-    const { data: caseRow, error: caseErr } = await supabase
-      .from('cases')
-      .select('*, patient:patients(*)')
-      .eq('id', caseId)
-      .maybeSingle();
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(caseId);
 
-    if (caseErr || !caseRow) {
-      console.warn(`[getCaseDetail] Supabase case query failed for ${caseId}, using empty shell:`, caseErr?.message);
-      return EMPTY_CASE;
+    // 1. Fetch Case Row by ID or case_number
+    let query = supabase.from('cases').select('*, patient:patients(*)');
+    if (isUuid) {
+      query = query.eq('id', caseId);
+    } else {
+      const formattedCaseNumber = caseId.startsWith('CASE-') ? caseId : `CASE-${caseId}`;
+      query = query.eq('case_number', formattedCaseNumber);
     }
 
+    const { data: caseRows, error: caseErr } = await query.limit(1);
+
+    if (caseErr || !caseRows || caseRows.length === 0) {
+      console.warn(`[getCaseDetail] Supabase case query failed for ${caseId}, trying mock fallback:`, caseErr?.message);
+      return MOCK_FULL_CASES_REGISTRY[caseId] || SYNTHETIC_CASE_10482 || EMPTY_CASE;
+    }
+
+    const caseRow = caseRows[0];
+    const realCaseId = caseRow.id;
     const patient = caseRow.patient || {};
 
-    // 2. Fetch Clinical Findings
-    const { data: findingsRows } = await supabase
-      .from('clinical_findings')
-      .select('*')
-      .eq('case_id', caseId)
-      .order('created_at', { ascending: false });
+    // 2. Fetch Clinical Findings, Investigations, Hypotheses, Timeline, Safety Concerns, Decisions concurrently
+    const [
+      { data: findingsRows },
+      { data: invRows },
+      { data: hypRows },
+      { data: timelineRows },
+      { data: safetyRows },
+      { data: decisionRows },
+    ] = await Promise.all([
+      supabase.from('clinical_findings').select('*').eq('case_id', realCaseId).order('created_at', { ascending: false }),
+      supabase.from('investigations').select('*').eq('case_id', realCaseId).order('requested_at', { ascending: false }),
+      supabase.from('hypotheses').select('*').eq('case_id', realCaseId).order('created_at', { ascending: false }),
+      supabase.from('timeline_events').select('*').eq('case_id', realCaseId).order('occurred_at', { ascending: false }),
+      supabase.from('safety_concerns').select('*').eq('case_id', realCaseId).order('created_at', { ascending: false }),
+      supabase.from('decisions').select('*').eq('case_id', realCaseId).order('recorded_at', { ascending: false }),
+    ]);
 
-    // 3. Fetch Investigations
-    const { data: invRows } = await supabase
-      .from('investigations')
-      .select('*')
-      .eq('case_id', caseId)
-      .order('requested_at', { ascending: false });
+    // Calculate real patient age if dateOfBirth is present
+    let patientAge = 58;
+    if (patient.date_of_birth) {
+      const birthYear = new Date(patient.date_of_birth).getFullYear();
+      if (!isNaN(birthYear)) {
+        patientAge = Math.max(1, new Date().getFullYear() - birthYear);
+      }
+    }
 
-    // 4. Fetch Hypotheses
-    const { data: hypRows } = await supabase
-      .from('hypotheses')
-      .select('*')
-      .eq('case_id', caseId)
-      .order('created_at', { ascending: false });
-
-    // 5. Fetch Timeline / Audit Events
-    const { data: timelineRows } = await supabase
-      .from('audit_events')
-      .select('*')
-      .eq('case_id', caseId)
-      .order('recorded_at', { ascending: false });
+    const patientFullName = `${patient.given_name || ''} ${patient.family_name || ''}`.trim();
+    const patientIdentifier = patientFullName || patient.external_patient_id || 'Clinical Patient';
+    const patientGender = patient.sex === 'M' || patient.sex === 'MALE' ? 'Male' : patient.sex === 'F' || patient.sex === 'FEMALE' ? 'Female' : 'Other';
 
     // Build SyntheticPatient shape from DB patient row
     const syntheticPatient: SyntheticPatient = {
-      id: patient.id || `pat-${caseId}`,
-      syntheticIdentifier: patient.mrn || 'Clinical Patient',
-      age: patient.age || 58,
-      gender: (patient.sex || patient.gender || 'Female') as 'Female' | 'Male' | 'Other',
-      encounterNumber: `#${caseRow.case_number || caseId.slice(0, 6)}`,
+      id: patient.id || `pat-${realCaseId}`,
+      syntheticIdentifier: patientIdentifier,
+      age: patientAge,
+      gender: patientGender,
+      encounterNumber: `#${caseRow.case_number || realCaseId.slice(0, 6)}`,
       encounterType: 'Inpatient admission',
       encounterDate: caseRow.opened_at
-        ? new Date(caseRow.opened_at).toLocaleDateString()
+        ? new Date(caseRow.opened_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
         : 'Recently',
       allergiesCount: 0,
       activeMedicationsCount: 0,
@@ -89,7 +99,7 @@ export async function getCaseDetail(caseId: string): Promise<FullSyntheticCase> 
       assignedClinician: 'Attending Clinician',
       assignedTeam: ['Attending Clinician (Lead)'],
       lastUpdate: 'Recently',
-      safetyIssueCount: 0,
+      safetyIssueCount: (safetyRows || []).filter((s: any) => s.status !== 'RESOLVED').length,
       gapsCount: 0,
       hypothesesCount: (hypRows || []).length,
     };
@@ -120,23 +130,37 @@ export async function getCaseDetail(caseId: string): Promise<FullSyntheticCase> 
     });
 
     // Map Investigations — align with InvestigationOrder interface
-    const investigations: InvestigationOrder[] = (invRows || []).map((row: any): InvestigationOrder => ({
-      id: row.id,
-      caseId: row.case_id,
-      testName: row.test_name || row.name || 'Ordered Test',
-      category: (row.category === 'LABORATORY' ? 'Laboratory'
-        : row.category === 'IMAGING' ? 'Imaging'
-        : row.category === 'CARDIOVASCULAR' ? 'Cardiovascular'
-        : row.category === 'MICROBIOLOGY' ? 'Microbiology'
-        : 'Laboratory') as 'Laboratory' | 'Imaging' | 'Cardiovascular' | 'Microbiology',
-      priority: (row.priority === 'STAT' ? 'Stat'
-        : row.priority === 'URGENT' ? 'Urgent'
-        : 'Routine') as 'Stat' | 'Urgent' | 'Routine',
-      requestedBy: row.requested_by || 'Attending Clinician',
-      requestedAt: row.requested_at || row.created_at,
-      clinicalIndication: row.indication || row.clinical_indication || 'Clinical investigation',
-      status: (row.status as InvestigationStatus) || 'Requested',
-    }));
+    const investigations: InvestigationOrder[] = (invRows || []).map((row: any): InvestigationOrder => {
+      const cat = (row.investigation_type?.toUpperCase().includes('SCAN') || row.investigation_type?.toUpperCase().includes('CT') || row.investigation_type?.toUpperCase().includes('X-RAY') || row.investigation_type?.toUpperCase().includes('ECHO'))
+        ? 'Imaging'
+        : (row.investigation_type?.toUpperCase().includes('ECG') || row.investigation_type?.toUpperCase().includes('CARDIO'))
+        ? 'Cardiovascular'
+        : (row.investigation_type?.toUpperCase().includes('CULTURE') || row.investigation_type?.toUpperCase().includes('MICRO'))
+        ? 'Microbiology'
+        : 'Laboratory';
+
+      const prio = (row.priority?.toUpperCase() === 'STAT' ? 'Stat'
+        : row.priority?.toUpperCase() === 'URGENT' ? 'Urgent'
+        : 'Routine') as 'Stat' | 'Urgent' | 'Routine';
+
+      const stat = (row.status?.toUpperCase() === 'COMPLETED' ? 'Completed'
+        : row.status?.toUpperCase() === 'SCHEDULED' ? 'Scheduled'
+        : row.status?.toUpperCase() === 'IN_PROGRESS' ? 'In Progress'
+        : row.status?.toUpperCase() === 'CANCELLED' ? 'Cancelled'
+        : 'Requested') as InvestigationStatus;
+
+      return {
+        id: row.id,
+        caseId: row.case_id,
+        testName: row.investigation_type || row.test_name || 'Ordered Investigation',
+        category: cat,
+        priority: prio,
+        requestedBy: row.requested_by_name || 'Attending Clinician',
+        requestedAt: row.requested_at ? new Date(row.requested_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently',
+        clinicalIndication: row.reason || row.clinical_indication || 'Clinical investigation',
+        status: stat,
+      };
+    });
 
     // Map Hypotheses — align with CandidateHypothesis interface
     const hypotheses: CandidateHypothesis[] = (hypRows || []).map((row: any): CandidateHypothesis => ({
@@ -153,20 +177,69 @@ export async function getCaseDetail(caseId: string): Promise<FullSyntheticCase> 
       evidenceIds: [],
       rationale: row.rationale || 'Derived from clinical evidence presentation.',
       nexusAssessment: 'Pending adjudication by attending clinician.',
-      clinicalReviewStatus: 'Pending Review',
+      clinicalReviewStatus: (row.status === 'SUPPORTED' ? 'Accepted' : row.status === 'CONTRADICTED' ? 'Rejected' : 'Pending Review') as any,
     }));
 
     // Map Timeline Events
-    const timeline: TimelineEvent[] = (timelineRows || []).map((row: any): TimelineEvent => ({
+    const timeline: TimelineEvent[] = (timelineRows || []).map((row: any): TimelineEvent => {
+      let actor = 'SYSTEM' as any;
+      if (row.actor_type?.toUpperCase().includes('CLINICIAN')) actor = 'CLINICIAN';
+      else if (row.actor_type?.toUpperCase().includes('NURSE')) actor = 'NURSE';
+      else if (row.actor_type?.toUpperCase().includes('NEXUS') || row.actor_type?.toUpperCase().includes('AI')) actor = 'NEXUS';
+      else if (row.actor_type?.toUpperCase().includes('LAB')) actor = 'LAB';
+
+      return {
+        id: row.id,
+        time: row.occurred_at
+          ? new Date(row.occurred_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          : 'Recent',
+        actor,
+        actorName: row.actor_type || 'System',
+        eventType: row.event_type || 'UPDATED',
+        title: row.title || 'Clinical event recorded',
+        description: row.description || '',
+        isNexusSimulated: false,
+      };
+    });
+
+    // Map Safety Issues
+    const safetyIssues = (safetyRows || []).map((row: any) => ({
       id: row.id,
-      time: row.recorded_at ? new Date(row.recorded_at).toLocaleTimeString() : 'Recent',
-      actor: row.action_type || 'SYSTEM',
-      actorName: row.user_display_name || 'Clinician',
-      eventType: row.event_type || 'UPDATED',
-      title: row.summary || row.action || 'Clinical event recorded',
+      title: row.category || 'Clinical Safety Alert',
+      category: row.category || 'Clinical Hazard',
       description: row.description || '',
-      isNexusSimulated: false,
+      severity: (row.severity === 'SAFETY_CRITICAL' ? 'High' : row.severity === 'URGENT_REVIEW' ? 'Moderate' : 'Low') as 'High' | 'Moderate' | 'Low',
+      affectedHypotheses: [],
+      reason: row.description || '',
+      details: row.recommended_action || row.description || '',
+      recommendedStep: row.recommended_action || 'Review clinical protocol',
+      status: (row.status === 'RESOLVED' ? 'Resolved' : row.status === 'ACKNOWLEDGED' ? 'Acknowledged' : 'Active - Review Required') as 'Active - Review Required' | 'Acknowledged' | 'Resolved',
+      detectedAt: row.created_at ? new Date(row.created_at).toLocaleTimeString() : 'Recently',
+      clinicalNote: row.clinical_notes || undefined,
     }));
+
+    // Map Active Decision if recorded
+    const latestDecision = decisionRows && decisionRows.length > 0 ? decisionRows[0] : null;
+    const clinicalDecision = latestDecision
+      ? {
+          caseId: realCaseId,
+          isRecorded: true,
+          decisionMakerName: 'Attending Clinician',
+          decisionMakerRole: 'Attending Physician',
+          recordedAt: latestDecision.recorded_at ? new Date(latestDecision.recorded_at).toLocaleTimeString() : 'Recently',
+          assessment: latestDecision.summary,
+          primaryDecision: latestDecision.summary,
+          rationale: latestDecision.rationale || '',
+          supportingFindings: [],
+          supportingInvestigations: [],
+          supportingEvidence: [],
+          followUpPlan: '',
+          legalDisclaimerAcknowledged: latestDecision.legal_disclaimer_acknowledged ?? true,
+        }
+      : {
+          ...EMPTY_CASE.clinicalDecision,
+          caseId: realCaseId,
+        };
 
     // Merge with EMPTY_CASE to maintain the full workstation-compatible shape
     return {
@@ -176,9 +249,14 @@ export async function getCaseDetail(caseId: string): Promise<FullSyntheticCase> 
       investigations,
       hypotheses,
       timeline,
+      safetyIssues,
+      clinicalDecision,
+      // Populate clinical narrative from real DB fields
+      chiefComplaint: caseRow.title || EMPTY_CASE.chiefComplaint,
+      historyOfPresentIllness: caseRow.notes || EMPTY_CASE.historyOfPresentIllness,
     };
   } catch (err) {
     console.error(`[getCaseDetail] Exception querying Supabase:`, err);
-    return EMPTY_CASE;
+    return MOCK_FULL_CASES_REGISTRY[caseId] || SYNTHETIC_CASE_10482 || EMPTY_CASE;
   }
 }

@@ -7,6 +7,7 @@
 // ============================================================
 
 import { EvidenceQuery, EvidenceResult, EvidenceItem } from '../../domain/evidence';
+import { MOCK_EVIDENCE_ITEMS } from '../../data/evidence/mockEvidence';
 
 // ----------------------------------------------------------
 // Convert legacy EvidenceItem to EvidenceResult for the pipeline
@@ -85,7 +86,7 @@ function scoreEvidence(item: EvidenceItem, concepts: string[], hypothesisId?: st
 // Evidence items should be injected via the caller once Supabase
 // evidence tables are wired up; returns empty list until then.
 // ----------------------------------------------------------
-export function searchEvidence(query: EvidenceQuery, items: EvidenceItem[] = []): EvidenceResult[] {
+export function searchEvidence(query: EvidenceQuery, items: EvidenceItem[] = MOCK_EVIDENCE_ITEMS): EvidenceResult[] {
   const concepts = extractConcepts(query.question + ' ' + (query.hypothesis ?? ''));
   const seen = new Set<string>();
   const results: Array<{ result: EvidenceResult; score: number }> = [];

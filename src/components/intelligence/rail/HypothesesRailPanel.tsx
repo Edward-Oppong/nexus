@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { useCase } from '../../../app/providers/CaseContext';
-import { GitBranch, ArrowRight, CheckCircle, XCircle } from 'lucide-react';
+import { GitBranch, ArrowRight, CheckCircle, XCircle, Cpu } from 'lucide-react';
 
 export const HypothesesRailPanel: React.FC = () => {
   const { activeCase, setActiveCaseSubTab } = useCase();
@@ -128,6 +128,20 @@ export const HypothesesRailPanel: React.FC = () => {
                   {h.contradictingFindingIds.length} contradict
                 </span>
               )}
+            </div>
+            {/* Model Provenance */}
+            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '2px' }}>
+              {['MedCPT', 'Falconsai'].map((model) => (
+                <span key={model} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '3px',
+                  fontSize: '9px', fontWeight: 600,
+                  background: '#EFF6FF', color: '#2563EB',
+                  padding: '1px 5px', borderRadius: '8px',
+                  border: '1px solid #BFDBFE',
+                }}>
+                  <Cpu size={8} /> {model}
+                </span>
+              ))}
             </div>
           </div>
         ))}

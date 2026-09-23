@@ -223,7 +223,7 @@ export const AppShell: React.FC = () => {
       <EvidenceDrawer />
       <ContextualAiModal />
       <KeyboardShortcutsModal />
-      <HuggingFaceModelTestingModal isOpen={isHfTestingOpen} onClose={closeHfTesting} />
+      <HuggingFaceModelTestingModal isOpen={isHfTestingOpen && isAdmin} onClose={closeHfTesting} />
     </div>
   );
 };

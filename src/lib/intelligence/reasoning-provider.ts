@@ -131,6 +131,7 @@ export class TestProvider implements ReasoningProvider {
 // Complies with 18 Non-Negotiable System Rules
 // ----------------------------------------------------------
 import { huggingFaceClient } from './services/huggingface-api';
+import { buildClinicalReasoningPrompt } from './prompts/clinical-prompts';
 
 export class HuggingFaceMedGemmaProvider implements ReasoningProvider {
   readonly name = 'Falconsai/medical_summarization';
@@ -144,42 +145,7 @@ export class HuggingFaceMedGemmaProvider implements ReasoningProvider {
 
     try {
       const allowedFindingIds = input.verifiedFindings.map((f) => f.id);
-      const prompt = `[CLINICAL REASONING TASK - NEXUS WORKSTATION]
-Patient Case ID: ${input.caseId}
-Summary: ${input.clinicalSummary}
-
-Verified Findings:
-${input.verifiedFindings.map((f) => `- [${f.id}] (${f.category}) ${f.label}`).join('\n')}
-
-Investigation Results:
-${input.investigationResults.map((i) => `- [${i.id}] ${i.testName}: ${i.value} (${i.interpretation})`).join('\n')}
-
-Retrieved Clinical Evidence:
-${input.retrievedEvidence.map((e) => `- [${e.id}] ${e.title} (${e.excerpt || ''})`).join('\n')}
-
-Known Information Gaps:
-${input.informationGaps.map((g) => `- [${g.id}] ${g.description} (Priority: ${g.priority})`).join('\n')}
-
-SYSTEM CONSTRAINTS (MANDATORY):
-1. Do NOT invent new findings. Only reference finding IDs from the list above.
-2. Prohibit numeric probabilities or percentage likelihoods (e.g. no "80%", no "0.75"). Use qualitative uncertainty only.
-3. Formulate candidate differential hypotheses, not definitive declarations.
-4. Return ONLY a single valid JSON object in the following schema:
-{
-  "summary": "Synthesized clinical summary",
-  "hypotheses": [
-    {
-      "label": "Hypothesis title",
-      "rationale": "Clinical reasoning explanation without percentages",
-      "supportingFindingIds": ["<id from findings above>"],
-      "contradictingFindingIds": [],
-      "missingInformation": ["Gap description"],
-      "evidenceSourceIds": ["<id from evidence above>"]
-    }
-  ],
-  "contradictions": [],
-  "limitations": ["Clinical limitation statement"]
-}`;
+      const prompt = buildClinicalReasoningPrompt(input);
 
       const { text } = await huggingFaceClient.generateClinicalSynthesis(prompt, 'Falconsai/medical_summarization');
 

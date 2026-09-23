@@ -16,7 +16,7 @@ import { NexusAssessment } from '../../../domain/nexus-assessment';
 import { runDeterministicSafetyChecks } from './deterministic-safety';
 import { evaluateCriteria } from './criteria-engine';
 import { runNexusAnalysis } from '../../../lib/intelligence/reasoning-orchestrator';
-import { testProvider } from '../../../lib/intelligence/reasoning-provider';
+import { getDefaultReasoningProvider } from '../../../lib/intelligence/reasoning-provider';
 import { CaseIntakeDraft } from '../types/intake';
 
 export interface CaseAnalysisOptions {
@@ -144,7 +144,8 @@ export async function runCaseAnalysis(
     let offlineGraceActivated = false;
 
     try {
-      assessment = await runNexusAnalysis(fullCase, testProvider, {
+      const provider = getDefaultReasoningProvider();
+      assessment = await runNexusAnalysis(fullCase, provider, {
         caseId: options.caseId,
       });
     } catch (providerErr: any) {

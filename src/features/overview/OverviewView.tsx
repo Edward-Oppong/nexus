@@ -1,11 +1,39 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useCase } from '../../app/providers/CaseContext';
 import { usePersona } from '../../app/providers/PersonaContext';
 import { AlertTriangle, Clock, FlaskConical, ShieldAlert, ArrowRight, CheckCircle2, FileCheck2 } from 'lucide-react';
 
 export const OverviewView: React.FC = () => {
-  const { casesList, openCaseById, setActiveView, pendingReviewCount, reviewQueue } = useCase();
+  const {
+    casesList,
+    openCaseById,
+    setActiveView,
+    pendingReviewCount,
+    reviewQueue,
+    safetyConcerns,
+    tasks,
+    activeCase,
+  } = useCase();
   const { currentPersona } = usePersona();
+
+  const completedInvestigations = activeCase?.investigations?.filter((i) => i.status === 'Result available') || [];
+  const openSafetyConcerns = safetyConcerns.filter((s) => s.status !== 'RESOLVED');
+  const openTasks = tasks.filter((t) => t.status !== 'COMPLETED');
+
+  // Live date and contextual greeting
+  const { liveDateLabel, greeting } = useMemo(() => {
+    const now = new Date();
+    const hour = now.getHours();
+    const label = now.toLocaleDateString('en-GB', {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    });
+    const greet =
+      hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+    return { liveDateLabel: label, greeting: greet };
+  }, []);
 
   return (
     <main
@@ -30,10 +58,10 @@ export const OverviewView: React.FC = () => {
               marginBottom: '4px',
             }}
           >
-            Tuesday, 09 September 2026 · Clinical Roster
+            {liveDateLabel} · Clinical Roster
           </div>
           <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#0F172A', letterSpacing: '-0.02em' }}>
-            Good morning, {currentPersona.name.split(',')[0]}
+            {greeting}, {currentPersona.name.split(',')[0]}
           </h1>
           <p style={{ fontSize: '13px', color: '#64748B', marginTop: '2px' }}>
             What requires your clinical attention right now?
@@ -75,10 +103,10 @@ export const OverviewView: React.FC = () => {
               <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>Click to open Review Queue</div>
             </div>
 
-            {/* Card 2 */}
+            {/* Card 2: Investigation results */}
             <div
               onClick={() => {
-                openCaseById('10482');
+                openCaseById(activeCase?.overview?.id || '10482', 'investigations');
               }}
               style={{
                 background: '#FFFFFF',
@@ -94,18 +122,22 @@ export const OverviewView: React.FC = () => {
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: '20px', fontWeight: 700, color: '#1E40AF' }}>
-                  2
+                  {completedInvestigations.length}
                 </span>
                 <FlaskConical size={16} color="#2563EB" />
               </div>
               <div style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>Investigation results</div>
-              <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>Blood cultures positive (S. viridans)</div>
+              <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
+                {completedInvestigations[0]?.testName
+                  ? `${completedInvestigations[0].testName} (${completedInvestigations.length} ready)`
+                  : 'Blood cultures positive (S. viridans)'}
+              </div>
             </div>
 
-            {/* Card 3 */}
+            {/* Card 3: Safety concern */}
             <div
               onClick={() => {
-                openCaseById('10482');
+                openCaseById(activeCase?.overview?.id || '10482', 'safety');
               }}
               style={{
                 background: '#FFFFFF',
@@ -121,15 +153,19 @@ export const OverviewView: React.FC = () => {
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: '20px', fontWeight: 700, color: '#991B1B' }}>
-                  1
+                  {openSafetyConcerns.length}
                 </span>
                 <ShieldAlert size={16} color="#DC2626" />
               </div>
               <div style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>Safety concern</div>
-              <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>Severe penicillin allergy conflict</div>
+              <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
+                {openSafetyConcerns[0]?.category
+                  ? openSafetyConcerns[0].category.slice(0, 36) + '...'
+                  : 'Severe penicillin allergy conflict'}
+              </div>
             </div>
 
-            {/* Card 4 */}
+            {/* Card 4: Follow-ups due */}
             <div
               onClick={() => setActiveView('tasks')}
               style={{
@@ -146,12 +182,14 @@ export const OverviewView: React.FC = () => {
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: '20px', fontWeight: 700, color: '#334155' }}>
-                  3
+                  {openTasks.length}
                 </span>
                 <Clock size={16} color="#64748B" />
               </div>
               <div style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>Follow-ups due</div>
-              <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>Outpatient telemetry evaluations</div>
+              <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
+                {openTasks[0]?.title ? openTasks[0].title.slice(0, 36) + '...' : 'Outpatient telemetry evaluations'}
+              </div>
             </div>
           </div>
         </section>
@@ -214,58 +252,67 @@ export const OverviewView: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {reviewQueue.slice(0, 4).map((item) => (
-                  <tr key={item.id} style={{ cursor: 'pointer' }} onClick={() => setActiveView('review-queue')}>
-                    <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: '#0F172A' }}>
-                      CASE-{item.caseId}
-                    </td>
-                    <td>
-                      <div style={{ fontWeight: 600, color: '#0F172A' }}>{item.title}</div>
-                      <div style={{ fontSize: '11px', color: '#64748B' }}>{item.description.slice(0, 80)}...</div>
-                    </td>
-                    <td>
-                      <span style={{ fontSize: '11px', color: '#475569' }}>
-                        {item.itemType.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td>
-                      <span
-                        style={{
-                          fontSize: '10px',
-                          fontWeight: 700,
-                          padding: '1px 6px',
-                          borderRadius: '3px',
-                          background:
-                            item.priority === 'URGENT'
-                              ? '#FEE2E2'
-                              : item.priority === 'HIGH'
-                              ? '#FEF3C7'
-                              : '#EFF6FF',
-                          color:
-                            item.priority === 'URGENT'
-                              ? '#991B1B'
-                              : item.priority === 'HIGH'
-                              ? '#92400E'
-                              : '#1E40AF',
-                        }}
-                      >
-                        {item.priority}
-                      </span>
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveView('review-queue');
-                        }}
-                        className="btn btn-sm btn-primary"
-                        style={{ fontSize: '11px', padding: '3px 8px' }}
-                      >
-                        Review Now <ArrowRight size={11} />
-                      </button>
+                {reviewQueue.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: 'center', padding: '24px', color: '#64748B', fontSize: '13px' }}>
+                      <CheckCircle2 size={16} color="#10B981" style={{ verticalAlign: 'middle', marginRight: '6px' }} />
+                      All algorithmic proposals and findings have been reviewed. The review queue is clear.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  reviewQueue.slice(0, 4).map((item) => (
+                    <tr key={item.id} style={{ cursor: 'pointer' }} onClick={() => setActiveView('review-queue')}>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: '#0F172A' }}>
+                        CASE-{item.caseId}
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: 600, color: '#0F172A' }}>{item.title}</div>
+                        <div style={{ fontSize: '11px', color: '#64748B' }}>{item.description.slice(0, 80)}...</div>
+                      </td>
+                      <td>
+                        <span style={{ fontSize: '11px', color: '#475569' }}>
+                          {item.itemType.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td>
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            padding: '1px 6px',
+                            borderRadius: '3px',
+                            background:
+                              item.priority === 'URGENT'
+                                ? '#FEE2E2'
+                                : item.priority === 'HIGH'
+                                ? '#FEF3C7'
+                                : '#EFF6FF',
+                            color:
+                              item.priority === 'URGENT'
+                                ? '#991B1B'
+                                : item.priority === 'HIGH'
+                                ? '#92400E'
+                                : '#1E40AF',
+                          }}
+                        >
+                          {item.priority}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveView('review-queue');
+                          }}
+                          className="btn btn-sm btn-primary"
+                          style={{ fontSize: '11px', padding: '3px 8px' }}
+                        >
+                          Review Now <ArrowRight size={11} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

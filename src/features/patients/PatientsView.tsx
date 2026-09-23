@@ -13,7 +13,7 @@ import { CreatePatientDialog } from './components/CreatePatientDialog';
 import { Users, Search, Plus, ArrowRight, ShieldCheck, FileText, Calendar, Loader2 } from 'lucide-react';
 
 export const PatientsView: React.FC = () => {
-  const { openCaseById } = useCase();
+  const { openCaseById, casesList, setActiveView } = useCase();
   const { can, activeOrganization } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -142,7 +142,14 @@ export const PatientsView: React.FC = () => {
             </thead>
             <tbody>
               {filteredPatients.map((p, idx) => {
-                const linkedCaseId = idx === 0 ? '10482' : idx === 1 ? '10002' : '10003';
+                const matchedCase = casesList.find((c) =>
+                  c.patient.id === p.id ||
+                  c.patient.syntheticIdentifier?.toLowerCase().includes(p.familyName.toLowerCase()) ||
+                  c.patient.syntheticIdentifier?.toLowerCase().includes(p.givenName.toLowerCase())
+                );
+                const linkedCaseId = matchedCase?.id || (idx === 0 ? '00000000-0000-0000-0000-000000000001' : idx === 1 ? '00000000-0000-0000-0000-000000010002' : '00000000-0000-0000-0000-000000010003');
+                const linkedCaseDisplay = matchedCase ? (matchedCase.patient.encounterNumber || `#${matchedCase.id.slice(0, 8)}`) : (idx === 0 ? '#CASE-10482' : idx === 1 ? '#CASE-10002' : '#CASE-10003');
+
                 return (
                   <tr key={p.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
                     <td style={{ padding: '12px 16px', fontFamily: 'var(--font-mono)', fontWeight: 600, color: '#0284C7' }}>
@@ -182,7 +189,7 @@ export const PatientsView: React.FC = () => {
                           cursor: 'pointer',
                         }}
                       >
-                        Open Case #{linkedCaseId}
+                        Open Case {linkedCaseDisplay}
                         <ArrowRight size={12} />
                       </button>
                     </td>

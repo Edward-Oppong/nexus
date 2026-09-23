@@ -728,6 +728,22 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
                 <div style={{ fontSize: '11px', color: '#64748B' }}>
                   Edit parameters, values, reference ranges, and verify findings before AI ingestion.
                 </div>
+                <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginTop: '5px' }}>
+                  {[
+                    { label: 'd4data/biomedical-ner-all', title: 'NER' },
+                    { label: 'Falconsai/medical_summarization', title: 'Synthesis' },
+                  ].map(({ label, title }) => (
+                    <span key={label} style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '3px',
+                      fontSize: '9px', fontWeight: 600,
+                      background: '#EFF6FF', color: '#1D4ED8',
+                      padding: '1px 6px', borderRadius: '8px',
+                      border: '1px solid #BFDBFE',
+                    }}>
+                      <Sparkles size={8} /> {title}: {label}
+                    </span>
+                  ))}
+                </div>
               </div>
 
               <button

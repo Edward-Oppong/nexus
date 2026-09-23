@@ -113,7 +113,14 @@ function mapEntitiesToFindings(
     seen.add(label.toLowerCase());
 
     const group = (entity.entity_group || entity.entity || 'FINDING').toUpperCase();
-    const category = categoryMap[group] || 'exam';
+    let category: ExtractedFindingCandidate['category'] = 'exam';
+    if (group.includes('DISEASE') || group.includes('DISORDER')) category = 'diagnosis';
+    else if (group.includes('SYMPT') || group.includes('SIGN')) category = 'exam';
+    else if (group.includes('MED') || group.includes('DRUG')) category = 'medication';
+    else if (group.includes('LAB') || group.includes('TEST')) category = 'laboratory';
+    else if (group.includes('VITAL')) category = 'vital-signs';
+    else if (group.includes('IMAG') || group.includes('PROCEDURE')) category = 'imaging';
+    else if (group.includes('ANAT') || group.includes('STRUCT')) category = 'exam';
 
     const idx = rawText.toLowerCase().indexOf(label.toLowerCase());
     const snippet =

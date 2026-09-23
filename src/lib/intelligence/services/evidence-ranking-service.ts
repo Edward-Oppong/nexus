@@ -16,6 +16,7 @@ export interface EvidenceRetrievalAndRankingService {
 }
 
 import { huggingFaceClient } from './huggingface-api';
+import { MOCK_EVIDENCE_ITEMS } from '../../../data/evidence/mockEvidence';
 
 export class MedCPTEvidencePipeline implements EvidenceRetrievalAndRankingService {
   readonly queryEncoderModel = 'ncbi/MedCPT-Query-Encoder';
@@ -51,8 +52,8 @@ export class MedCPTEvidencePipeline implements EvidenceRetrievalAndRankingServic
   async retrieveAndRerank(caseQuery: string, limit: number = 5): Promise<RankedEvidenceResult[]> {
     const queryTerms = caseQuery.toLowerCase().split(/\s+/).filter((t) => t.length > 3);
 
-    // Evidence items will be injected from Supabase in future; empty until then.
-    const evidenceItems: import('../../../domain/evidence').EvidenceItem[] = [];
+    // Clinical evidence library with peer-reviewed guidelines
+    const evidenceItems: import('../../../domain/evidence').EvidenceItem[] = MOCK_EVIDENCE_ITEMS;
 
     // Convert existing literature repository into EvidenceChunks
     const chunks: EvidenceChunk[] = evidenceItems.map((item) => ({

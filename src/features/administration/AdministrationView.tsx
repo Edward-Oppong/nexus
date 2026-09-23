@@ -22,9 +22,10 @@ import { TeamMembersTab } from './tabs/TeamMembersTab';
 import { FhirEndpointsTab } from './tabs/FhirEndpointsTab';
 import { AuditLogTab } from './tabs/AuditLogTab';
 import { SystemDisclosureTab } from './tabs/SystemDisclosureTab';
-import { Building2, Users, Globe, Shield, Cpu, Lock } from 'lucide-react';
+import { HfModelsTab } from './tabs/HfModelsTab';
+import { Building2, Users, Globe, Shield, Cpu, Lock, Sparkles } from 'lucide-react';
 
-type AdminTab = 'org-settings' | 'team' | 'fhir-endpoints' | 'audit-log' | 'system-disclosure';
+type AdminTab = 'org-settings' | 'team' | 'fhir-endpoints' | 'audit-log' | 'hf-models' | 'system-disclosure';
 
 interface TabConfig {
   id: AdminTab;
@@ -64,6 +65,12 @@ const TABS: TabConfig[] = [
     description: 'Immutable event ledger',
   },
   {
+    id: 'hf-models',
+    label: 'HF Models',
+    icon: <Sparkles size={15} />,
+    description: 'Hugging Face models & inference endpoints',
+  },
+  {
     id: 'system-disclosure',
     label: 'System Disclosure',
     icon: <Cpu size={15} />,
@@ -78,7 +85,7 @@ export const AdministrationView: React.FC = () => {
     const firstAccessible = TABS.find(
       (t) => !t.requiredPermission || can(t.requiredPermission)
     );
-    return firstAccessible?.id || 'system-disclosure';
+    return firstAccessible?.id || 'hf-models';
   });
 
   const renderTabContent = () => {
@@ -87,6 +94,7 @@ export const AdministrationView: React.FC = () => {
       case 'team':               return <TeamMembersTab />;
       case 'fhir-endpoints':     return <FhirEndpointsTab />;
       case 'audit-log':          return <AuditLogTab />;
+      case 'hf-models':          return <HfModelsTab />;
       case 'system-disclosure':  return <SystemDisclosureTab />;
     }
   };

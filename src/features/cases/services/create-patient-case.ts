@@ -228,6 +228,50 @@ export async function createPatientCase(
       });
     }
 
+    // ── 5b. Persist Findings, Safety Concerns & Timeline to Supabase ──
+    if (isSupabaseConfigured) {
+      try {
+        if (clinicalFindings.length > 0) {
+          const findingsPayload = clinicalFindings.map((f) => ({
+            case_id: caseId,
+            category: (f.category || 'SYMPTOM').toUpperCase(),
+            label: f.label,
+            description: f.description,
+            status: f.status === 'REJECTED' ? 'REJECTED' : 'ACTIVE',
+            created_by: context.userId,
+          }));
+          await supabase.from('clinical_findings').insert(findingsPayload);
+        }
+
+        if (concerns.length > 0) {
+          const concernsPayload = concerns.map((c) => ({
+            case_id: caseId,
+            severity: c.severity,
+            category: c.category,
+            description: c.description,
+            trigger_source: c.triggerSource || 'DETERMINISTIC_RULE',
+            recommended_action: c.recommendedAction || '',
+            status: 'OPEN',
+          }));
+          await supabase.from('safety_concerns').insert(concernsPayload);
+        }
+
+        if (timeline.length > 0) {
+          const timelinePayload = timeline.map((t) => ({
+            case_id: caseId,
+            actor_type: t.actor,
+            actor_user_id: context.userId,
+            event_type: t.eventType,
+            title: t.title,
+            description: t.description || '',
+          }));
+          await supabase.from('timeline_events').insert(timelinePayload);
+        }
+      } catch (persistErr) {
+        console.warn('[createPatientCase] Sub-table persistence notice:', persistErr);
+      }
+    }
+
     // ── 6. Assemble Full Case Object ───────────────────────────────────
     const syntheticPatient: SyntheticPatient = {
       id: patientId,
