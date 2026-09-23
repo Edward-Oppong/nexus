@@ -390,7 +390,7 @@ export const CaseListView: React.FC = () => {
                       >
                         Open <ArrowRight size={11} />
                       </button>
-                      {can('case.create') && (
+                      {(can('case.create') || can('case.close') || can('case.edit')) && (
                         <button
                           id={`delete-case-${c.id}`}
                           title="Delete case"

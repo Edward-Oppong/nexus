@@ -39,6 +39,7 @@ import { runNexusAnalysis, AnalysisStageInfo } from '../../lib/intelligence/reas
 import { testProvider, getDefaultReasoningProvider } from '../../lib/intelligence/reasoning-provider';
 import { getCaseDetail } from '../../features/cases/api/getCaseDetail';
 import { deleteCase as deleteCaseApi } from '../../features/cases/api/deleteCase';
+import { deleteInvestigation as deleteInvestigationApi } from '../../features/investigations/api/deleteInvestigation';
 import { getCases } from '../../features/cases/api/getCases';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase/client';
 
@@ -100,6 +101,7 @@ interface CaseContextType {
     priority: 'Stat' | 'Urgent' | 'Routine',
     indication: string
   ) => void;
+  deleteInvestigation: (investigationId: string) => Promise<{ success: boolean; error: string | null }>;
 
   // Phase 6F — Nexus Intelligence
   nexusAssessment: NexusAssessment | null;
@@ -637,13 +639,60 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (result.success) {
       // Remove from local cases list immediately
       setCasesList((prev) => prev.filter((c) => c.id !== caseId));
-      // If the deleted case is currently open, navigate to cases list
+
+      // Remove all tasks associated with this deleted case
+      setTasks((prev) => prev.filter((t) => t.caseId !== caseId));
+
+      // Remove any review queue, safety, and decision items for this case
+      setReviewQueue((prev) => prev.filter((q) => q.caseId !== caseId));
+      setSafetyConcerns((prev) => prev.filter((s) => s.caseId !== caseId));
+      setDecisions((prev) => prev.filter((d) => d.caseId !== caseId));
+
+      // If the deleted case is currently open, switch active case and navigate to cases list
       if (activeCase.overview.id === caseId) {
+        const remaining = casesList.filter((c) => c.id !== caseId);
+        if (remaining.length > 0) {
+          openCaseById(remaining[0].id);
+        } else {
+          setActiveCase(SYNTHETIC_CASE_10482);
+        }
         setActiveView('cases');
       }
     }
     return result;
-  }, [activeUserDisplayName, activeCase.overview.id]);
+  }, [activeUserDisplayName, activeCase.overview.id, casesList, openCaseById]);
+
+  // ── Investigation Deletion ────────────────────────────────
+  const handleDeleteInvestigation = useCallback(async (
+    investigationId: string
+  ): Promise<{ success: boolean; error: string | null }> => {
+    let deletedTestName = 'Investigation';
+
+    setActiveCase((prev) => {
+      const target = prev.investigations.find((i) => i.id === investigationId);
+      if (target) deletedTestName = target.testName;
+
+      const auditEvent: TimelineEvent = {
+        id: `evt-${Date.now()}`,
+        time: 'Just now',
+        actor: 'CLINICIAN',
+        actorName: activeUserDisplayName,
+        eventType: 'UPDATED',
+        title: `Investigation order deleted: ${deletedTestName}`,
+        description: `Order ${investigationId} was cancelled and removed.`,
+        isNexusSimulated: false,
+      };
+
+      return {
+        ...prev,
+        investigations: prev.investigations.filter((i) => i.id !== investigationId),
+        timeline: [auditEvent, ...prev.timeline],
+      };
+    });
+
+    const result = await deleteInvestigationApi(investigationId);
+    return result;
+  }, [activeUserDisplayName]);
 
   // ── Findings Status Update ──────────────────────────────
   const updateFindingStatus = (findingId: string, status: VerificationStatus, reason?: string, note?: string) => {
@@ -761,7 +810,6 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
               priority: priority.toUpperCase(),
               status: 'REQUESTED',
               requested_by: activeUserId,
-              requested_by_name: activeUserDisplayName,
               requested_at: new Date().toISOString(),
             })
             .then(({ error }) => {
@@ -1497,6 +1545,7 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateFindingStatus,
         adjudicateHypothesis,
         requestInvestigation,
+        deleteInvestigation: handleDeleteInvestigation,
         nexusAssessment,
         isRunningAnalysis,
         analysisStage,

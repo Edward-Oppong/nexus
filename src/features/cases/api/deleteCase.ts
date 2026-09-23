@@ -32,28 +32,31 @@ export async function deleteCase(
   }
 
   try {
-    // 1. Attempt soft-delete in Supabase: status = 'RESOLVED' + closed_at
-    const { error: updateError } = await supabase
-      .from('cases')
-      .update({
-        status: 'RESOLVED',
-        closed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', caseId);
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(caseId);
 
-    // 2. Also attempt hard-delete in case the database allows it or user has delete permissions
-    const { error: deleteError } = await supabase
-      .from('cases')
-      .delete()
-      .eq('id', caseId);
+    if (isUuid) {
+      // 1. Explicitly delete associated tasks and investigations for this case
+      await supabase.from('tasks').delete().eq('case_id', caseId);
+      await supabase.from('investigations').delete().eq('case_id', caseId);
 
-    if (updateError && deleteError) {
-      console.warn('[deleteCase] Remote DB update and delete returned:', {
-        updateError: updateError.message,
-        deleteError: deleteError.message,
-      });
-      // Case is already suppressed in localStorage so it will not reappear on refresh
+      // 2. Attempt hard-delete of the case
+      const { error: deleteError } = await supabase
+        .from('cases')
+        .delete()
+        .eq('id', caseId);
+
+      // 3. If hard-delete fails or is constrained, fallback to soft-delete
+      if (deleteError) {
+        console.warn('[deleteCase] Hard delete failed, falling back to soft-delete:', deleteError.message);
+        await supabase
+          .from('cases')
+          .update({
+            status: 'RESOLVED',
+            closed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', caseId);
+      }
     }
 
     // 3. Append deletion event to audit trail (non-blocking)

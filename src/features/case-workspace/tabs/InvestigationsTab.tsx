@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useCase } from '../../../app/providers/CaseContext';
 import { usePersona } from '../../../app/providers/PersonaContext';
-import { FlaskConical, Plus, CheckCircle2, Clock, AlertTriangle, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { FlaskConical, Plus, CheckCircle2, Clock, AlertTriangle, TrendingUp, TrendingDown, Minus, Trash2 } from 'lucide-react';
 import { InvestigationOrder } from '../../../domain/investigation';
 
 export const InvestigationsTab: React.FC = () => {
-  const { activeCase, requestInvestigation } = useCase();
+  const { activeCase, requestInvestigation, deleteInvestigation } = useCase();
   const { currentPersona } = usePersona();
   const [selectedOrder, setSelectedOrder] = useState<InvestigationOrder>(activeCase.investigations[0]);
 
@@ -15,8 +15,24 @@ export const InvestigationsTab: React.FC = () => {
   const [newCategory, setNewCategory] = useState<'Laboratory' | 'Imaging' | 'Cardiovascular' | 'Microbiology'>('Laboratory');
   const [newIndication, setNewIndication] = useState('');
 
+  const [pendingDeleteOrder, setPendingDeleteOrder] = useState<InvestigationOrder | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const completed = activeCase.investigations.filter((i) => i.status === 'Result available');
   const inProgress = activeCase.investigations.filter((i) => i.status !== 'Result available');
+
+  const handleConfirmDeleteOrder = async () => {
+    if (!pendingDeleteOrder) return;
+    setIsDeleting(true);
+    await deleteInvestigation(pendingDeleteOrder.id);
+    setIsDeleting(false);
+
+    if (selectedOrder?.id === pendingDeleteOrder.id) {
+      const remaining = activeCase.investigations.filter((i) => i.id !== pendingDeleteOrder.id);
+      setSelectedOrder(remaining[0] || null);
+    }
+    setPendingDeleteOrder(null);
+  };
 
   const handleOrderSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,9 +99,33 @@ export const InvestigationsTab: React.FC = () => {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <strong style={{ fontSize: '13px', color: '#0F172A' }}>{order.testName}</strong>
-                      <span className="badge badge-review" style={{ fontSize: '10px' }}>
-                        {order.status}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span className="badge badge-review" style={{ fontSize: '10px' }}>
+                          {order.status}
+                        </span>
+                        <button
+                          type="button"
+                          title="Delete investigation order"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPendingDeleteOrder(order);
+                          }}
+                          style={{
+                            border: 'none',
+                            background: 'transparent',
+                            color: '#94A3B8',
+                            cursor: 'pointer',
+                            padding: '3px',
+                            borderRadius: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.color = '#DC2626')}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = '#94A3B8')}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </div>
                     <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>
                       Requested by {order.requestedBy} ({order.requestedAt})
@@ -126,9 +166,33 @@ export const InvestigationsTab: React.FC = () => {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <strong style={{ fontSize: '13px', color: '#0F172A' }}>{order.testName}</strong>
-                      <span className="badge badge-verified" style={{ fontSize: '10px' }}>
-                        Available
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span className="badge badge-verified" style={{ fontSize: '10px' }}>
+                          Available
+                        </span>
+                        <button
+                          type="button"
+                          title="Delete investigation order"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPendingDeleteOrder(order);
+                          }}
+                          style={{
+                            border: 'none',
+                            background: 'transparent',
+                            color: '#94A3B8',
+                            cursor: 'pointer',
+                            padding: '3px',
+                            borderRadius: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.color = '#DC2626')}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = '#94A3B8')}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </div>
                     <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>
                       Verified by {order.result?.laboratoryPersonnel} at {order.result?.completedAt}
@@ -160,18 +224,48 @@ export const InvestigationsTab: React.FC = () => {
                     {selectedOrder.testName}
                   </h3>
                 </div>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    fontWeight: 600,
-                    padding: '3px 8px',
-                    borderRadius: '4px',
-                    background: selectedOrder.status === 'Result available' ? '#ECFDF5' : '#FFFBEB',
-                    color: selectedOrder.status === 'Result available' ? '#065F46' : '#92400E',
-                  }}
-                >
-                  {selectedOrder.status}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      background: selectedOrder.status === 'Result available' ? '#ECFDF5' : '#FFFBEB',
+                      color: selectedOrder.status === 'Result available' ? '#065F46' : '#92400E',
+                    }}
+                  >
+                    {selectedOrder.status}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setPendingDeleteOrder(selectedOrder)}
+                    title="Delete this investigation"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      border: '1px solid #FCA5A5',
+                      background: '#FEF2F2',
+                      color: '#DC2626',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#DC2626';
+                      e.currentTarget.style.color = '#FFFFFF';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#FEF2F2';
+                      e.currentTarget.style.color = '#DC2626';
+                    }}
+                  >
+                    <Trash2 size={12} /> Delete Order
+                  </button>
+                </div>
               </div>
 
               {selectedOrder.result ? (
@@ -333,6 +427,64 @@ export const InvestigationsTab: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Investigation Confirmation Modal */}
+      {pendingDeleteOrder && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(15, 23, 42, 0.6)',
+            backdropFilter: 'blur(2px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={() => setPendingDeleteOrder(null)}
+        >
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '8px',
+              padding: '24px',
+              maxWidth: '440px',
+              width: '100%',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+              Delete Investigation Order?
+            </h3>
+            <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748B', lineHeight: '1.5' }}>
+              Are you sure you want to delete the order for <strong>{pendingDeleteOrder.testName}</strong>? This will remove the investigation and any associated laboratory reports.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => setPendingDeleteOrder(null)}
+                className="btn btn-sm"
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteOrder}
+                className="btn btn-sm"
+                style={{ background: '#DC2626', color: '#FFFFFF', border: 'none' }}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Investigation'}
+              </button>
+            </div>
           </div>
         </div>
       )}

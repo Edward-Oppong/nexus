@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useCase } from '../../app/providers/CaseContext';
 import { usePersona } from '../../app/providers/PersonaContext';
-import { ArrowLeft, AlertTriangle, Plus, FileText, CheckCircle2, ShieldAlert, Wifi, WifiOff } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, Plus, FileText, CheckCircle2, ShieldAlert, Wifi, WifiOff, Trash2 } from 'lucide-react';
 import { offlineSyncEngine } from '../../lib/interoperability/advanced/offline-sync-engine';
 import { ACTIVE_COLLABORATIVE_REVIEWERS } from '../../lib/persistence/realtime-collaboration';
 
 export const CaseHeader: React.FC = () => {
-  const { activeCase, setActiveView, setActiveCaseSubTab } = useCase();
+  const { activeCase, setActiveView, setActiveCaseSubTab, deleteCase } = useCase();
   const { currentPersona } = usePersona();
   const { patient, state, priority, id } = activeCase.overview;
 
   const [networkStatus, setNetworkStatus] = useState(() => offlineSyncEngine.getStatus());
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     return offlineSyncEngine.subscribeNetworkStatus(setNetworkStatus);
@@ -198,6 +200,31 @@ export const CaseHeader: React.FC = () => {
               <FileText size={13} /> Record Decision
             </button>
           )}
+
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="btn btn-sm"
+            title="Delete this clinical case"
+            style={{
+              border: '1px solid #FCA5A5',
+              background: '#FEF2F2',
+              color: '#DC2626',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#DC2626';
+              e.currentTarget.style.color = '#FFFFFF';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#FEF2F2';
+              e.currentTarget.style.color = '#DC2626';
+            }}
+          >
+            <Trash2 size={13} /> Delete Case
+          </button>
         </div>
       </div>
 
@@ -250,6 +277,72 @@ export const CaseHeader: React.FC = () => {
           Encounter {patient.encounterNumber}
         </div>
       </div>
+
+      {/* Delete Case Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(15, 23, 42, 0.6)',
+            backdropFilter: 'blur(2px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={() => setShowDeleteConfirm(false)}
+        >
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '8px',
+              padding: '24px',
+              maxWidth: '460px',
+              width: '100%',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: '#DC2626' }}>
+              <AlertTriangle size={20} />
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+                Delete Case {id}?
+              </h3>
+            </div>
+            <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#64748B', lineHeight: '1.5' }}>
+              Are you sure you want to delete this case? All associated clinical tasks, findings, and diagnostic orders will be permanently removed.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                className="btn btn-sm"
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsDeleting(true);
+                  await deleteCase(id);
+                  setIsDeleting(false);
+                  setShowDeleteConfirm(false);
+                }}
+                className="btn btn-sm"
+                style={{ background: '#DC2626', color: '#FFFFFF', border: 'none' }}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Case & Tasks'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };
