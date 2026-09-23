@@ -1,9 +1,10 @@
 -- ============================================================
 -- 033_delete_permissions.sql
--- Grants DELETE privilege on cases, tasks, and investigations to authenticated
--- and adds dedicated RLS DELETE policies.
--- Ensures that deleting a case cascades or permits deleting associated tasks,
--- and allows clinicians to delete/cancel diagnostic investigations.
+-- Grants DELETE privilege on cases, tasks, investigations, and all associated
+-- case records to authenticated, and adds dedicated RLS DELETE policies.
+-- Ensures that deleting a case cascades or permits deleting all associated records
+-- (tasks, findings, investigations, safety issues, decisions, timeline events, documents)
+-- across all sections of the application.
 -- ============================================================
 
 -- 1. Grant table-level DELETE permissions to authenticated
@@ -11,6 +12,13 @@ grant delete on public.cases to authenticated;
 grant delete on public.tasks to authenticated;
 grant delete on public.investigations to authenticated;
 grant delete on public.investigation_results to authenticated;
+grant delete on public.clinical_findings to authenticated;
+grant delete on public.safety_concerns to authenticated;
+grant delete on public.decisions to authenticated;
+grant delete on public.reviews to authenticated;
+grant delete on public.timeline_events to authenticated;
+grant delete on public.clinical_documents to authenticated;
+grant delete on public.fhir_export_bundles to authenticated;
 
 -- 2. Register 'investigation.delete' permission if not existing
 insert into public.permissions (code, description)
@@ -56,6 +64,50 @@ create policy "authorized_users_delete_investigations"
   on public.investigations for delete to authenticated
   using (
     requested_by = auth.uid() or
+    case_id in (
+      select id from public.cases
+      where public.is_case_member(id) or public.is_org_member(organization_id)
+    )
+  );
+
+-- 7. RLS DELETE Policy on public.clinical_findings
+drop policy if exists "authorized_users_delete_findings" on public.clinical_findings;
+create policy "authorized_users_delete_findings"
+  on public.clinical_findings for delete to authenticated
+  using (
+    case_id in (
+      select id from public.cases
+      where public.is_case_member(id) or public.is_org_member(organization_id)
+    )
+  );
+
+-- 8. RLS DELETE Policy on public.safety_concerns
+drop policy if exists "authorized_users_delete_safety_concerns" on public.safety_concerns;
+create policy "authorized_users_delete_safety_concerns"
+  on public.safety_concerns for delete to authenticated
+  using (
+    case_id in (
+      select id from public.cases
+      where public.is_case_member(id) or public.is_org_member(organization_id)
+    )
+  );
+
+-- 9. RLS DELETE Policy on public.decisions
+drop policy if exists "authorized_users_delete_decisions" on public.decisions;
+create policy "authorized_users_delete_decisions"
+  on public.decisions for delete to authenticated
+  using (
+    case_id in (
+      select id from public.cases
+      where public.is_case_member(id) or public.is_org_member(organization_id)
+    )
+  );
+
+-- 10. RLS DELETE Policy on public.timeline_events
+drop policy if exists "authorized_users_delete_timeline_events" on public.timeline_events;
+create policy "authorized_users_delete_timeline_events"
+  on public.timeline_events for delete to authenticated
+  using (
     case_id in (
       select id from public.cases
       where public.is_case_member(id) or public.is_org_member(organization_id)

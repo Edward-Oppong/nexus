@@ -887,5 +887,58 @@ export const MOCK_CASES_LIST: CaseOverview[] = [
   },
 ];
 
-export const EMPTY_CASE: FullSyntheticCase = SYNTHETIC_CASE_10482;
+export const EMPTY_CASE: FullSyntheticCase = {
+  overview: {
+    id: '',
+    patient: {
+      id: '',
+      syntheticIdentifier: 'No Active Patient',
+      age: 0,
+      gender: 'Other',
+      encounterNumber: 'N/A',
+      encounterType: 'None',
+      encounterDate: '',
+      allergiesCount: 0,
+      activeMedicationsCount: 0,
+      allergies: [],
+      medications: [],
+    },
+    state: 'CLOSED',
+    priority: 'normal',
+    assignedClinician: 'Unassigned',
+    assignedTeam: [],
+    lastUpdate: 'None',
+    safetyIssueCount: 0,
+    gapsCount: 0,
+    hypothesesCount: 0,
+  },
+  chiefComplaint: '',
+  historyOfPresentIllness: '',
+  vitalSigns: [],
+  pastMedicalHistory: [],
+  findings: [],
+  hypotheses: [],
+  uncertainty: {
+    overallLevel: 'LOW',
+    keyDrivers: [],
+    suggestedActions: [],
+  },
+  informationGaps: [],
+  investigations: [],
+  timeline: [],
+  safetyIssues: [],
+  clinicalDecision: {
+    id: '',
+    caseId: '',
+    decisionType: 'CLINICAL_ASSESSMENT',
+    summary: '',
+    rationale: '',
+    recordedBy: '',
+    recordedAt: '',
+    status: 'ACTIVE',
+    legalDisclaimerAcknowledged: true,
+  },
+  nexusAssessment: undefined,
+};
+
 

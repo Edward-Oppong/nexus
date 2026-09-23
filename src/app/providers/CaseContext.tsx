@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useMemo, useEf
 import { createPatientCase } from '../../features/cases/services/create-patient-case';
 import { CaseIntakeDraft } from '../../features/cases/types/intake';
 import { runCaseAnalysis } from '../../features/cases/services/case-analysis';
-import { FullSyntheticCase, SYNTHETIC_CASE_10482, MOCK_CASES_LIST, MOCK_FULL_CASES_REGISTRY } from '../../data/cases/mockCasesData';
+import { FullSyntheticCase, SYNTHETIC_CASE_10482, MOCK_CASES_LIST, MOCK_FULL_CASES_REGISTRY, EMPTY_CASE } from '../../data/cases/mockCasesData';
 import { useAuth, DEMO_ORGANIZATIONS } from '../../features/authentication/AuthProvider';
 import {
   INITIAL_SAFETY_CONCERNS,
@@ -159,7 +159,6 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { profile, user, activeOrganization } = useAuth();
   const [activeView, setActiveView] = useState<MainView>('case-workspace');
   const [activeCaseSubTab, setActiveCaseSubTab] = useState<CaseSubTab>('reasoning');
-  const [activeCase, setActiveCase] = useState<FullSyntheticCase>(SYNTHETIC_CASE_10482);
   const [casesList, setCasesList] = useState<CaseOverview[]>(() => {
     try {
       const deletedIds: string[] = JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
@@ -171,28 +170,84 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   });
 
+  const [activeCase, setActiveCase] = useState<FullSyntheticCase>(() => {
+    try {
+      const deletedIds: string[] = JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
+      if (!deletedIds.includes(SYNTHETIC_CASE_10482.overview.id)) {
+        return SYNTHETIC_CASE_10482;
+      }
+      const available = MOCK_CASES_LIST.find((c) => !deletedIds.includes(c.id));
+      if (available && MOCK_FULL_CASES_REGISTRY[available.id]) {
+        return MOCK_FULL_CASES_REGISTRY[available.id];
+      }
+      return EMPTY_CASE;
+    } catch {
+      return SYNTHETIC_CASE_10482;
+    }
+  });
+
   // Derive the logged-in user's display name and UUID for audit events
   const activeUserDisplayName = profile?.fullName || user?.user_metadata?.full_name || (user?.email ? user.email.split('@')[0] : 'Clinician');
   const activeUserId = profile?.id || user?.id || 'd0000001-0000-0000-0000-000000000001';
 
   // Phase 6F: Nexus Assessment
-  const [nexusAssessment, setNexusAssessment] = useState<NexusAssessment | null>(
-    SYNTHETIC_CASE_10482.nexusAssessment ?? null
-  );
+  const [nexusAssessment, setNexusAssessment] = useState<NexusAssessment | null>(() => {
+    try {
+      const deletedIds: string[] = JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
+      if (deletedIds.includes(SYNTHETIC_CASE_10482.overview.id)) {
+        const available = MOCK_CASES_LIST.find((c) => !deletedIds.includes(c.id));
+        if (available && MOCK_FULL_CASES_REGISTRY[available.id]) {
+          return MOCK_FULL_CASES_REGISTRY[available.id].nexusAssessment ?? null;
+        }
+        return null;
+      }
+      return SYNTHETIC_CASE_10482.nexusAssessment ?? null;
+    } catch {
+      return SYNTHETIC_CASE_10482.nexusAssessment ?? null;
+    }
+  });
   const [isRunningAnalysis, setIsRunningAnalysis] = useState(false);
   const [analysisStage, setAnalysisStage] = useState<AnalysisStageInfo | null>(null);
 
   // Phase 6G: Safety Concerns
-  const [safetyConcerns, setSafetyConcerns] = useState<SafetyConcern[]>(INITIAL_SAFETY_CONCERNS);
+  const [safetyConcerns, setSafetyConcerns] = useState<SafetyConcern[]>(() => {
+    try {
+      const deletedIds: string[] = JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
+      return INITIAL_SAFETY_CONCERNS.filter((s) => !deletedIds.includes(s.caseId));
+    } catch {
+      return INITIAL_SAFETY_CONCERNS;
+    }
+  });
 
   // Phase 6G: Review Queue
-  const [reviewQueue, setReviewQueue] = useState<ReviewItem[]>(INITIAL_REVIEW_QUEUE);
+  const [reviewQueue, setReviewQueue] = useState<ReviewItem[]>(() => {
+    try {
+      const deletedIds: string[] = JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
+      return INITIAL_REVIEW_QUEUE.filter((r) => !deletedIds.includes(r.caseId));
+    } catch {
+      return INITIAL_REVIEW_QUEUE;
+    }
+  });
 
   // Phase 6G: Decisions
-  const [decisions, setDecisions] = useState<Decision[]>(INITIAL_DECISIONS);
+  const [decisions, setDecisions] = useState<Decision[]>(() => {
+    try {
+      const deletedIds: string[] = JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
+      return INITIAL_DECISIONS.filter((d) => !deletedIds.includes(d.caseId));
+    } catch {
+      return INITIAL_DECISIONS;
+    }
+  });
 
   // Phase 6G: Tasks
-  const [tasks, setTasks] = useState<ClinicalTask[]>(INITIAL_TASKS);
+  const [tasks, setTasks] = useState<ClinicalTask[]>(() => {
+    try {
+      const deletedIds: string[] = JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
+      return INITIAL_TASKS.filter((t) => !deletedIds.includes(t.caseId));
+    } catch {
+      return INITIAL_TASKS;
+    }
+  });
 
   const activeDecision = useMemo(() => {
     return decisions.find((d) => d.caseId === activeCase.overview.id && d.status === 'ACTIVE') || null;
@@ -654,7 +709,8 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (remaining.length > 0) {
           openCaseById(remaining[0].id);
         } else {
-          setActiveCase(SYNTHETIC_CASE_10482);
+          setActiveCase(EMPTY_CASE);
+          setNexusAssessment(null);
         }
         setActiveView('cases');
       }

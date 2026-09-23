@@ -176,6 +176,13 @@ export class OfflineSyncEngine {
     this.notifyListeners();
   }
 
+  public purgeCase(caseId: string) {
+    const queue = this.getQueuedMutations().filter((m) => m.caseId !== caseId);
+    localStorage.setItem(OFFLINE_OUTBOX_STORAGE_KEY, JSON.stringify(queue));
+    this.currentStatus.pendingMutationCount = queue.length;
+    this.notifyListeners();
+  }
+
   public getStats(): OfflineSyncStats {
     const queue = this.getQueuedMutations();
     const rawOutbox = localStorage.getItem(OFFLINE_OUTBOX_STORAGE_KEY) || '';

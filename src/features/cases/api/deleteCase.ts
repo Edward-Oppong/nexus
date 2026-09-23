@@ -7,6 +7,7 @@
 // ============================================================
 
 import { supabase, isSupabaseConfigured } from '../../../lib/supabase/client';
+import { offlineSyncEngine } from '../../../lib/interoperability/advanced/offline-sync-engine';
 
 export interface DeleteCaseResult {
   success: boolean;
@@ -27,6 +28,13 @@ export async function deleteCase(
     console.warn('Failed to update localStorage for deleted case:', storageErr);
   }
 
+  // Purge any offline queued mutations for this case
+  try {
+    offlineSyncEngine.purgeCase(caseId);
+  } catch (offlineErr) {
+    console.warn('[deleteCase] Failed to purge offline mutations for case:', offlineErr);
+  }
+
   if (!isSupabaseConfigured) {
     return { success: true, error: null };
   }
@@ -35,11 +43,28 @@ export async function deleteCase(
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(caseId);
 
     if (isUuid) {
-      // 1. Explicitly delete associated tasks and investigations for this case
-      await supabase.from('tasks').delete().eq('case_id', caseId);
-      await supabase.from('investigations').delete().eq('case_id', caseId);
+      // 1. Explicitly purge all associated records across all clinical sections
+      await Promise.allSettled([
+        supabase.from('tasks').delete().eq('case_id', caseId),
+        supabase.from('investigations').delete().eq('case_id', caseId),
+        supabase.from('clinical_findings').delete().eq('case_id', caseId),
+        supabase.from('safety_concerns').delete().eq('case_id', caseId),
+        supabase.from('decisions').delete().eq('case_id', caseId),
+        supabase.from('reviews').delete().eq('case_id', caseId),
+        supabase.from('timeline_events').delete().eq('case_id', caseId),
+        supabase.from('clinical_documents').delete().eq('case_id', caseId),
+        supabase.from('fhir_export_bundles').delete().eq('case_id', caseId),
+        supabase.from('active_collaborative_sessions').delete().eq('case_id', caseId),
+        supabase.from('cda_imported_documents').delete().eq('case_id', caseId),
+        supabase.from('clinical_rule_executions').delete().eq('case_id', caseId),
+        supabase.from('patient_dosing_calculations').delete().eq('case_id', caseId),
+        supabase.from('offline_sync_outbox').delete().eq('case_id', caseId),
+        supabase.from('ab_comparison_sessions').delete().eq('case_id', caseId),
+        supabase.from('human_feedback_records').delete().eq('case_id', caseId),
+        supabase.from('hypothesis_explainability_cache').delete().eq('case_id', caseId),
+      ]);
 
-      // 2. Attempt hard-delete of the case
+      // 2. Attempt hard-delete of the case row
       const { error: deleteError } = await supabase
         .from('cases')
         .delete()

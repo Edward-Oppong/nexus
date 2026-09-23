@@ -15,9 +15,19 @@ import { InvestigationOrder, InvestigationStatus } from '../../../domain/investi
 import { TimelineEvent } from '../../../domain/timeline';
 
 export async function getCaseDetail(caseId: string): Promise<FullSyntheticCase> {
+  // Check if case was deleted
+  try {
+    const deletedIds: string[] = JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
+    if (deletedIds.includes(caseId)) {
+      return EMPTY_CASE;
+    }
+  } catch {
+    // ignore
+  }
+
   // If Supabase is not configured, return full synthetic case from registry
   if (!isSupabaseConfigured) {
-    return MOCK_FULL_CASES_REGISTRY[caseId] || SYNTHETIC_CASE_10482 || EMPTY_CASE;
+    return MOCK_FULL_CASES_REGISTRY[caseId] || EMPTY_CASE;
   }
 
   try {
@@ -36,7 +46,7 @@ export async function getCaseDetail(caseId: string): Promise<FullSyntheticCase> 
 
     if (caseErr || !caseRows || caseRows.length === 0) {
       console.warn(`[getCaseDetail] Supabase case query failed for ${caseId}, trying mock fallback:`, caseErr?.message);
-      return MOCK_FULL_CASES_REGISTRY[caseId] || SYNTHETIC_CASE_10482 || EMPTY_CASE;
+      return MOCK_FULL_CASES_REGISTRY[caseId] || EMPTY_CASE;
     }
 
     const caseRow = caseRows[0];
