@@ -14,7 +14,7 @@
 import { FullSyntheticCase } from '../../../data/cases/mockCasesData';
 import { NexusAssessment } from '../../../domain/nexus-assessment';
 import { runDeterministicSafetyChecks } from './deterministic-safety';
-import { evaluateCriteria } from './criteria-engine';
+import { evaluateCriteria, evaluateOptimalCriteria } from './criteria-engine';
 import { runNexusAnalysis } from '../../../lib/intelligence/reasoning-orchestrator';
 import { getDefaultReasoningProvider } from '../../../lib/intelligence/reasoning-provider';
 import { CaseIntakeDraft } from '../types/intake';
@@ -101,13 +101,13 @@ export async function runCaseAnalysis(
       physicalExamNotes: '',
     };
 
-    const dukeEval = evaluateCriteria('CRITERIA: DUKE-2023', {
+    const criteriaEval = evaluateOptimalCriteria({
       presentation: presentationProxy,
       observations: obsProxy,
     });
 
-    if (dukeEval) {
-      criteriaEvaluated.push(dukeEval.criteriaName);
+    if (criteriaEval && criteriaEval.overallStatus !== 'REJECTED') {
+      criteriaEvaluated.push(criteriaEval.criteriaName);
     }
 
     // ── Phase 3: Deterministic safety rule evaluation ─────────────────────
@@ -277,7 +277,7 @@ export function runDraftSafetyPreview(draft: CaseIntakeDraft): {
     observations: draft.observations,
   });
 
-  const criteriaEval = evaluateCriteria('CRITERIA: DUKE-2023', {
+  const criteriaEval = evaluateOptimalCriteria({
     presentation: draft.presentation,
     observations: draft.observations,
   });

@@ -56,12 +56,6 @@ export const GlobalNav: React.FC = () => {
       count: pendingReviewCount,
       isUrgentAlert: true,
     },
-    {
-      id: 'investigations',
-      label: 'Investigations',
-      icon: <FlaskConical size={17} />,
-      count: activeCase.investigations.filter((i) => i.status !== 'Result available').length,
-    },
     { id: 'tasks', label: 'Tasks', icon: <CheckSquare size={17} />, count: openTasksCount },
   ];
 
@@ -73,8 +67,6 @@ export const GlobalNav: React.FC = () => {
 
   // Group 3: Governance & Operations
   const governanceGroup: NavItemConfig[] = [
-    { id: 'ai-governance', label: 'AI Governance', icon: <BrainCircuit size={17} /> },
-    { id: 'regulatory-compliance', label: 'Compliance', icon: <ShieldCheck size={17} /> },
     { id: 'administration', label: 'Administration', icon: <Sliders size={17} /> },
   ];
 

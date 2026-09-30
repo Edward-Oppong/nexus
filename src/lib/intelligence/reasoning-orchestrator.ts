@@ -69,11 +69,11 @@ export async function runNexusAnalysis(
   options.onStageProgress?.({
     stageIndex: 2,
     totalStages: 4,
-    stageName: 'MedCPT Dense Semantic Retrieval',
-    detail: 'Embedding query tokens and cross-encoder reranking against clinical guidelines...',
+    stageName: 'MedCPT & PubMed Live Evidence Retrieval',
+    detail: 'Retrieving guideline benchmarks and querying live PubMed/Europe PMC biomedical literature...',
   });
   await sleep(400);
-  const evidenceMap = retrieveEvidenceForCase(
+  const evidenceMap = await retrieveEvidenceForCase(
     activeCase.overview.id,
     activeCase.hypotheses.map((h) => ({ id: h.id, title: h.title }))
   );
@@ -163,16 +163,64 @@ export async function runNexusAnalysis(
   }
 
   // ── Step 8: Build NexusAssessment ────────────────────────
-  const nexusFindings: NexusFinding[] = rawOutput.hypotheses.map((h, idx) => ({
-    id: `nf-${assessmentId}-${idx}`,
-    assessmentId,
-    findingType: 'SUPPORT' as const,
-    content: `${h.label}: ${h.rationale}`,
-    status: 'UNREVIEWED' as const,
-    findingIds: [...h.supportingFindingIds, ...h.contradictingFindingIds].filter((id) => contextFindingIds.has(id)),
-    evidenceSourceIds: h.evidenceSourceIds.filter((id) => contextEvidenceIds.has(id)),
-    createdAt: now,
-  }));
+  // Each hypothesis → one SUPPORT nexus finding
+  // Each contradiction → one CONTRADICTION nexus finding
+  // Information gaps → MISSING_INFORMATION findings
+  const nexusFindings: NexusFinding[] = [];
+  let findingSeq = 0;
+
+  // Hypothesis findings
+  for (const h of rawOutput.hypotheses) {
+    const supportIds = h.supportingFindingIds.filter((id) => contextFindingIds.has(id));
+    const contradictIds = h.contradictingFindingIds.filter((id) => contextFindingIds.has(id));
+    const evIds = h.evidenceSourceIds.filter((id) => contextEvidenceIds.has(id));
+
+    nexusFindings.push({
+      id: `nf-${assessmentId}-hyp-${findingSeq++}`,
+      assessmentId,
+      findingType: 'SUPPORT',
+      content: `${h.label}: ${h.rationale}`,
+      status: 'UNREVIEWED',
+      findingIds: [...supportIds, ...contradictIds],
+      evidenceSourceIds: evIds,
+      createdAt: now,
+    });
+  }
+
+  // Contradiction findings (AI-detected)
+  for (const c of rawOutput.contradictions) {
+    const aGrounded = contextFindingIds.has(c.findingAId);
+    const bGrounded = contextFindingIds.has(c.findingBId);
+    nexusFindings.push({
+      id: `nf-${assessmentId}-contra-${findingSeq++}`,
+      assessmentId,
+      findingType: 'CONTRADICTION',
+      content: c.explanation,
+      status: 'UNREVIEWED',
+      findingIds: [
+        ...(aGrounded ? [c.findingAId] : []),
+        ...(bGrounded ? [c.findingBId] : []),
+      ],
+      evidenceSourceIds: [],
+      createdAt: now,
+    });
+  }
+
+  // Missing information findings (top 3 across all hypotheses)
+  const allMissing = rawOutput.hypotheses.flatMap((h) => h.missingInformation);
+  const uniqueMissing = [...new Set(allMissing)].slice(0, 3);
+  for (const gap of uniqueMissing) {
+    nexusFindings.push({
+      id: `nf-${assessmentId}-gap-${findingSeq++}`,
+      assessmentId,
+      findingType: 'MISSING_INFORMATION',
+      content: gap,
+      status: 'UNREVIEWED',
+      findingIds: [],
+      evidenceSourceIds: [],
+      createdAt: now,
+    });
+  }
 
   const contradictions: DetectedContradiction[] = [
     // From deterministic quality layer
@@ -193,27 +241,59 @@ export async function runNexusAnalysis(
         explanation: c.explanation,
         severity: 'LOW' as const,
       })),
+    // Ungrounded contradictions (IDs not in context — keep explanation only)
+    ...rawOutput.contradictions
+      .filter((c) => !contextFindingIds.has(c.findingAId) || !contextFindingIds.has(c.findingBId))
+      .map((c, i) => ({
+        id: `ai-contra-ungrounded-${i}`,
+        findingAId: 'ungrounded',
+        findingBId: 'ungrounded',
+        explanation: c.explanation,
+        severity: 'LOW' as const,
+      })),
   ];
 
   const recommendations: NexusRecommendation[] = [
-    ...(qualityResult.unverifiedAIFindings.length > 0 ? [{
-      id: `rec-${assessmentId}-0`,
-      assessmentId,
-      category: 'REVIEW' as const,
-      content: `${qualityResult.unverifiedAIFindings.length} AI-extracted finding(s) require clinician verification before they can contribute to reasoning.`,
-      rationale: 'Unverified AI output must not be treated as clinical fact.',
-      status: 'PROPOSED' as const,
-      createdAt: now,
-    }] : []),
-    ...(qualityResult.pendingInvestigations.length > 0 ? [{
-      id: `rec-${assessmentId}-1`,
-      assessmentId,
-      category: 'INFORMATION' as const,
-      content: `${qualityResult.pendingInvestigations.length} investigation(s) are pending. Reassessment is recommended when results are available.`,
-      rationale: 'Pending results may materially change the clinical picture.',
-      status: 'PROPOSED' as const,
-      createdAt: now,
-    }] : []),
+    ...(qualityResult.unverifiedAIFindings.length > 0
+      ? [
+          {
+            id: `rec-${assessmentId}-0`,
+            assessmentId,
+            category: 'REVIEW' as const,
+            content: `${qualityResult.unverifiedAIFindings.length} AI-extracted finding(s) require clinician verification before they can contribute to reasoning.`,
+            rationale: 'Unverified AI output must not be treated as clinical fact.',
+            status: 'PROPOSED' as const,
+            createdAt: now,
+          },
+        ]
+      : []),
+    ...(qualityResult.pendingInvestigations.length > 0
+      ? [
+          {
+            id: `rec-${assessmentId}-1`,
+            assessmentId,
+            category: 'INFORMATION' as const,
+            content: `${qualityResult.pendingInvestigations.length} investigation(s) are pending. Reassess when results are available.`,
+            rationale: 'Pending results may materially change the clinical picture.',
+            status: 'PROPOSED' as const,
+            createdAt: now,
+          },
+        ]
+      : []),
+    // Add investigation recommendations from hypotheses' missingInformation
+    ...rawOutput.hypotheses
+      .flatMap((h) => h.missingInformation)
+      .filter((m, i, arr) => arr.indexOf(m) === i)
+      .slice(0, 4)
+      .map((m, i) => ({
+        id: `rec-${assessmentId}-inv-${i}`,
+        assessmentId,
+        category: 'INVESTIGATION' as const,
+        content: m,
+        rationale: 'Identified as essential missing data for hypothesis confirmation.',
+        status: 'PROPOSED' as const,
+        createdAt: now,
+      })),
   ];
 
   return {

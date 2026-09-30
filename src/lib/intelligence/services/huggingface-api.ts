@@ -82,7 +82,10 @@ class HuggingFaceClient {
    * Resolve the Inference Providers router URL for a given model.
    * Models hosted on HF serverless inference router run through hf-inference.
    */
-  private getProviderUrl(modelId: string): string {
+  private getProviderUrl(modelId: string, useClassicFallback = false): string {
+    if (useClassicFallback) {
+      return `https://api-inference.huggingface.co/models/${modelId}`;
+    }
     return `https://router.huggingface.co/hf-inference/models/${modelId}`;
   }
 
@@ -94,8 +97,6 @@ class HuggingFaceClient {
     const token = this.getToken();
     const startTime = performance.now();
 
-    const url = this.getProviderUrl(modelId);
-
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
@@ -104,67 +105,85 @@ class HuggingFaceClient {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
+    if (options.waitForModel !== false) {
+      headers['x-wait-for-model'] = 'true';
+    }
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 30000);
 
-    try {
-      if (options.waitForModel !== false) {
-        headers['x-wait-for-model'] = 'true';
-      }
+    const endpoints = [
+      this.getProviderUrl(modelId, false),
+      this.getProviderUrl(modelId, true),
+    ];
 
-      const res = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      });
+    let lastError: any = null;
 
-      clearTimeout(timeout);
-      const latencyMs = Math.round(performance.now() - startTime);
+    for (let i = 0; i < endpoints.length; i++) {
+      const url = endpoints[i];
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        let parsed: any;
-        try {
-          parsed = JSON.parse(errorText);
-        } catch {
-          parsed = { error: errorText };
-        }
+        const latencyMs = Math.round(performance.now() - startTime);
 
-        if (res.status === 503 && parsed.estimated_time) {
+        if (!res.ok) {
+          const errorText = await res.text();
+          let parsed: any;
+          try {
+            parsed = JSON.parse(errorText);
+          } catch {
+            parsed = { error: errorText };
+          }
+
+          // If 404 or 422 on the router, try the classic endpoint before failing
+          if ((res.status === 404 || res.status === 422 || res.status === 502) && i === 0) {
+            console.info(`[HuggingFaceClient] Model ${modelId} router attempt ${i + 1} returned ${res.status}, trying fallback endpoint...`);
+            continue;
+          }
+
+          if (res.status === 503 && parsed.estimated_time) {
+            clearTimeout(timeout);
+            throw new Error(
+              `Model ${modelId} is warming up (estimated ~${Math.round(
+                parsed.estimated_time
+              )}s). Please retry in a few moments.`
+            );
+          }
+
+          if (res.status === 401 || res.status === 403) {
+            clearTimeout(timeout);
+            throw new Error(
+              `Hugging Face authentication failed for ${modelId}. Please check your HF API token in the Test Console.`
+            );
+          }
+
           throw new Error(
-            `Model ${modelId} is warming up (estimated ~${Math.round(
-              parsed.estimated_time
-            )}s). Please retry in a few moments.`
+            parsed.error || `Hugging Face API returned HTTP ${res.status}: ${res.statusText}`
           );
         }
 
-        if (res.status === 401 || res.status === 403) {
-          throw new Error(
-            `Hugging Face authentication failed for ${modelId}. Please check your HF API token in the Test Console.`
-          );
+        clearTimeout(timeout);
+        const data = await res.json();
+        return { data, latencyMs };
+      } catch (err: any) {
+        lastError = err;
+        if (err.name === 'AbortError') {
+          clearTimeout(timeout);
+          throw new Error(`Inference request to ${modelId} timed out after 30s.`);
         }
-
-        if (res.status === 422 || (parsed.error && String(parsed.error).includes('not supported by provider'))) {
-          throw new Error(
-            `Model ${modelId} is not available on the Inference Providers API. It may require a custom deployment.`
-          );
+        if (i < endpoints.length - 1) {
+          continue;
         }
-
-        throw new Error(
-          parsed.error || `Hugging Face API returned HTTP ${res.status}: ${res.statusText}`
-        );
       }
-
-      const data = await res.json();
-      return { data, latencyMs };
-    } catch (err: any) {
-      clearTimeout(timeout);
-      if (err.name === 'AbortError') {
-        throw new Error(`Inference request to ${modelId} timed out after 30s.`);
-      }
-      throw err;
     }
+
+    clearTimeout(timeout);
+    throw lastError || new Error(`Inference failed for ${modelId}`);
   }
 
   // ----------------------------------------------------------

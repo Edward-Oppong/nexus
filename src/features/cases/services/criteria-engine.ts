@@ -161,12 +161,12 @@ export const ModifiedDukeEvaluator: ClinicalCriteriaEvaluator = {
     if (majorMetCount >= 2 || (majorMetCount === 1 && minorMetCount >= 3) || minorMetCount >= 5) {
       overallStatus = 'DEFINITE';
       summarySentence = `Definite Infective Endocarditis (${majorMetCount} Major, ${minorMetCount} Minor criteria met).`;
-    } else if (majorMetCount === 1 || minorMetCount >= 1) {
+    } else if ((majorMetCount === 1 && minorMetCount >= 1) || minorMetCount >= 3) {
       overallStatus = 'POSSIBLE';
       summarySentence = `Possible Infective Endocarditis (${majorMetCount} Major, ${minorMetCount} Minor criteria met). Further diagnostic workup indicated.`;
     } else {
       overallStatus = 'REJECTED';
-      summarySentence = 'Insufficient criteria met for Infective Endocarditis at this evaluation.';
+      summarySentence = `Insufficient criteria met for Infective Endocarditis (${majorMetCount} Major, ${minorMetCount} Minor criteria met; does not meet Duke criteria).`;
     }
 
     return {
@@ -184,16 +184,265 @@ export const ModifiedDukeEvaluator: ClinicalCriteriaEvaluator = {
   },
 };
 
+// ── 2. Community-Acquired Pneumonia (CAP) Criteria ──────────
+export const CommunityAcquiredPneumoniaEvaluator: ClinicalCriteriaEvaluator = {
+  criteriaId: 'CRITERIA: CAP-2024',
+  name: 'BTS / IDSA Diagnostic Criteria for Community-Acquired Pneumonia',
+  version: '2024.1',
+  evaluate: ({ presentation, observations }) => {
+    const inputsUsed: string[] = [];
+    const inputsMissing: string[] = [];
+    const items: CriteriaItemResult[] = [];
+
+    const textAll = `${presentation.title || ''} ${presentation.historyOfPresentIllness || ''} ${presentation.pastMedicalHistory || ''} ${presentation.physicalExamNotes || ''}`.toLowerCase();
+
+    // Helper for negation checking within clinical text
+    const hasAffirmative = (str: string, kw: string): boolean => {
+      const lower = str.toLowerCase();
+      const kwLower = kw.toLowerCase();
+      let searchFrom = 0;
+      while (searchFrom < lower.length) {
+        const idx = lower.indexOf(kwLower, searchFrom);
+        if (idx === -1) return false;
+        const prefix = lower.slice(Math.max(0, idx - 30), idx);
+        const hasNeg = /\b(no|not|denies|denied|without|negative\s+for|absence\s+of|nil|clear\s+of|free\s+of)\s+([a-z0-9_\-\s]{0,20})$/i.test(prefix);
+        const postfix = lower.slice(idx + kwLower.length, Math.min(lower.length, idx + kwLower.length + 20));
+        const hasNegPost = /^(\s*[:=-]?\s*(none|absent|negative|nil|normal|unremarkable))\b/i.test(postfix);
+        if (!hasNeg && !hasNegPost) return true;
+        searchFrom = idx + kwLower.length;
+      }
+      return false;
+    };
+
+    // Major 1: Chest Imaging (Consolidation / Opacity / Infiltrate)
+    const imagingStudies = observations.filter((o) =>
+      o.display.toLowerCase().includes('x-ray') ||
+      o.display.toLowerCase().includes('cxr') ||
+      o.display.toLowerCase().includes('chest') ||
+      o.display.toLowerCase().includes('radiology') ||
+      o.display.toLowerCase().includes('ct')
+    );
+
+    const hasConsolidation =
+      imagingStudies.some((s) =>
+        hasAffirmative(s.value, 'consolidation') ||
+        hasAffirmative(s.value, 'air-space opacity') ||
+        hasAffirmative(s.value, 'infiltrate') ||
+        hasAffirmative(s.value, 'bronchogram')
+      ) ||
+      hasAffirmative(textAll, 'consolidation') ||
+      hasAffirmative(textAll, 'air-space opacity') ||
+      hasAffirmative(textAll, 'infiltrate');
+
+    if (imagingStudies.length > 0 || hasConsolidation) {
+      inputsUsed.push('Chest Imaging (CXR/CT)');
+      items.push({
+        code: 'CAP-MAJ-1',
+        name: 'Radiographic evidence of pulmonary consolidation / air-space opacity',
+        category: 'MAJOR',
+        status: hasConsolidation ? 'MET' : 'UNMET',
+        evidenceSummary: hasConsolidation
+          ? 'Confirmed focal air-space consolidation / opacity on chest imaging'
+          : 'Chest imaging clear / no focal consolidation',
+        sourceObservationIds: imagingStudies.map((s) => s.id),
+      });
+    } else {
+      inputsMissing.push('Chest X-ray / CT Thorax');
+      items.push({
+        code: 'CAP-MAJ-1',
+        name: 'Radiographic evidence of pulmonary consolidation',
+        category: 'MAJOR',
+        status: 'INSUFFICIENT_DATA',
+        evidenceSummary: 'Confirmatory chest radiography pending or not recorded',
+      });
+    }
+
+    // Major 2: Acute Lower Respiratory Symptoms (Cough, Sputum, Dyspnea)
+    const hasCoughOrSputum =
+      hasAffirmative(textAll, 'cough') ||
+      hasAffirmative(textAll, 'sputum') ||
+      hasAffirmative(textAll, 'purulent') ||
+      observations.some((o) => hasAffirmative(o.display, 'cough') || hasAffirmative(o.value, 'sputum'));
+
+    const hasDyspnea =
+      hasAffirmative(textAll, 'shortness of breath') ||
+      hasAffirmative(textAll, 'dyspnea') ||
+      hasAffirmative(textAll, 'dyspnoea') ||
+      hasAffirmative(textAll, 'breathless') ||
+      observations.some((o) => o.code.toLowerCase().includes('spo2') && parseFloat(o.value) < 95);
+
+    const hasAcuteRespSymptoms = hasCoughOrSputum && hasDyspnea;
+
+    items.push({
+      code: 'CAP-MAJ-2',
+      name: 'Acute lower respiratory tract symptoms (productive cough + dyspnea)',
+      category: 'MAJOR',
+      status: hasAcuteRespSymptoms ? 'MET' : hasCoughOrSputum || hasDyspnea ? 'MET' : 'UNMET',
+      evidenceSummary: hasAcuteRespSymptoms
+        ? 'Productive cough and progressive dyspnea present'
+        : hasCoughOrSputum
+        ? 'Cough / sputum present'
+        : 'No acute respiratory symptoms documented',
+    });
+
+    // Major 3: Focal Chest Examination Findings (Crackles, Dullness, Bronchial breathing)
+    const hasCrackles =
+      hasAffirmative(textAll, 'crackles') ||
+      hasAffirmative(textAll, 'crepitations') ||
+      hasAffirmative(textAll, 'bronchial breath') ||
+      hasAffirmative(textAll, 'dullness to percussion') ||
+      observations.some((o) => hasAffirmative(o.display, 'crackles') || hasAffirmative(o.value, 'crackles'));
+
+    items.push({
+      code: 'CAP-MAJ-3',
+      name: 'Focal chest physical exam signs (crackles, bronchial breathing, or dullness)',
+      category: 'MAJOR',
+      status: hasCrackles ? 'MET' : 'UNMET',
+      evidenceSummary: hasCrackles ? 'Focal auscultatory crackles / signs of consolidation present' : 'Chest auscultation clear or unremarkable',
+    });
+
+    // Minor 1: Systemic Pyrexia / Hypothermia
+    const hasFever =
+      observations.some((o) => o.code.toLowerCase().includes('temp') && (parseFloat(o.value) >= 38.0 || o.value.includes('38.') || o.value.includes('39.'))) ||
+      hasAffirmative(textAll, 'fever') ||
+      hasAffirmative(textAll, 'pyrexia') ||
+      hasAffirmative(textAll, 'febrile');
+
+    items.push({
+      code: 'CAP-MIN-1',
+      name: 'Fever ≥ 38.0°C or acute constitutional febrile illness',
+      category: 'MINOR',
+      status: hasFever ? 'MET' : 'UNMET',
+      evidenceSummary: hasFever ? 'Documented pyrexia ≥38.0°C' : 'Afebrile',
+    });
+
+    // Minor 2: Inflammatory Markers / Neutrophilic Leukocytosis
+    const wbcLab = observations.find((o) => o.display.toLowerCase().includes('wbc') || o.code.toLowerCase().includes('wbc') || o.display.toLowerCase().includes('white blood'));
+    const crpLab = observations.find((o) => o.display.toLowerCase().includes('crp') || o.code.toLowerCase().includes('crp') || o.display.toLowerCase().includes('c-reactive'));
+
+    const hasLeukocytosis =
+      (wbcLab && (parseFloat(wbcLab.value) > 11.0 || wbcLab.value.toLowerCase().includes('high') || wbcLab.interpretation === 'HIGH' || wbcLab.interpretation === 'CRITICAL')) ||
+      hasAffirmative(textAll, 'leukocytosis') ||
+      hasAffirmative(textAll, 'neutrophil');
+
+    const hasHighCrp =
+      (crpLab && (parseFloat(crpLab.value) > 10 || crpLab.value.toLowerCase().includes('elevated') || crpLab.interpretation === 'HIGH' || crpLab.interpretation === 'CRITICAL')) ||
+      hasAffirmative(textAll, 'elevated crp') ||
+      hasAffirmative(textAll, 'markedly elevated');
+
+    const hasInflammatory = hasLeukocytosis || hasHighCrp;
+
+    items.push({
+      code: 'CAP-MIN-2',
+      name: 'Neutrophilic leukocytosis or elevated inflammatory markers (CRP/ESR)',
+      category: 'MINOR',
+      status: hasInflammatory ? 'MET' : 'UNMET',
+      evidenceSummary: hasInflammatory ? 'Elevated WBC / neutrophils / CRP confirming acute systemic response' : 'Normal inflammatory markers',
+    });
+
+    // Minor 3: Acute Hypoxemia or Tachypnea
+    const spo2Obs = observations.find((o) => o.code.toLowerCase().includes('spo2') || o.display.toLowerCase().includes('spo2') || o.display.toLowerCase().includes('oxygen'));
+    const rrObs = observations.find((o) => o.code.toLowerCase().includes('rr') || o.display.toLowerCase().includes('respiratory rate'));
+
+    const hasHypoxemia =
+      (spo2Obs && (parseFloat(spo2Obs.value) < 92 || spo2Obs.interpretation === 'LOW' || spo2Obs.interpretation === 'CRITICAL')) ||
+      hasAffirmative(textAll, 'hypox') ||
+      hasAffirmative(textAll, '89%') ||
+      hasAffirmative(textAll, '90%') ||
+      hasAffirmative(textAll, '91%');
+
+    const hasTachypnea =
+      (rrObs && (parseFloat(rrObs.value) >= 24 || rrObs.interpretation === 'HIGH' || rrObs.interpretation === 'CRITICAL')) ||
+      hasAffirmative(textAll, 'tachypnea') ||
+      hasAffirmative(textAll, '28/min');
+
+    const hasGasExchangeImpairment = hasHypoxemia || hasTachypnea;
+
+    items.push({
+      code: 'CAP-MIN-3',
+      name: 'Gas exchange impairment (SpO₂ < 92% on air or RR ≥ 24/min)',
+      category: 'MINOR',
+      status: hasGasExchangeImpairment ? 'MET' : 'UNMET',
+      evidenceSummary: hasGasExchangeImpairment ? 'Documented hypoxemia / tachypnea indicating acute respiratory compromise' : 'Oxygenation and respiratory rate stable',
+    });
+
+    const majorMetCount = items.filter((i) => i.category === 'MAJOR' && i.status === 'MET').length;
+    const minorMetCount = items.filter((i) => i.category === 'MINOR' && i.status === 'MET').length;
+
+    let overallStatus: CriteriaEvaluation['overallStatus'] = 'REJECTED';
+    let summarySentence = '';
+
+    if (hasConsolidation && (hasCoughOrSputum || hasDyspnea || hasCrackles) && (hasFever || hasInflammatory)) {
+      overallStatus = 'DEFINITE';
+      summarySentence = `Confirmed Community-Acquired Pneumonia (CAP) with focal consolidation, acute respiratory symptoms, and inflammatory response (${majorMetCount} Major, ${minorMetCount} Minor criteria met).`;
+    } else if (hasCrackles && hasCoughOrSputum && (hasFever || hasInflammatory)) {
+      overallStatus = 'HIGH_PROBABILITY';
+      summarySentence = `High probability for Community-Acquired Pneumonia (${majorMetCount} Major, ${minorMetCount} Minor criteria met). Confirmatory chest imaging and microbial workup recommended.`;
+    } else {
+      overallStatus = 'REJECTED';
+      summarySentence = 'Insufficient clinical or radiological criteria for Community-Acquired Pneumonia.';
+    }
+
+    return {
+      criteriaId: 'CRITERIA: CAP-2024',
+      criteriaName: 'BTS / IDSA Diagnostic Criteria for Community-Acquired Pneumonia',
+      version: '2024.1',
+      evaluatedAt: new Date().toISOString(),
+      overallStatus,
+      summarySentence,
+      inputsUsed,
+      inputsMissing,
+      items,
+      governingGuideline: 'NICE Clinical Guideline CG191 / IDSA/ATS CAP Guidelines 2019',
+    };
+  },
+};
+
 // ── Criteria Registry ──────────────────────────────────────
 export const CLINICAL_CRITERIA_REGISTRY: Record<string, ClinicalCriteriaEvaluator> = {
+  'CRITERIA: CAP-2024': CommunityAcquiredPneumoniaEvaluator,
   'CRITERIA: DUKE-2023': ModifiedDukeEvaluator,
 };
 
-export function evaluateCriteria(criteriaId: string, context: {
-  presentation: IntakePresentationInput;
-  observations: IntakeObservationInput[];
-}): CriteriaEvaluation | null {
+export function evaluateCriteria(
+  criteriaId: string,
+  context: {
+    presentation: IntakePresentationInput;
+    observations: IntakeObservationInput[];
+  }
+): CriteriaEvaluation | null {
   const evaluator = CLINICAL_CRITERIA_REGISTRY[criteriaId];
   if (!evaluator) return null;
   return evaluator.evaluate(context);
 }
+
+/**
+ * Automatically evaluates all registered criteria and returns the highest-acuity /
+ * most relevant clinical criteria result for the case.
+ */
+export function evaluateOptimalCriteria(context: {
+  presentation: IntakePresentationInput;
+  observations: IntakeObservationInput[];
+}): CriteriaEvaluation | null {
+  const capEval = CommunityAcquiredPneumoniaEvaluator.evaluate(context);
+  const dukeEval = ModifiedDukeEvaluator.evaluate(context);
+
+  // If CAP meets DEFINITE or HIGH_PROBABILITY, it takes precedence for acute respiratory cases
+  if (capEval.overallStatus === 'DEFINITE' || capEval.overallStatus === 'HIGH_PROBABILITY') {
+    return capEval;
+  }
+
+  // If Duke meets DEFINITE or POSSIBLE (real Duke criteria: >= 1 Major + 1 Minor, or >= 3 Minor)
+  if (dukeEval.overallStatus === 'DEFINITE' || dukeEval.overallStatus === 'POSSIBLE') {
+    return dukeEval;
+  }
+
+  // If CAP has possible signals (e.g. respiratory symptoms, awaiting imaging)
+  if (capEval.overallStatus === 'POSSIBLE') {
+    return capEval;
+  }
+
+  // If no formal criteria guidelines are met, return null (do NOT force CAP or Duke)
+  return null;
+}
+

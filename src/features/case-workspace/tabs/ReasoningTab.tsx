@@ -561,47 +561,7 @@ export const ReasoningTab: React.FC = () => {
               <p style={{ fontSize: '12px', color: '#78350F', marginTop: '4px', maxWidth: '720px', lineHeight: 1.5 }}>
                 {informationGaps[0].whyItMatters}
               </p>
-            </div>
-
-            {currentPersona.allowedActions.canRequestInvestigations && (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
-                <button
-                  onClick={() => {
-                    requestInvestigation(
-                      informationGaps[0].testName || 'Transesophageal Echocardiography (TEE)',
-                      'Cardiovascular',
-                      'Urgent',
-                      'Urgent TEE to resolve infective endocarditis vegetation stigmata'
-                    );
-                    setOrderFeedback(`${informationGaps[0].testName || 'Investigation'} successfully requested and logged in case timeline.`);
-                    setTimeout(() => setOrderFeedback(null), 5000);
-                  }}
-                  className="btn btn-primary"
-                  style={{ background: '#92400E', borderColor: '#92400E' }}
-                >
-                  Request Investigation
-                </button>
-                {orderFeedback && (
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      fontSize: '11px',
-                      color: '#065F46',
-                      background: '#ECFDF5',
-                      border: '1px solid #A7F3D0',
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      fontWeight: 500,
-                    }}
-                  >
-                    <CheckCircle2 size={12} color="#059669" />
-                    {orderFeedback}
-                  </div>
-                )}
               </div>
-            )}
           </div>
         </section>
       )}

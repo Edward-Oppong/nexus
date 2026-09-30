@@ -103,10 +103,10 @@ export const SummaryTab: React.FC = () => {
               High-Priority Clinical Gaps
             </h3>
             <button
-              onClick={() => setActiveCaseSubTab('investigations')}
-              style={{ border: 'none', background: 'transparent', fontSize: '11px', color: '#2563EB', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}
+              onClick={() => setActiveCaseSubTab('clinical')}
+              style={{ border: 'none', background: 'transparent', fontSize: '11px', color: '#0F766E', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}
             >
-              View orders <ArrowRight size={11} />
+              View clinical data <ArrowRight size={11} />
             </button>
           </div>
 

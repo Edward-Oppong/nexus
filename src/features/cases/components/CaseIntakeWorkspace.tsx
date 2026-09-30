@@ -46,6 +46,10 @@ import {
   heuristicClinicalExtraction,
 } from '../../../lib/intelligence/services/pdf-extraction-service';
 import { DocumentReconstructionReview } from './DocumentReconstructionReview';
+import {
+  evaluateClinicalObservation,
+  inferCaseTriage,
+} from '../services/clinical-knowledge';
 
 
 const DRAFT_STORAGE_KEY = 'nexus_case_intake_draft_v3';
@@ -398,81 +402,6 @@ export const CaseIntakeWorkspace: React.FC = () => {
     setTimeout(() => setStatusMessage(null), 5000);
   };
 
-  const handleLoadSampleDocument = () => {
-    const sampleRawText = `PATIENT DISCHARGE & CLINICAL CONSULTATION SUMMARY
-Hospital ID: #NY-99412
-Date: 2026-09-17
-Encounter: Acute Cardiac & Renal Assessment
-
-ADMISSION DIAGNOSIS:
-Diagnosis: Non-ST-Elevation Myocardial Infarction with Acute Kidney Injury
-
-VITAL SIGNS:
-BP: 148/92 mmHg
-HR: 104 bpm
-SpO2: 93%
-RR: 22 breaths/min
-Temperature: 37.8 C
-
-LABORATORY INVESTIGATIONS:
-Hb: 10.8 g/dL
-WBC: 13.8 x10^9/L
-Platelets: 210 x10^9/L
-Serum Creatinine: 2.1 mg/dL
-Potassium: 5.4 mmol/L
-Troponin I: 1.85 ng/mL
-Blood Glucose: 165 mg/dL
-
-CURRENT MEDICATIONS:
-Aspirin 81 mg daily
-Atorvastatin 80 mg daily
-Lisinopril 10 mg daily (withhold due to AKI)
-Metoprolol 25 mg bid
-
-IMPRESSION:
-Impression: High-risk coronary syndrome with mild pulmonary congestion and early cardiorenal syndrome.`;
-
-    const canvas = window.document.createElement('canvas');
-    canvas.width = 620;
-    canvas.height = 760;
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, 620, 760);
-      ctx.fillStyle = '#0F766E';
-      ctx.fillRect(0, 0, 620, 60);
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 16px sans-serif';
-      ctx.fillText('NEXUS HEALTH SYSTEM - CLINICAL CONSULT & LAB REPORT', 20, 36);
-      ctx.fillStyle = '#0F172A';
-      ctx.font = '11px monospace';
-      const lines = sampleRawText.split('\n');
-      lines.slice(0, 32).forEach((l, i) => {
-        ctx.fillText(l, 20, 90 + i * 20);
-      });
-    }
-    const sampleImgUrl = canvas.toDataURL('image/png');
-
-    const sampleFindings = heuristicClinicalExtraction(sampleRawText, 'Discharge Summary & Lab Report');
-
-    const sampleDoc: IntakeDocumentInput = {
-      id: `sample-doc-${Date.now()}`,
-      title: 'Sample Discharge Summary & Lab Report',
-      category: 'Discharge Summary',
-      mimeType: 'image/png',
-      fileSize: 48200,
-      uploadedAt: new Date().toISOString(),
-      rawText: sampleRawText,
-      fileUrl: sampleImgUrl,
-      fileType: 'image',
-      pageCount: 1,
-      extractedFindings: sampleFindings,
-    };
-
-    setDraft((p) => ({ ...p, documents: [...p.documents, sampleDoc] }));
-    setStatusMessage({ type: 'success', text: 'Loaded sample clinical document with extracted findings!' });
-    setTimeout(() => setStatusMessage(null), 4000);
-  };
 
   useEffect(() => {
     try {
@@ -512,26 +441,33 @@ Impression: High-risk coronary syndrome with mild pulmonary congestion and early
     observations: draft.observations,
   });
 
+  // Automated Case Triage & Department Routing
+  useEffect(() => {
+    const inferred = inferCaseTriage(draft.presentation, draft.observations);
+    if (
+      draft.encounter.priority !== inferred.priority ||
+      draft.encounter.department !== inferred.department
+    ) {
+      setDraft((prev) => ({
+        ...prev,
+        encounter: {
+          ...prev.encounter,
+          priority: inferred.priority,
+          department: inferred.department,
+        },
+      }));
+    }
+  }, [
+    draft.presentation.title,
+    draft.presentation.historyOfPresentIllness,
+    draft.observations,
+  ]);
+
   // Step Navigators
   const goToStep = (step: number) => {
     setDraft((prev) => ({ ...prev, currentStep: step }));
   };
 
-  const loadTemplate = (templateData: any) => {
-    setDraft((prev) => ({
-      ...prev,
-      patient: { ...prev.patient, ...templateData.patient },
-      encounter: { ...prev.encounter, ...templateData.encounter },
-      presentation: { ...prev.presentation, ...templateData.presentation },
-      observations: templateData.observations || [],
-      medications: templateData.medications || [],
-      allergies: templateData.allergies || [],
-      documents: templateData.documents || [],
-      currentStep: 2,
-    }));
-    setStatusMessage({ type: 'success', text: `Loaded template: ${templateData.presentation.title}` });
-    setTimeout(() => setStatusMessage(null), 3000);
-  };
 
   const handleClearDraft = () => {
     if (window.confirm('Clear current intake draft and start with a blank case?')) {
@@ -584,7 +520,8 @@ Impression: High-risk coronary syndrome with mild pulmonary congestion and early
       style={{
         flex: 1,
         backgroundColor: '#F8FAFC',
-        minHeight: '100%',
+        height: '100%',
+        overflowY: 'auto',
         display: 'flex',
         flexDirection: 'column',
       }}
@@ -641,53 +578,26 @@ Impression: High-risk coronary syndrome with mild pulmonary congestion and early
           </p>
         </div>
 
-        {/* Header Actions: Templates & Draft controls */}
+        {/* Header Actions: Reset Draft */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {/* Demo Template Quick Dropdown */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>Load Demo Template:</span>
-            {DEMO_TEMPLATES.map((tmpl) => (
-              <button
-                key={tmpl.id}
-                onClick={() => loadTemplate(tmpl.data)}
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  backgroundColor: '#FFFFFF',
-                  color: '#0F766E',
-                  border: '1px solid #99F6E4',
-                  padding: '5px 10px',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}
-              >
-                <Sparkles size={12} />
-                <span>{tmpl.name}</span>
-              </button>
-            ))}
-          </div>
-
           <button
             onClick={handleClearDraft}
             title="Reset form"
             style={{
               background: 'none',
               border: '1px solid #E2E8F0',
-              padding: '5px 8px',
+              padding: '6px 12px',
               borderRadius: '6px',
               color: '#64748B',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '4px',
+              gap: '6px',
               fontSize: '12px',
             }}
           >
             <RotateCcw size={13} />
-            <span>Clear</span>
+            <span>Reset Draft</span>
           </button>
         </div>
       </header>
@@ -879,31 +789,12 @@ Impression: High-risk coronary syndrome with mild pulmonary congestion and early
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                      Department / Service
-                    </label>
-                    <input
-                      type="text"
-                      value={draft.encounter.department}
-                      onChange={(e) => setDraft((p) => ({ ...p, encounter: { ...p.encounter, department: e.target.value } }))}
-                      style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                      Triage Priority
-                    </label>
-                    <select
-                      value={draft.encounter.priority}
-                      onChange={(e) => setDraft((p) => ({ ...p, encounter: { ...p.encounter, priority: e.target.value as any } }))}
-                      style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', backgroundColor: '#FFFFFF' }}
-                    >
-                      <option value="ROUTINE">Routine Consult</option>
-                      <option value="HIGH">High Priority</option>
-                      <option value="URGENT">Stat / Emergent</option>
-                    </select>
+                <div style={{ padding: '10px 14px', backgroundColor: '#F8FAFC', borderRadius: '6px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Sparkles size={14} color="#0F766E" />
+                    <span style={{ fontSize: '12px', color: '#475569' }}>
+                      Department routing and triage priority are automatically inferred by the clinical system from presentation acuity and observations.
+                    </span>
                   </div>
                 </div>
               </div>
@@ -985,7 +876,7 @@ Impression: High-risk coronary syndrome with mild pulmonary congestion and early
                       Structured Observations & Laboratory Feeds
                     </h3>
                     <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B' }}>
-                      Enter discrete observations with units, reference ranges, and interpretation flags.
+                      Enter discrete observations. Reference ranges and clinical status are automatically evaluated by the system.
                     </p>
                   </div>
                   <button
@@ -1034,94 +925,200 @@ Impression: High-risk coronary syndrome with mild pulmonary congestion and early
                     </p>
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {draft.observations.map((obs, idx) => (
-                      <div
-                        key={obs.id}
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: '1.2fr 1fr 1fr 1fr auto',
-                          gap: '10px',
-                          alignItems: 'center',
-                          padding: '12px',
-                          backgroundColor: '#F8FAFC',
-                          border: '1px solid #E2E8F0',
-                          borderRadius: '6px',
-                        }}
-                      >
-                        <div>
-                          <input
-                            type="text"
-                            placeholder="Test name (e.g. Blood cultures)"
-                            value={obs.display}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setDraft((p) => ({
-                                ...p,
-                                observations: p.observations.map((o, i) => (i === idx ? { ...o, display: val } : o)),
-                              }));
-                            }}
-                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
-                          />
-                        </div>
-                        <div>
-                          <input
-                            type="text"
-                            placeholder="Value (e.g. 3/3 pos S. viridans)"
-                            value={obs.value}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setDraft((p) => ({
-                                ...p,
-                                observations: p.observations.map((o, i) => (i === idx ? { ...o, value: val } : o)),
-                              }));
-                            }}
-                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
-                          />
-                        </div>
-                        <div>
-                          <input
-                            type="text"
-                            placeholder="Reference range"
-                            value={obs.referenceRange || ''}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setDraft((p) => ({
-                                ...p,
-                                observations: p.observations.map((o, i) => (i === idx ? { ...o, referenceRange: val } : o)),
-                              }));
-                            }}
-                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
-                          />
-                        </div>
-                        <div>
-                          <select
-                            value={obs.interpretation || 'NORMAL'}
-                            onChange={(e) => {
-                              const val = e.target.value as any;
-                              setDraft((p) => ({
-                                ...p,
-                                observations: p.observations.map((o, i) => (i === idx ? { ...o, interpretation: val } : o)),
-                              }));
-                            }}
-                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px', backgroundColor: '#FFFFFF' }}
-                          >
-                            <option value="NORMAL">Normal</option>
-                            <option value="HIGH">High / Elevated</option>
-                            <option value="CRITICAL">Critical Finding</option>
-                            <option value="ABNORMAL">Abnormal</option>
-                          </select>
-                        </div>
-                        <button
-                          onClick={() => {
-                            setDraft((p) => ({ ...p, observations: p.observations.filter((_, i) => i !== idx) }));
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1.1fr 1.3fr auto', gap: '10px', padding: '0 12px 2px', fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      <div>Observation / Test</div>
+                      <div>Measured Value</div>
+                      <div>System Evaluation</div>
+                      <div></div>
+                    </div>
+                    {draft.observations.map((obs, idx) => {
+                      const evalResult = evaluateClinicalObservation(obs.display, obs.value, obs.referenceRange, obs.interpretation);
+                      const displayRefRange = obs.referenceRange || evalResult.referenceRange;
+                      const displayInterp = obs.interpretation || evalResult.interpretation || 'NORMAL';
+
+                      return (
+                        <div
+                          key={obs.id}
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1.3fr 1.1fr 1.3fr auto',
+                            gap: '10px',
+                            alignItems: 'center',
+                            padding: '12px',
+                            backgroundColor: '#F8FAFC',
+                            border: '1px solid #E2E8F0',
+                            borderRadius: '6px',
                           }}
-                          style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: '4px' }}
                         >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    ))}
+                          <div>
+                            <input
+                              type="text"
+                              placeholder="Test name (e.g. Potassium, Temp)"
+                              value={obs.display}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                const evaluated = evaluateClinicalObservation(val, obs.value, obs.referenceRange, obs.interpretation);
+                                setDraft((p) => ({
+                                  ...p,
+                                  observations: p.observations.map((o, i) =>
+                                    i === idx
+                                      ? {
+                                          ...o,
+                                          display: val,
+                                          referenceRange: evaluated.referenceRange || o.referenceRange,
+                                          unit: evaluated.unit || o.unit,
+                                          interpretation: evaluated.interpretation,
+                                        }
+                                      : o
+                                  ),
+                                }));
+                              }}
+                              style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                            />
+                          </div>
+                          <div>
+                            <input
+                              type="text"
+                              placeholder="Value (e.g. 6.2 mmol/L, Positive)"
+                              value={obs.value}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                const evaluated = evaluateClinicalObservation(obs.display, val, obs.referenceRange, obs.interpretation);
+                                setDraft((p) => ({
+                                  ...p,
+                                  observations: p.observations.map((o, i) =>
+                                    i === idx
+                                      ? {
+                                          ...o,
+                                          value: val,
+                                          referenceRange: evaluated.referenceRange || o.referenceRange,
+                                          unit: evaluated.unit || o.unit,
+                                          interpretation: evaluated.interpretation,
+                                        }
+                                      : o
+                                  ),
+                                }));
+                              }}
+                              style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                            />
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              {displayInterp === 'CRITICAL' ? (
+                                <span
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    padding: '2px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    backgroundColor: '#FEF2F2',
+                                    color: '#991B1B',
+                                    border: '1px solid #FECACA',
+                                  }}
+                                >
+                                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#DC2626' }} />
+                                  Critical Finding
+                                </span>
+                              ) : displayInterp === 'HIGH' ? (
+                                <span
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    padding: '2px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '11px',
+                                    fontWeight: 600,
+                                    backgroundColor: '#FFFBEB',
+                                    color: '#92400E',
+                                    border: '1px solid #FDE68A',
+                                  }}
+                                >
+                                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#D97706' }} />
+                                  High / Elevated
+                                </span>
+                              ) : displayInterp === 'LOW' ? (
+                                <span
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    padding: '2px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '11px',
+                                    fontWeight: 600,
+                                    backgroundColor: '#EFF6FF',
+                                    color: '#1E40AF',
+                                    border: '1px solid #BFDBFE',
+                                  }}
+                                >
+                                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#2563EB' }} />
+                                  Low / Reduced
+                                </span>
+                              ) : displayInterp === 'ABNORMAL' ? (
+                                <span
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    padding: '2px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '11px',
+                                    fontWeight: 600,
+                                    backgroundColor: '#FEF3C7',
+                                    color: '#B45309',
+                                    border: '1px solid #FCD34D',
+                                  }}
+                                >
+                                  Abnormal
+                                </span>
+                              ) : (
+                                <span
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    padding: '2px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '11px',
+                                    fontWeight: 600,
+                                    backgroundColor: '#F0FDF4',
+                                    color: '#166534',
+                                    border: '1px solid #BBF7D0',
+                                  }}
+                                >
+                                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#16A34A' }} />
+                                  Normal
+                                </span>
+                              )}
+                            </div>
+                            {displayRefRange ? (
+                              <div style={{ fontSize: '11px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <span style={{ fontWeight: 600, color: '#475569' }}>Ref:</span>
+                                <span>{displayRefRange} {obs.unit || ''}</span>
+                              </div>
+                            ) : (
+                              <div style={{ fontSize: '11px', color: '#94A3B8', fontStyle: 'italic' }}>
+                                Ref range auto-detected on entry
+                              </div>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => {
+                              setDraft((p) => ({ ...p, observations: p.observations.filter((_, i) => i !== idx) }));
+                            }}
+                            title="Remove observation"
+                            style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: '4px' }}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -1331,13 +1328,13 @@ Impression: High-risk coronary syndrome with mild pulmonary congestion and early
                   onChange={handleFileSelected}
                 />
 
-                {/* Upload Trigger Area & Quick Test Options */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', alignItems: 'stretch' }}>
+                {/* Upload Trigger Area */}
+                <div style={{ width: '100%' }}>
                   <div
                     style={{
                       border: `2px dashed ${isExtractingPdf ? '#0284C7' : '#CBD5E1'}`,
                       borderRadius: '8px',
-                      padding: '24px 20px',
+                      padding: '32px 20px',
                       textAlign: 'center',
                       backgroundColor: isExtractingPdf ? '#EFF6FF' : '#F8FAFC',
                       cursor: isExtractingPdf ? 'wait' : 'pointer',
@@ -1367,56 +1364,15 @@ Impression: High-risk coronary syndrome with mild pulmonary congestion and early
                       </>
                     ) : (
                       <>
-                        <Upload size={22} color="#0F766E" style={{ margin: '0 auto 6px' }} />
+                        <Upload size={24} color="#0F766E" style={{ margin: '0 auto 8px' }} />
                         <div style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>
                           Click to attach Clinical PDF, Scan, or Image
                         </div>
-                        <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
+                        <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>
                           Supports PDF, PNG, JPG, WEBP, TXT · Reconstructs visual file + editable clinical table
                         </div>
                       </>
                     )}
-                  </div>
-
-                  {/* Instant Sample Button */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center',
-                      backgroundColor: '#F0FDFA',
-                      border: '1px solid #CCFBF1',
-                      borderRadius: '8px',
-                      padding: '16px 20px',
-                      maxWidth: '240px',
-                    }}
-                  >
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#0F766E', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Sparkles size={14} /> Quick Demo Test
-                    </div>
-                    <div style={{ fontSize: '11px', color: '#475569', margin: '4px 0 10px' }}>
-                      Test the visual reconstruction, editable table & sync with a realistic discharge summary.
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleLoadSampleDocument}
-                      style={{
-                        border: 'none',
-                        backgroundColor: '#0F766E',
-                        color: '#FFFFFF',
-                        fontWeight: 600,
-                        fontSize: '11px',
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                      }}
-                    >
-                      Load Sample Report
-                    </button>
                   </div>
                 </div>
 
@@ -1504,12 +1460,31 @@ Impression: High-risk coronary syndrome with mild pulmonary congestion and early
                   </div>
 
                   <div style={{ padding: '12px', backgroundColor: '#F8FAFC', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                    <div style={{ color: '#64748B', marginBottom: '4px', fontWeight: 600 }}>CLINICAL PROBLEM</div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <span style={{ color: '#64748B', fontWeight: 600, fontSize: '11px', textTransform: 'uppercase' }}>
+                        Clinical Problem & Routing
+                      </span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#0F766E', backgroundColor: '#F0FDFA', padding: '1px 6px', borderRadius: '4px', border: '1px solid #CCFBF1', fontWeight: 600 }}>
+                        <Sparkles size={11} /> Auto-Triaged
+                      </span>
+                    </div>
                     <div style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>
                       {draft.presentation.title || '(No title entered)'}
                     </div>
-                    <div style={{ color: '#475569', marginTop: '2px' }}>
-                      Priority: {draft.encounter.priority} · {draft.encounter.department}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#475569', marginTop: '4px', fontSize: '12px' }}>
+                      <span style={{
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontWeight: 700,
+                        fontSize: '11px',
+                        backgroundColor: draft.encounter.priority === 'URGENT' ? '#FEF2F2' : draft.encounter.priority === 'HIGH' ? '#FFFBEB' : '#F0FDF4',
+                        color: draft.encounter.priority === 'URGENT' ? '#991B1B' : draft.encounter.priority === 'HIGH' ? '#92400E' : '#166534',
+                        border: `1px solid ${draft.encounter.priority === 'URGENT' ? '#FECACA' : draft.encounter.priority === 'HIGH' ? '#FDE68A' : '#BBF7D0'}`
+                      }}>
+                        {draft.encounter.priority}
+                      </span>
+                      <span>·</span>
+                      <span>{draft.encounter.department}</span>
                     </div>
                   </div>
                 </div>
@@ -1577,9 +1552,13 @@ Impression: High-risk coronary syndrome with mild pulmonary congestion and early
           {/* Stepper Bottom Controls */}
           <div
             style={{
-              padding: '14px 24px',
+              padding: '16px 24px',
               borderTop: '1px solid #E2E8F0',
-              backgroundColor: '#F8FAFC',
+              backgroundColor: '#FFFFFF',
+              position: 'sticky',
+              bottom: 0,
+              zIndex: 20,
+              boxShadow: '0 -4px 12px rgba(0,0,0,0.06)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -1592,17 +1571,17 @@ Impression: High-risk coronary syndrome with mild pulmonary congestion and early
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '7px 14px',
+                padding: '8px 16px',
                 borderRadius: '6px',
-                border: '1px solid #E2E8F0',
+                border: '1px solid #CBD5E1',
                 backgroundColor: '#FFFFFF',
-                color: draft.currentStep === 1 ? '#CBD5E1' : '#475569',
-                fontSize: '12px',
-                fontWeight: 500,
+                color: draft.currentStep === 1 ? '#CBD5E1' : '#334155',
+                fontSize: '13px',
+                fontWeight: 600,
                 cursor: draft.currentStep === 1 ? 'not-allowed' : 'pointer',
               }}
             >
-              <ArrowLeft size={13} />
+              <ArrowLeft size={14} />
               <span>Back</span>
             </button>
 
@@ -1612,19 +1591,20 @@ Impression: High-risk coronary syndrome with mild pulmonary congestion and early
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  padding: '7px 16px',
+                  gap: '8px',
+                  padding: '9px 20px',
                   borderRadius: '6px',
                   backgroundColor: '#0F766E',
                   color: '#FFFFFF',
                   border: 'none',
-                  fontSize: '12px',
+                  fontSize: '13px',
                   fontWeight: 600,
                   cursor: 'pointer',
+                  boxShadow: '0 2px 4px rgba(15, 118, 110, 0.25)',
                 }}
               >
                 <span>Next Step</span>
-                <ArrowRight size={13} />
+                <ArrowRight size={14} />
               </button>
             ) : null}
           </div>

@@ -89,7 +89,7 @@ export const NexusAssessmentPanel: React.FC = () => {
   if (isRunningAnalysis) {
     const stages = [
       { index: 1, label: 'Data Quality & Bounds Check', shortLabel: 'Data QA' },
-      { index: 2, label: 'MedCPT Dense Semantic Retrieval', shortLabel: 'Evidence' },
+      { index: 2, label: 'PubMed & Guideline Retrieval', shortLabel: 'Evidence' },
       { index: 3, label: 'Falconsai Clinical Synthesis', shortLabel: 'Synthesis' },
       { index: 4, label: '18-Rule Grounding Validation', shortLabel: 'Grounding' },
     ];

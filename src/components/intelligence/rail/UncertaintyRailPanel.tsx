@@ -101,7 +101,7 @@ export const UncertaintyRailPanel: React.FC = () => {
         {/* Pending Tests limiting assessment */}
         {pendingTests.length > 0 && (
           <div
-            onClick={() => setActiveCaseSubTab('investigations')}
+            onClick={() => setActiveCaseSubTab('clinical')}
             style={{
               display: 'flex',
               alignItems: 'flex-start',

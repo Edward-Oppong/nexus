@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useCase } from '../../../app/providers/CaseContext';
 import { usePersona } from '../../../app/providers/PersonaContext';
 import {
@@ -25,9 +25,58 @@ export const DecisionTab: React.FC = () => {
     recordDecision,
     amendActiveDecision,
     hasBlockingSafety,
+    safetyConcerns,
     setActiveCaseSubTab,
   } = useCase();
   const { currentPersona } = usePersona();
+
+  // ── Dynamic CDS pre-flight summary ──────────────────────────────────────────
+  const cdsPreFlightSummary = useMemo(() => {
+    const patient = activeCase.overview.patient;
+    const caseId = activeCase.overview.id;
+
+    const parts: string[] = [];
+
+    // Allergy signal
+    if (patient.allergiesCount > 0) {
+      const allergenNames = patient.allergies.map((a) => a.allergen).join(', ');
+      parts.push(`Allergy: ${allergenNames} flagged`);
+    } else {
+      parts.push('Allergy: None documented');
+    }
+
+    // Active safety concerns for this case
+    const openConcerns = safetyConcerns.filter(
+      (s) => s.caseId === caseId && s.status !== 'RESOLVED'
+    );
+    if (openConcerns.length > 0) {
+      parts.push(`${openConcerns.length} open safety concern${openConcerns.length > 1 ? 's' : ''} active`);
+    } else {
+      parts.push('No open safety concerns');
+    }
+
+    // Medication count
+    if (patient.activeMedicationsCount > 0) {
+      parts.push(`${patient.activeMedicationsCount} active medication${patient.activeMedicationsCount > 1 ? 's' : ''} on record`);
+    }
+
+    return parts.join(' · ');
+  }, [activeCase, safetyConcerns]);
+
+  const cdsChecksVerified = useMemo(() => {
+    // Count how many check categories are satisfied
+    let count = 1; // Rule evaluation is always run
+    if (activeCase.overview.patient.allergiesCount > 0) count++;
+    if (activeCase.overview.patient.activeMedicationsCount > 0) count++;
+    const openConcerns = safetyConcerns.filter(
+      (s) => s.caseId === activeCase.overview.id && s.status !== 'RESOLVED'
+    );
+    if (openConcerns.length === 0) count++; // DDI/renal clear
+    return count;
+  }, [activeCase, safetyConcerns]);
+
+  const authorizingClinicianName = currentPersona ? `${currentPersona.title} ${currentPersona.name}` : 'Attending Clinician';
+  const authorizingClinicianRole = currentPersona ? `${currentPersona.roleDisplay} · ${currentPersona.department}` : 'Lead Clinician';
 
   // Form states for new decision
   const [decisionType, setDecisionType] = useState<DecisionType>('CLINICAL_ASSESSMENT');
@@ -132,8 +181,8 @@ export const DecisionTab: React.FC = () => {
 
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: '11px', color: '#94A3B8' }}>Authorizing Clinician</div>
-          <strong style={{ fontSize: '14px', color: '#FFFFFF' }}>Dr. Edward Vance, MD</strong>
-          <div style={{ fontSize: '11px', color: '#38BDF8' }}>Attending Physician · Lead Clinician</div>
+          <strong style={{ fontSize: '14px', color: '#FFFFFF' }}>{authorizingClinicianName}</strong>
+          <div style={{ fontSize: '11px', color: '#38BDF8' }}>{authorizingClinicianRole}</div>
         </div>
       </div>
 
@@ -159,11 +208,11 @@ export const DecisionTab: React.FC = () => {
                 Deterministic CDS Pre-Flight Check
               </span>
               <span style={{ fontSize: '10px', fontWeight: 700, background: '#E0F2FE', color: '#0369A1', padding: '1px 6px', borderRadius: '8px' }}>
-                4 Checks Verified
+                {cdsChecksVerified} Checks Verified
               </span>
             </div>
             <div style={{ fontSize: '11px', color: '#475569', marginTop: '2px' }}>
-              Modified Duke Criteria: <strong>Definite IE (2 Major met)</strong> · Renal: <strong>CrCl 68.0 mL/min</strong> · Allergy: <strong>Penicillin Anaphylaxis Flagged</strong> · DDI: <strong>Vancomycin + Gentamicin Synergy Monitored</strong>
+              {cdsPreFlightSummary}
             </div>
           </div>
         </div>

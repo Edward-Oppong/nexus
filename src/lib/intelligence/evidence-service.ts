@@ -83,8 +83,6 @@ function scoreEvidence(item: EvidenceItem, concepts: string[], hypothesisId?: st
 // ----------------------------------------------------------
 // Main search function — searches Supabase-backed evidence library
 // Returns results ranked by relevance. Deduplicates by ID.
-// Evidence items should be injected via the caller once Supabase
-// evidence tables are wired up; returns empty list until then.
 // ----------------------------------------------------------
 export function searchEvidence(query: EvidenceQuery, items: EvidenceItem[] = MOCK_EVIDENCE_ITEMS): EvidenceResult[] {
   const concepts = extractConcepts(query.question + ' ' + (query.hypothesis ?? ''));
@@ -116,17 +114,55 @@ export function searchEvidence(query: EvidenceQuery, items: EvidenceItem[] = MOC
 }
 
 // ----------------------------------------------------------
+// Live PubMed / Europe PMC evidence search
+// Combines local Tier-1 clinical guidelines with live peer-reviewed literature
+// ----------------------------------------------------------
+import { fetchLivePubMedEvidence } from './services/pubmed-service';
+
+export async function searchEvidenceAsync(
+  query: EvidenceQuery,
+  items: EvidenceItem[] = MOCK_EVIDENCE_ITEMS
+): Promise<EvidenceResult[]> {
+  const localResults = searchEvidence(query, items);
+  const seenIds = new Set(localResults.map((r) => r.source.id));
+
+  // Determine if we need live PubMed augmentation
+  const limit = query.limit ?? 4;
+  const topic = query.hypothesis || query.question;
+
+  if (topic && localResults.length < limit) {
+    try {
+      const pubmedResults = await fetchLivePubMedEvidence(topic, {
+        limit: limit - localResults.length,
+        preferGuidelines: true,
+      });
+
+      for (const res of pubmedResults) {
+        if (!seenIds.has(res.source.id)) {
+          seenIds.add(res.source.id);
+          localResults.push(res);
+        }
+      }
+    } catch (err) {
+      console.warn('[searchEvidenceAsync] Live PubMed retrieval note:', err);
+    }
+  }
+
+  return localResults.slice(0, limit);
+}
+
+// ----------------------------------------------------------
 // Retrieve evidence for all hypotheses in a case
 // Returns a map: hypothesisId → EvidenceResult[]
 // ----------------------------------------------------------
-export function retrieveEvidenceForCase(
+export async function retrieveEvidenceForCase(
   caseId: string,
   hypotheses: Array<{ id: string; title: string; statusDetail?: string }>
-): Map<string, EvidenceResult[]> {
+): Promise<Map<string, EvidenceResult[]>> {
   const resultMap = new Map<string, EvidenceResult[]>();
 
   for (const hyp of hypotheses) {
-    const results = searchEvidence({
+    const results = await searchEvidenceAsync({
       question: hyp.title,
       caseId,
       hypothesisId: hyp.id,
@@ -138,3 +174,4 @@ export function retrieveEvidenceForCase(
 
   return resultMap;
 }
+

@@ -2,14 +2,10 @@ import React, { createContext, useContext, useState, useCallback, useMemo, useEf
 import { createPatientCase } from '../../features/cases/services/create-patient-case';
 import { CaseIntakeDraft } from '../../features/cases/types/intake';
 import { runCaseAnalysis } from '../../features/cases/services/case-analysis';
-import { FullSyntheticCase, SYNTHETIC_CASE_10482, MOCK_CASES_LIST, MOCK_FULL_CASES_REGISTRY, EMPTY_CASE } from '../../data/cases/mockCasesData';
+import { FullSyntheticCase, MOCK_FULL_CASES_REGISTRY, EMPTY_CASE } from '../../data/cases/mockCasesData';
+
 import { useAuth, DEMO_ORGANIZATIONS } from '../../features/authentication/AuthProvider';
-import {
-  INITIAL_SAFETY_CONCERNS,
-  INITIAL_REVIEW_QUEUE,
-  INITIAL_DECISIONS,
-  INITIAL_TASKS,
-} from '../../data/cases/mockWorkflowData';
+
 import { CaseOverview } from '../../domain/case';
 import { VerificationStatus } from '../../domain/finding';
 import { InvestigationOrder } from '../../domain/investigation';
@@ -157,97 +153,39 @@ const CaseContext = createContext<CaseContextType | undefined>(undefined);
 
 export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { profile, user, activeOrganization } = useAuth();
-  const [activeView, setActiveView] = useState<MainView>('case-workspace');
-  const [activeCaseSubTab, setActiveCaseSubTab] = useState<CaseSubTab>('reasoning');
-  const [casesList, setCasesList] = useState<CaseOverview[]>(() => {
-    try {
-      const deletedIds: string[] = JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
-      return MOCK_CASES_LIST.filter(
-        (c) => !deletedIds.includes(c.id) && (c.state as string) !== 'RESOLVED'
-      );
-    } catch {
-      return MOCK_CASES_LIST;
-    }
-  });
+  const [activeView, setActiveView] = useState<MainView>('cases');
+  const [activeCaseSubTab, setActiveCaseSubTab] = useState<CaseSubTab>('summary');
+  const [casesList, setCasesList] = useState<CaseOverview[]>([]);
 
-  const [activeCase, setActiveCase] = useState<FullSyntheticCase>(() => {
-    try {
-      const deletedIds: string[] = JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
-      if (!deletedIds.includes(SYNTHETIC_CASE_10482.overview.id)) {
-        return SYNTHETIC_CASE_10482;
-      }
-      const available = MOCK_CASES_LIST.find((c) => !deletedIds.includes(c.id));
-      if (available && MOCK_FULL_CASES_REGISTRY[available.id]) {
-        return MOCK_FULL_CASES_REGISTRY[available.id];
-      }
-      return EMPTY_CASE;
-    } catch {
-      return SYNTHETIC_CASE_10482;
-    }
-  });
+
+  const [activeCase, setActiveCase] = useState<FullSyntheticCase>(EMPTY_CASE);
+
 
   // Derive the logged-in user's display name and UUID for audit events
   const activeUserDisplayName = profile?.fullName || user?.user_metadata?.full_name || (user?.email ? user.email.split('@')[0] : 'Clinician');
   const activeUserId = profile?.id || user?.id || 'd0000001-0000-0000-0000-000000000001';
 
   // Phase 6F: Nexus Assessment
-  const [nexusAssessment, setNexusAssessment] = useState<NexusAssessment | null>(() => {
-    try {
-      const deletedIds: string[] = JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
-      if (deletedIds.includes(SYNTHETIC_CASE_10482.overview.id)) {
-        const available = MOCK_CASES_LIST.find((c) => !deletedIds.includes(c.id));
-        if (available && MOCK_FULL_CASES_REGISTRY[available.id]) {
-          return MOCK_FULL_CASES_REGISTRY[available.id].nexusAssessment ?? null;
-        }
-        return null;
-      }
-      return SYNTHETIC_CASE_10482.nexusAssessment ?? null;
-    } catch {
-      return SYNTHETIC_CASE_10482.nexusAssessment ?? null;
-    }
-  });
+  const [nexusAssessment, setNexusAssessment] = useState<NexusAssessment | null>(null);
+
   const [isRunningAnalysis, setIsRunningAnalysis] = useState(false);
   const [analysisStage, setAnalysisStage] = useState<AnalysisStageInfo | null>(null);
 
   // Phase 6G: Safety Concerns
-  const [safetyConcerns, setSafetyConcerns] = useState<SafetyConcern[]>(() => {
-    try {
-      const deletedIds: string[] = JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
-      return INITIAL_SAFETY_CONCERNS.filter((s) => !deletedIds.includes(s.caseId));
-    } catch {
-      return INITIAL_SAFETY_CONCERNS;
-    }
-  });
+  const [safetyConcerns, setSafetyConcerns] = useState<SafetyConcern[]>([]);
+
 
   // Phase 6G: Review Queue
-  const [reviewQueue, setReviewQueue] = useState<ReviewItem[]>(() => {
-    try {
-      const deletedIds: string[] = JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
-      return INITIAL_REVIEW_QUEUE.filter((r) => !deletedIds.includes(r.caseId));
-    } catch {
-      return INITIAL_REVIEW_QUEUE;
-    }
-  });
+  const [reviewQueue, setReviewQueue] = useState<ReviewItem[]>([]);
+
 
   // Phase 6G: Decisions
-  const [decisions, setDecisions] = useState<Decision[]>(() => {
-    try {
-      const deletedIds: string[] = JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
-      return INITIAL_DECISIONS.filter((d) => !deletedIds.includes(d.caseId));
-    } catch {
-      return INITIAL_DECISIONS;
-    }
-  });
+  const [decisions, setDecisions] = useState<Decision[]>([]);
+
 
   // Phase 6G: Tasks
-  const [tasks, setTasks] = useState<ClinicalTask[]>(() => {
-    try {
-      const deletedIds: string[] = JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
-      return INITIAL_TASKS.filter((t) => !deletedIds.includes(t.caseId));
-    } catch {
-      return INITIAL_TASKS;
-    }
-  });
+  const [tasks, setTasks] = useState<ClinicalTask[]>([]);
+
 
   const activeDecision = useMemo(() => {
     return decisions.find((d) => d.caseId === activeCase.overview.id && d.status === 'ACTIVE') || null;
@@ -968,8 +906,22 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const handleRunNexusAnalysis = useCallback(async () => {
     setIsRunningAnalysis(true);
     try {
+      // Mark any previous assessment as superseded
       if (nexusAssessment) {
         setNexusAssessment((prev) => (prev ? { ...prev, status: 'SUPERSEDED' } : null));
+        // Mark superseded in Supabase
+        if (isSupabaseConfigured && nexusAssessment.id) {
+          const isUuidPrev = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(nexusAssessment.id);
+          if (isUuidPrev) {
+            supabase
+              .from('nexus_assessments')
+              .update({ status: 'SUPERSEDED' })
+              .eq('id', nexusAssessment.id)
+              .then(({ error }) => {
+                if (error) console.warn('[handleRunNexusAnalysis] Supersede sync notice:', error.message);
+              });
+          }
+        }
       }
 
       // Automatically routes to live Hugging Face provider (MedGemma 4B) when token is configured
@@ -980,10 +932,100 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       setNexusAssessment(newAssessment);
 
-      // Persist assessment event to Supabase audit trail if configured
+      // Persist full assessment to Supabase if configured
       if (isSupabaseConfigured) {
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(activeCase.overview.id);
         if (isUuid) {
+          // 1. Insert nexus_assessments row
+          const { data: insertedAssessment, error: assessErr } = await supabase
+            .from('nexus_assessments')
+            .insert({
+              case_id: activeCase.overview.id,
+              status: newAssessment.status,
+              summary: newAssessment.summary,
+              data_completeness: newAssessment.dataCompleteness || 'MODERATE',
+              evidence_consistency: newAssessment.evidenceConsistency || 'MODERATE',
+              limitations: JSON.stringify(newAssessment.limitations || []),
+              contradictions: newAssessment.contradictions || [],
+              model_name: newAssessment.modelName,
+              model_version: newAssessment.modelVersion,
+              prompt_version: newAssessment.promptVersion || '6F.1',
+              pipeline_version: newAssessment.pipelineVersion || '6F.1',
+              safety_boundary: newAssessment.safetyBoundary,
+              safety_boundary_reason: newAssessment.safetyBoundaryReason || null,
+            })
+            .select()
+            .single();
+
+          if (assessErr) {
+            console.warn('[handleRunNexusAnalysis] nexus_assessments insert notice:', assessErr.message);
+          } else if (insertedAssessment) {
+            const dbAssessmentId = insertedAssessment.id;
+
+            // 2. Insert nexus_findings rows
+            if (newAssessment.nexusFindings && newAssessment.nexusFindings.length > 0) {
+              const findingsToInsert = newAssessment.nexusFindings.map((nf) => ({
+                assessment_id: dbAssessmentId,
+                finding_type: nf.findingType,
+                content: nf.content,
+                status: nf.status === 'UNREVIEWED' ? 'PENDING_REVIEW' : nf.status,
+                finding_ids: nf.findingIds || [],
+                evidence_source_ids: nf.evidenceSourceIds || [],
+              }));
+              supabase
+                .from('nexus_findings')
+                .insert(findingsToInsert)
+                .then(({ error }) => {
+                  if (error) console.warn('[handleRunNexusAnalysis] nexus_findings insert notice:', error.message);
+                });
+            }
+
+            // 3. Insert nexus_recommendations rows
+            if (newAssessment.recommendations && newAssessment.recommendations.length > 0) {
+              const recsToInsert = newAssessment.recommendations.map((nr) => ({
+                assessment_id: dbAssessmentId,
+                category: nr.category,
+                content: nr.content,
+                rationale: nr.rationale || null,
+                status: 'PENDING_REVIEW',
+              }));
+              supabase
+                .from('nexus_recommendations')
+                .insert(recsToInsert)
+                .then(({ error }) => {
+                  if (error) console.warn('[handleRunNexusAnalysis] nexus_recommendations insert notice:', error.message);
+                });
+            }
+
+            // 4. Save generated hypotheses to hypotheses table
+            // Each nexus finding of type SUPPORT maps to a candidate hypothesis
+            const hypothesisFindings = newAssessment.nexusFindings.filter(
+              (nf) => nf.findingType === 'SUPPORT' || (nf.findingType as string) === 'CANDIDATE_HYPOTHESIS'
+            );
+            if (hypothesisFindings.length > 0) {
+              // Extract hypothesis label and rationale from content (format: "Label: rationale")
+              const hypothesesToInsert = hypothesisFindings.map((nf) => {
+                const colonIdx = nf.content.indexOf(':');
+                const label = colonIdx > 0 ? nf.content.slice(0, colonIdx).trim() : nf.content.slice(0, 80);
+                const rationale = colonIdx > 0 ? nf.content.slice(colonIdx + 1).trim() : nf.content;
+                return {
+                  case_id: activeCase.overview.id,
+                  label: label.slice(0, 255),
+                  status: 'CANDIDATE',
+                  rationale: rationale.slice(0, 2000),
+                  created_by: activeUserId,
+                };
+              });
+              supabase
+                .from('hypotheses')
+                .insert(hypothesesToInsert)
+                .then(({ error }) => {
+                  if (error) console.warn('[handleRunNexusAnalysis] hypotheses insert notice:', error.message);
+                });
+            }
+          }
+
+          // 5. Audit event
           supabase
             .from('audit_events')
             .insert({
@@ -1019,10 +1061,37 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
           lastUpdate: 'Just now',
         };
 
+        // Build candidate hypotheses from nexus findings so ReasoningTab shows them immediately
+        const analysisHypotheses = newAssessment.nexusFindings
+          .filter((nf) => nf.findingType === 'SUPPORT' || (nf.findingType as string) === 'CANDIDATE_HYPOTHESIS')
+          .map((nf) => {
+            const colonIdx = nf.content.indexOf(':');
+            const title = colonIdx > 0 ? nf.content.slice(0, colonIdx).trim() : nf.content.slice(0, 80);
+            const rationale = colonIdx > 0 ? nf.content.slice(colonIdx + 1).trim() : nf.content;
+            return {
+              id: nf.id,
+              caseId: prev.overview.id,
+              title,
+              status: 'Uncertain' as const,
+              statusDetail: rationale.slice(0, 200),
+              supportingFindingIds: nf.findingIds || [],
+              contradictingFindingIds: [],
+              informationGapIds: [],
+              evidenceIds: nf.evidenceSourceIds || [],
+              rationale,
+              nexusAssessment: 'Generated by Nexus Clinical Reasoning Engine. Requires clinician adjudication.',
+              clinicalReviewStatus: 'Pending Review' as const,
+            };
+          });
+
+        // Keep clinician-entered/adjudicated manual hypotheses, replace prior AI-generated hypotheses with fresh analysis
+        const manualHypotheses = prev.hypotheses.filter((h) => !h.id.startsWith('nf-'));
+
         return {
           ...prev,
           overview: updatedOverview,
           nexusAssessment: newAssessment,
+          hypotheses: [...analysisHypotheses, ...manualHypotheses],
           timeline: [auditEvent, ...prev.timeline],
         };
       });
@@ -1030,7 +1099,7 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsRunningAnalysis(false);
       setAnalysisStage(null);
     }
-  }, [activeCase, nexusAssessment]);
+  }, [activeCase, nexusAssessment, activeUserId]);
 
   // ── Phase 6F: Per-finding Review ─────────────────────────
   const reviewNexusFinding = (

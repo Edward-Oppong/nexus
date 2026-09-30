@@ -12,7 +12,7 @@ import { CaseOverview, SyntheticPatient } from '../../../domain/case';
 import { ClinicalFinding, FindingCategory } from '../../../domain/finding';
 import { TimelineEvent } from '../../../domain/timeline';
 import { runDeterministicSafetyChecks } from './deterministic-safety';
-import { evaluateCriteria } from './criteria-engine';
+import { evaluateCriteria, evaluateOptimalCriteria } from './criteria-engine';
 
 export interface CreatePatientCaseResult {
   success: boolean;
@@ -122,8 +122,8 @@ export async function createPatientCase(
       observations: draft.observations,
     });
 
-    // ── 3. Run Clinical Criteria Engine (e.g. Duke Criteria) ───────────
-    const criteriaEval = evaluateCriteria('CRITERIA: DUKE-2023', {
+    // ── 3. Run Clinical Criteria Engine (Auto-selects optimal guideline e.g. CAP vs Duke) ───
+    const criteriaEval = evaluateOptimalCriteria({
       presentation: draft.presentation,
       observations: draft.observations,
     });

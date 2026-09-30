@@ -28,6 +28,30 @@ export const SafetyTab: React.FC = () => {
     return true;
   });
 
+  const hasRealCase = Boolean(
+    activeCase &&
+    activeCase.overview &&
+    activeCase.overview.id &&
+    activeCase.overview.id !== 'EMPTY' &&
+    activeCase.overview.patient?.syntheticIdentifier &&
+    activeCase.overview.patient?.syntheticIdentifier !== 'No Active Patient'
+  );
+
+  const patientAllergies = activeCase?.overview?.patient?.allergies || [];
+  const patientMeds = activeCase?.overview?.patient?.medications || [];
+  const penicillinAlert = patientAllergies.some((a) =>
+    a.allergen.toLowerCase().includes('penicillin') || a.allergen.toLowerCase().includes('amoxicillin')
+  );
+  const medNames = patientMeds.map((m) => m.name.toLowerCase());
+  const vancGentAlert = medNames.some((m) => m.includes('vancomycin')) && medNames.some((m) => m.includes('gentamicin'));
+  const criticalSafetyCount = caseConcerns.filter((c) => c.severity === 'SAFETY_CRITICAL' && c.status !== 'RESOLVED').length;
+  const hasCdsAlerts = hasRealCase && (penicillinAlert || vancGentAlert || criticalSafetyCount > 0);
+
+  const alertTexts: string[] = [];
+  if (penicillinAlert) alertTexts.push('Penicillin cross-reactivity alert active (anaphylaxis history).');
+  if (vancGentAlert) alertTexts.push('Drug interaction active between Vancomycin and Gentamicin (synergistic renal monitoring required).');
+  if (criticalSafetyCount > 0) alertTexts.push(`${criticalSafetyCount} blocking safety critical concern(s) require clinician review.`);
+
   const getSeverityBadge = (severity: SafetyConcernSeverity) => {
     switch (severity) {
       case 'SAFETY_CRITICAL':
@@ -80,57 +104,59 @@ export const SafetyTab: React.FC = () => {
         </div>
       </div>
 
-      {/* Deterministic CDS Safety Guardrails Banner */}
-      <div
-        style={{
-          background: '#F0F9FF',
-          border: '1px solid #BAE6FD',
-          borderRadius: '8px',
-          padding: '14px 18px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ background: '#0284C7', color: '#FFFFFF', padding: '6px', borderRadius: '6px', display: 'flex' }}>
-            <Cpu size={16} />
-          </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#0369A1' }}>
-                Deterministic CDS Rule Engine Alerts Active
-              </span>
-              <span style={{ fontSize: '10px', fontWeight: 700, background: '#FEF3C7', color: '#92400E', padding: '1px 6px', borderRadius: '8px', border: '1px solid #FCD34D' }}>
-                Allergy & DDI Active
-              </span>
-            </div>
-            <div style={{ fontSize: '11px', color: '#475569', marginTop: '2px' }}>
-              Penicillin cross-reactivity alert active (anaphylaxis history). Drug interaction active between Vancomycin and Gentamicin (synergistic renal monitoring required).
-            </div>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setActiveCaseSubTab('rules')}
+      {/* Deterministic CDS Safety Guardrails Banner — only shown when a real case has active alerts */}
+      {hasRealCase && hasCdsAlerts && (
+        <div
           style={{
+            background: '#F0F9FF',
+            border: '1px solid #BAE6FD',
+            borderRadius: '8px',
+            padding: '14px 18px',
             display: 'flex',
             alignItems: 'center',
-            gap: '4px',
-            background: '#FFFFFF',
-            color: '#0284C7',
-            border: '1px solid #BAE6FD',
-            borderRadius: '4px',
-            padding: '6px 12px',
-            fontSize: '11px',
-            fontWeight: 600,
-            cursor: 'pointer',
+            justifyContent: 'space-between',
           }}
         >
-          Open CDS Engine <ArrowRight size={12} />
-        </button>
-      </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ background: '#0284C7', color: '#FFFFFF', padding: '6px', borderRadius: '6px', display: 'flex' }}>
+              <Cpu size={16} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#0369A1' }}>
+                  Deterministic CDS Rule Engine Alerts Active
+                </span>
+                <span style={{ fontSize: '10px', fontWeight: 700, background: '#FEF3C7', color: '#92400E', padding: '1px 6px', borderRadius: '8px', border: '1px solid #FCD34D' }}>
+                  {penicillinAlert && vancGentAlert ? 'Allergy & DDI Active' : penicillinAlert ? 'Allergy Alert' : vancGentAlert ? 'DDI Alert' : 'Safety Concern'}
+                </span>
+              </div>
+              <div style={{ fontSize: '11px', color: '#475569', marginTop: '2px' }}>
+                {alertTexts.join(' ')}
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setActiveCaseSubTab('rules')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              background: '#FFFFFF',
+              color: '#0284C7',
+              border: '1px solid #BAE6FD',
+              borderRadius: '4px',
+              padding: '6px 12px',
+              fontSize: '11px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Open CDS Engine <ArrowRight size={12} />
+          </button>
+        </div>
+      )}
 
       {/* Concerns List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

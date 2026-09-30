@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useCase } from '../../app/providers/CaseContext';
 import { usePersona } from '../../app/providers/PersonaContext';
-import { AlertTriangle, Clock, FlaskConical, ShieldAlert, ArrowRight, CheckCircle2, FileCheck2 } from 'lucide-react';
+import { AlertTriangle, Clock, ShieldAlert, ArrowRight, CheckCircle2, FileCheck2 } from 'lucide-react';
 
 export const OverviewView: React.FC = () => {
   const {
@@ -16,9 +16,44 @@ export const OverviewView: React.FC = () => {
   } = useCase();
   const { currentPersona } = usePersona();
 
-  const completedInvestigations = activeCase?.investigations?.filter((i) => i.status === 'Result available') || [];
   const openSafetyConcerns = safetyConcerns.filter((s) => s.status !== 'RESOLVED');
   const openTasks = tasks.filter((t) => t.status !== 'COMPLETED');
+
+  // Derive recent activities from existing cases and activeCase timeline
+  const recentActivities = useMemo(() => {
+    if (casesList.length === 0) return [];
+
+    const events: Array<{ id: string; caseId: string; description: string; time: string }> = [];
+
+    // Include timeline events from the active case if it's currently in casesList
+    const isActiveInList = casesList.some((c) => c.id === activeCase?.overview?.id);
+    if (isActiveInList && activeCase?.timeline) {
+      activeCase.timeline.slice(0, 4).forEach((evt) => {
+        events.push({
+          id: evt.id,
+          caseId: activeCase.overview.id,
+          description: `${evt.title}${evt.actorName ? ` by ${evt.actorName}` : ''}.`,
+          time: evt.time || 'Recent',
+        });
+      });
+    }
+
+    // Augment with case updates from casesList if timeline events are few
+    if (events.length < 3) {
+      casesList.forEach((c) => {
+        if (!events.some((e) => e.caseId === c.id)) {
+          events.push({
+            id: `case-act-${c.id}`,
+            caseId: c.id,
+            description: `${c.patient.syntheticIdentifier} (${c.patient.encounterType}) under care of ${c.assignedClinician}.`,
+            time: c.lastUpdate || 'Active',
+          });
+        }
+      });
+    }
+
+    return events.slice(0, 5);
+  }, [casesList, activeCase]);
 
   // Live date and contextual greeting
   const { liveDateLabel, greeting } = useMemo(() => {
@@ -77,7 +112,7 @@ export const OverviewView: React.FC = () => {
             <span style={{ fontSize: '11px', color: '#64748B' }}>Prioritized by severity</span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
             {/* Card 1: Review Queue */}
             <div
               onClick={() => setActiveView('review-queue')}
@@ -103,41 +138,14 @@ export const OverviewView: React.FC = () => {
               <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>Click to open Review Queue</div>
             </div>
 
-            {/* Card 2: Investigation results */}
+            {/* Card 2: Safety concern */}
             <div
               onClick={() => {
-                openCaseById(activeCase?.overview?.id || '10482', 'investigations');
-              }}
-              style={{
-                background: '#FFFFFF',
-                border: '1px solid #E2E8F0',
-                borderLeft: '4px solid #2563EB',
-                borderRadius: '6px',
-                padding: '16px',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseOver={(e) => (e.currentTarget.style.borderColor = '#CBD5E1')}
-              onMouseOut={(e) => (e.currentTarget.style.borderColor = '#E2E8F0')}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '20px', fontWeight: 700, color: '#1E40AF' }}>
-                  {completedInvestigations.length}
-                </span>
-                <FlaskConical size={16} color="#2563EB" />
-              </div>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>Investigation results</div>
-              <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
-                {completedInvestigations[0]?.testName
-                  ? `${completedInvestigations[0].testName} (${completedInvestigations.length} ready)`
-                  : 'Blood cultures positive (S. viridans)'}
-              </div>
-            </div>
-
-            {/* Card 3: Safety concern */}
-            <div
-              onClick={() => {
-                openCaseById(activeCase?.overview?.id || '10482', 'safety');
+                if (casesList.length > 0) {
+                  openCaseById(activeCase?.overview?.id || casesList[0].id, 'safety');
+                } else {
+                  setActiveView('cases');
+                }
               }}
               style={{
                 background: '#FFFFFF',
@@ -161,7 +169,9 @@ export const OverviewView: React.FC = () => {
               <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
                 {openSafetyConcerns[0]?.category
                   ? openSafetyConcerns[0].category.slice(0, 36) + '...'
-                  : 'Severe penicillin allergy conflict'}
+                  : openSafetyConcerns.length > 0
+                  ? `${openSafetyConcerns.length} safety items flagged`
+                  : 'No safety concerns'}
               </div>
             </div>
 
@@ -188,7 +198,11 @@ export const OverviewView: React.FC = () => {
               </div>
               <div style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>Follow-ups due</div>
               <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
-                {openTasks[0]?.title ? openTasks[0].title.slice(0, 36) + '...' : 'Outpatient telemetry evaluations'}
+                {openTasks[0]?.title
+                  ? openTasks[0].title.slice(0, 36) + '...'
+                  : openTasks.length > 0
+                  ? `${openTasks.length} tasks open`
+                  : 'No clinical tasks due'}
               </div>
             </div>
           </div>
@@ -435,34 +449,34 @@ export const OverviewView: React.FC = () => {
           </div>
         </section>
 
-        {/* Boring Clinical Activity Stream */}
+        {/* Clinical Activity Stream */}
         <section aria-labelledby="activity-stream-heading">
           <h2 id="activity-stream-heading" style={{ fontSize: '12px', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.06em', color: '#475569', marginBottom: '12px' }}>
             Recent Activity
           </h2>
-          <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '6px', padding: '12px 16px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
-                <div>
-                  <strong style={{ color: '#0F172A' }}>Case #10482:</strong> Blood cultures reported positive for S. viridans by Marcus Rivera, MLS.
-                </div>
-                <span style={{ color: '#94A3B8', fontFamily: 'var(--font-mono)' }}>09:44</span>
+          <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '6px', padding: '16px' }}>
+            {recentActivities.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '24px 16px', color: '#64748B', fontSize: '13px' }}>
+                No recent activity. Clinical events and updates will appear here when cases are active.
               </div>
-              <div style={{ borderTop: '1px solid #F1F5F9' }} />
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
-                <div>
-                  <strong style={{ color: '#0F172A' }}>Case #10482:</strong> Vital signs acquisition verified by Sarah Chen, RN.
-                </div>
-                <span style={{ color: '#94A3B8', fontFamily: 'var(--font-mono)' }}>09:42</span>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {recentActivities.map((act, index) => (
+                  <React.Fragment key={act.id}>
+                    {index > 0 && <div style={{ borderTop: '1px solid #F1F5F9' }} />}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
+                      <div>
+                        <strong style={{ color: '#0F172A' }}>Case #{act.caseId}:</strong>{' '}
+                        <span style={{ color: '#334155' }}>{act.description}</span>
+                      </div>
+                      <span style={{ color: '#94A3B8', fontFamily: 'var(--font-mono)', flexShrink: 0, marginLeft: '12px' }}>
+                        {act.time}
+                      </span>
+                    </div>
+                  </React.Fragment>
+                ))}
               </div>
-              <div style={{ borderTop: '1px solid #F1F5F9' }} />
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
-                <div>
-                  <strong style={{ color: '#0F172A' }}>Case #10481:</strong> Renal panel requested by Dr. Edward Vance, MD.
-                </div>
-                <span style={{ color: '#94A3B8', fontFamily: 'var(--font-mono)' }}>09:20</span>
-              </div>
-            </div>
+            )}
           </div>
         </section>
       </div>

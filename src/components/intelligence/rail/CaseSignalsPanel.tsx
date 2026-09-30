@@ -132,7 +132,7 @@ export const CaseSignalsPanel: React.FC = () => {
       {/* Pending Investigations */}
       {pendingInvestigationsCount > 0 && (
         <div
-          onClick={() => setActiveCaseSubTab('investigations')}
+          onClick={() => setActiveCaseSubTab('clinical')}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -157,7 +157,7 @@ export const CaseSignalsPanel: React.FC = () => {
       {/* High Priority Missing Information */}
       {highPriorityGapsCount > 0 && (
         <div
-          onClick={() => setActiveCaseSubTab('investigations')}
+          onClick={() => setActiveCaseSubTab('clinical')}
           style={{
             fontSize: '11px',
             color: '#64748B',

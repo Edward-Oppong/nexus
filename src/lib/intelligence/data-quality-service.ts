@@ -95,15 +95,24 @@ export function runDataQualityChecks(input: DataQualityInput): DataQualityResult
       f.provenance.verificationStatus === 'VERIFIED'
   ).length;
 
-  if (totalVerifiedFindings === 0) {
+  const totalAnyFindings = findings.length;
+  const totalInvestigations = investigations.filter((i) => i.result !== undefined).length;
+
+  if (totalAnyFindings === 0 && totalInvestigations === 0) {
     safetyBoundary = 'INSUFFICIENT_DATA';
-    safetyBoundaryReason = 'No clinician-verified findings are available. Nexus cannot produce a grounded assessment.';
+    safetyBoundaryReason =
+      'No clinical findings or investigation results are available. Add findings or results before running analysis.';
+  } else if (totalVerifiedFindings === 0 && totalAnyFindings > 0) {
+    // Data exists but none verified — allow reasoning but flag it
+    safetyBoundary = 'OK';
+    safetyBoundaryReason =
+      `${totalAnyFindings} finding(s) present but none clinician-verified. Assessment generated from unverified data — treat with caution.`;
   } else if (conflictingMeasurements.length > 0) {
     safetyBoundary = 'CONTRADICTION';
     safetyBoundaryReason = `${conflictingMeasurements.length} conflicting measurement(s) detected. Review before relying on assessment.`;
   }
 
-  // 6. Reasoning is blocked only for INSUFFICIENT_DATA
+  // 6. Reasoning is blocked only if ZERO data exists
   const isReasoningBlocked = safetyBoundary === 'INSUFFICIENT_DATA';
 
   return {

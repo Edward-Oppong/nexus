@@ -7,12 +7,13 @@
 // ============================================================
 
 import { supabase, isSupabaseConfigured } from '../../../lib/supabase/client';
-import { FullSyntheticCase, EMPTY_CASE, MOCK_FULL_CASES_REGISTRY, SYNTHETIC_CASE_10482 } from '../../../data/cases/mockCasesData';
+import { FullSyntheticCase, EMPTY_CASE, MOCK_FULL_CASES_REGISTRY } from '../../../data/cases/mockCasesData';
 import { CaseOverview, SyntheticPatient } from '../../../domain/case';
 import { ClinicalFinding, FindingCategory, VerificationStatus, FindingProvenance } from '../../../domain/finding';
 import { CandidateHypothesis, HypothesisStatus } from '../../../domain/hypothesis';
 import { InvestigationOrder, InvestigationStatus } from '../../../domain/investigation';
 import { TimelineEvent } from '../../../domain/timeline';
+import { NexusAssessment, NexusFinding, NexusRecommendation } from '../../../domain/nexus-assessment';
 
 export async function getCaseDetail(caseId: string): Promise<FullSyntheticCase> {
   // Check if case was deleted
@@ -53,7 +54,7 @@ export async function getCaseDetail(caseId: string): Promise<FullSyntheticCase> 
     const realCaseId = caseRow.id;
     const patient = caseRow.patient || {};
 
-    // 2. Fetch Clinical Findings, Investigations, Hypotheses, Timeline, Safety Concerns, Decisions concurrently
+    // 2. Fetch Clinical Findings, Investigations, Hypotheses, Timeline, Safety Concerns, Decisions, Nexus Assessment concurrently
     const [
       { data: findingsRows },
       { data: invRows },
@@ -61,6 +62,7 @@ export async function getCaseDetail(caseId: string): Promise<FullSyntheticCase> 
       { data: timelineRows },
       { data: safetyRows },
       { data: decisionRows },
+      { data: nexusAssessmentRows },
     ] = await Promise.all([
       supabase.from('clinical_findings').select('*').eq('case_id', realCaseId).order('created_at', { ascending: false }),
       supabase.from('investigations').select('*').eq('case_id', realCaseId).order('requested_at', { ascending: false }),
@@ -68,6 +70,7 @@ export async function getCaseDetail(caseId: string): Promise<FullSyntheticCase> 
       supabase.from('timeline_events').select('*').eq('case_id', realCaseId).order('occurred_at', { ascending: false }),
       supabase.from('safety_concerns').select('*').eq('case_id', realCaseId).order('created_at', { ascending: false }),
       supabase.from('decisions').select('*').eq('case_id', realCaseId).order('recorded_at', { ascending: false }),
+      supabase.from('nexus_assessments').select('*').eq('case_id', realCaseId).neq('status', 'SUPERSEDED').order('created_at', { ascending: false }).limit(1),
     ]);
 
     // Calculate real patient age if dateOfBirth is present
@@ -251,6 +254,64 @@ export async function getCaseDetail(caseId: string): Promise<FullSyntheticCase> 
           caseId: realCaseId,
         };
 
+    // Map Nexus Assessment if one exists
+    let nexusAssessment: NexusAssessment | undefined = undefined;
+    const latestAssessmentRow = nexusAssessmentRows && nexusAssessmentRows.length > 0 ? nexusAssessmentRows[0] : null;
+    if (latestAssessmentRow) {
+      // Fetch associated findings and recommendations for this assessment
+      const [{ data: nfRows }, { data: nrRows }] = await Promise.all([
+        supabase.from('nexus_findings').select('*').eq('assessment_id', latestAssessmentRow.id).order('created_at', { ascending: true }),
+        supabase.from('nexus_recommendations').select('*').eq('assessment_id', latestAssessmentRow.id).order('created_at', { ascending: true }),
+      ]);
+
+      const nexusFindings: NexusFinding[] = (nfRows || []).map((nf: any): NexusFinding => ({
+        id: nf.id,
+        assessmentId: nf.assessment_id,
+        findingType: (nf.finding_type || 'SUPPORT') as any,
+        content: nf.content || '',
+        status: (nf.status === 'ACCEPTED' ? 'ACCEPTED'
+          : nf.status === 'EDITED' ? 'EDITED'
+          : nf.status === 'REJECTED' ? 'REJECTED'
+          : 'UNREVIEWED') as any,
+        findingIds: Array.isArray(nf.finding_ids) ? nf.finding_ids : (nf.finding_ids ? JSON.parse(nf.finding_ids) : []),
+        evidenceSourceIds: Array.isArray(nf.evidence_source_ids) ? nf.evidence_source_ids : (nf.evidence_source_ids ? JSON.parse(nf.evidence_source_ids) : []),
+        createdAt: nf.created_at || new Date().toISOString(),
+      }));
+
+      const recommendations: NexusRecommendation[] = (nrRows || []).map((nr: any): NexusRecommendation => ({
+        id: nr.id,
+        assessmentId: nr.assessment_id,
+        category: (nr.category || 'REVIEW') as any,
+        content: nr.content || '',
+        rationale: nr.rationale || undefined,
+        status: (nr.status === 'ACCEPTED' ? 'ACCEPTED'
+          : nr.status === 'REJECTED' ? 'REJECTED'
+          : 'PROPOSED') as any,
+        createdAt: nr.created_at || new Date().toISOString(),
+      }));
+
+      nexusAssessment = {
+        id: latestAssessmentRow.id,
+        caseId: latestAssessmentRow.case_id,
+        status: (latestAssessmentRow.status || 'REVIEW_REQUIRED') as any,
+        summary: latestAssessmentRow.summary || '',
+        dataCompleteness: (latestAssessmentRow.data_completeness || 'MODERATE') as any,
+        evidenceConsistency: (latestAssessmentRow.evidence_consistency || 'MODERATE') as any,
+        limitations: latestAssessmentRow.limitations ? (typeof latestAssessmentRow.limitations === 'string' ? JSON.parse(latestAssessmentRow.limitations) : latestAssessmentRow.limitations) : [],
+        modelName: latestAssessmentRow.model_name || 'Nexus Reasoning Engine',
+        modelVersion: latestAssessmentRow.model_version || '1.0',
+        promptVersion: latestAssessmentRow.prompt_version || '6F.1',
+        pipelineVersion: latestAssessmentRow.pipeline_version || '6F.1',
+        createdAt: latestAssessmentRow.created_at || new Date().toISOString(),
+        nexusFindings,
+        recommendations,
+        contradictions: latestAssessmentRow.contradictions ? (typeof latestAssessmentRow.contradictions === 'string' ? JSON.parse(latestAssessmentRow.contradictions) : latestAssessmentRow.contradictions) : [],
+        evidenceSources: [],
+        safetyBoundary: (latestAssessmentRow.safety_boundary || 'OK') as any,
+        safetyBoundaryReason: latestAssessmentRow.safety_boundary_reason || undefined,
+      };
+    }
+
     // Merge with EMPTY_CASE to maintain the full workstation-compatible shape
     return {
       ...EMPTY_CASE,
@@ -261,12 +322,13 @@ export async function getCaseDetail(caseId: string): Promise<FullSyntheticCase> 
       timeline,
       safetyIssues,
       clinicalDecision,
+      nexusAssessment,
       // Populate clinical narrative from real DB fields
       chiefComplaint: caseRow.title || EMPTY_CASE.chiefComplaint,
       historyOfPresentIllness: caseRow.notes || EMPTY_CASE.historyOfPresentIllness,
     };
   } catch (err) {
     console.error(`[getCaseDetail] Exception querying Supabase:`, err);
-    return MOCK_FULL_CASES_REGISTRY[caseId] || SYNTHETIC_CASE_10482 || EMPTY_CASE;
+    return MOCK_FULL_CASES_REGISTRY[caseId] || EMPTY_CASE;
   }
 }

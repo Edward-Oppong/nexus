@@ -143,18 +143,58 @@ export const EvidenceDrawer: React.FC = () => {
           </section>
 
           <section aria-labelledby="evidence-citation-title">
-            <h3 id="evidence-citation-title" style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '6px' }}>
-              Citation Reference
-            </h3>
-            <div style={{ background: '#F1F5F9', padding: '8px 10px', borderRadius: '4px', fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#334155' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+              <h3 id="evidence-citation-title" style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em', margin: 0 }}>
+                Citation Reference
+              </h3>
+              {(selectedEvidence.url || (selectedEvidence as any).source?.url) && (
+                <a
+                  href={selectedEvidence.url || (selectedEvidence as any).source?.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    color: '#0284C7',
+                    textDecoration: 'none',
+                  }}
+                >
+                  <span>Open Source</span>
+                  <ExternalLink size={12} />
+                </a>
+              )}
+            </div>
+            <div style={{ background: '#F1F5F9', padding: '8px 10px', borderRadius: '4px', fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#334155', lineHeight: 1.4 }}>
               {citation}
             </div>
           </section>
         </div>
 
         {/* Footer */}
-        <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '16px', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-          <button onClick={closeEvidenceDrawer} className="btn">
+        <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '16px', display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+          {(selectedEvidence.url || (selectedEvidence as any).source?.url) && (
+            <a
+              href={selectedEvidence.url || (selectedEvidence as any).source?.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-secondary"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '12px',
+                textDecoration: 'none',
+                color: '#334155',
+              }}
+            >
+              <ExternalLink size={14} />
+              <span>View on PubMed / DOI</span>
+            </a>
+          )}
+          <button onClick={closeEvidenceDrawer} className="btn btn-primary">
             Done
           </button>
         </div>

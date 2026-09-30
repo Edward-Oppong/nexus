@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useCase } from '../../../app/providers/CaseContext';
 import { usePersona } from '../../../app/providers/PersonaContext';
 import { Users2, CheckCircle2, Clock, UserPlus, Shield, X } from 'lucide-react';
@@ -12,7 +12,8 @@ interface TeamMember {
   initials: string;
 }
 
-const INITIAL_MEMBERS: TeamMember[] = [
+// Static member definitions — reviewStatus for pharmacist is computed dynamically below
+const BASE_MEMBERS: TeamMember[] = [
   {
     name: 'Dr. Edward Vance, MD',
     role: 'Attending Physician',
@@ -50,15 +51,47 @@ const INITIAL_MEMBERS: TeamMember[] = [
     role: 'Clinical Pharmacist',
     scope: 'Antimicrobial stewardship & allergy contraindication check',
     department: 'Infectious Disease Pharmacy',
-    reviewStatus: 'Safety alert active (Penicillin allergy contraindication)',
+    // Placeholder — overridden at render time from live safety concerns
+    reviewStatus: 'Reviewing active medications',
     initials: 'CO',
   },
 ];
 
 export const TeamTab: React.FC = () => {
-  const { activeCase } = useCase();
+  const { activeCase, safetyConcerns } = useCase();
   const { currentPersona } = usePersona();
+
+  // Compute the pharmacist's live status from open safety concerns
+  const pharmacistStatus = useMemo(() => {
+    const caseId = activeCase.overview.id;
+    const openAllergyOrDDI = safetyConcerns.filter(
+      (s) =>
+        s.caseId === caseId &&
+        s.status !== 'RESOLVED' &&
+        (s.category.toLowerCase().includes('allergy') ||
+          s.category.toLowerCase().includes('ddi') ||
+          s.category.toLowerCase().includes('medication'))
+    );
+    if (openAllergyOrDDI.length > 0) {
+      return `Safety alert active (${openAllergyOrDDI.length} open concern${openAllergyOrDDI.length > 1 ? 's' : ''}: ${openAllergyOrDDI[0].category})`;
+    }
+    return 'No active safety alerts — review complete';
+  }, [safetyConcerns, activeCase.overview.id]);
+
+  // Inject the live pharmacist status into member list
+  const INITIAL_MEMBERS = useMemo<TeamMember[]>(
+    () => BASE_MEMBERS.map((m) => (m.initials === 'CO' ? { ...m, reviewStatus: pharmacistStatus } : m)),
+    [pharmacistStatus]
+  );
+
   const [members, setMembers] = useState<TeamMember[]>(INITIAL_MEMBERS);
+
+  // Keep members in sync if the pharmacist status changes (e.g. concern resolved)
+  React.useEffect(() => {
+    setMembers((prev) =>
+      prev.map((m) => (m.initials === 'CO' ? { ...m, reviewStatus: pharmacistStatus } : m))
+    );
+  }, [pharmacistStatus]);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newCollabName, setNewCollabName] = useState('');
   const [newCollabRole, setNewCollabRole] = useState('Consultant Specialist');

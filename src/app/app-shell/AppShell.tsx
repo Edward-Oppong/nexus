@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useCase } from '../providers/CaseContext';
 import { useDrawer } from '../providers/DrawerContext';
-import { DemoBanner } from '../../components/navigation/DemoBanner';
 import { GlobalNav } from '../../components/navigation/GlobalNav';
 
 import { LandingView } from '../../features/landing/LandingView';
@@ -13,10 +12,7 @@ import { PatientsView } from '../../features/patients/PatientsView';
 import { TasksView } from '../../features/tasks/TasksView';
 import { ReviewQueueView } from '../../features/review/ReviewQueueView';
 import { EvidenceTab } from '../../features/case-workspace/tabs/EvidenceTab';
-import { InvestigationsTab } from '../../features/case-workspace/tabs/InvestigationsTab';
 import { AdministrationView } from '../../features/administration/AdministrationView';
-import { AiGovernanceView } from '../../features/ai-governance/AiGovernanceView';
-import { RegulatoryComplianceView } from '../../features/regulatory-compliance/RegulatoryComplianceView';
 
 import { FindingProvenanceDrawer } from '../../components/drawers/FindingProvenanceDrawer';
 import { EvidenceDrawer } from '../../components/drawers/EvidenceDrawer';
@@ -137,7 +133,6 @@ export const AppShell: React.FC = () => {
   if (activeView === 'landing') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <DemoBanner />
         <LandingView />
       </div>
     );
@@ -156,17 +151,6 @@ export const AppShell: React.FC = () => {
         return <CaseIntakeWorkspace />;
       case 'patients':
         return <PatientsView />;
-      case 'investigations':
-        return (
-          <main
-            aria-label="Clinical Investigations"
-            style={{ flex: 1, padding: '32px 40px', overflowY: 'auto', background: '#F8FAFC' }}
-          >
-            <div style={{ maxWidth: '980px', margin: '0 auto' }}>
-              <InvestigationsTab />
-            </div>
-          </main>
-        );
       case 'tasks':
         return <TasksView />;
       case 'review-queue':
@@ -192,11 +176,9 @@ export const AppShell: React.FC = () => {
           </main>
         );
       case 'administration':
-        return isAdmin ? <AdministrationView /> : <OverviewView />;
       case 'ai-governance':
-        return isAdmin ? <AiGovernanceView /> : <OverviewView />;
       case 'regulatory-compliance':
-        return isAdmin ? <RegulatoryComplianceView /> : <OverviewView />;
+        return isAdmin ? <AdministrationView /> : <OverviewView />;
       default:
         return <CaseWorkspaceView />;
     }
@@ -204,9 +186,6 @@ export const AppShell: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
-      {/* Top Demo Disclosure Banner */}
-      <DemoBanner />
-
       {/* Main Workstation Layout */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Global Sidebar Navigation */}

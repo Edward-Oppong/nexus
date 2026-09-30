@@ -22,6 +22,7 @@ import { EvidenceRailPanel } from './rail/EvidenceRailPanel';
 import { UncertaintyRailPanel } from './rail/UncertaintyRailPanel';
 import { QuickReviewRailPanel } from './rail/QuickReviewRailPanel';
 import { AskNexusRailPanel } from './rail/AskNexusRailPanel';
+import { NexusAnalysisRailPanel } from './rail/NexusAnalysisRailPanel';
 
 export const IntelligenceRail: React.FC = () => {
   const { activeCaseSubTab } = useCase();
@@ -81,6 +82,7 @@ export const IntelligenceRail: React.FC = () => {
     if (overrideFilter === 'SIGNALS') {
       return (
         <>
+          <NexusAnalysisRailPanel />
           <CaseSignalsPanel />
           <UncertaintyRailPanel />
           <AskNexusRailPanel />
@@ -90,6 +92,7 @@ export const IntelligenceRail: React.FC = () => {
     if (overrideFilter === 'REVIEW') {
       return (
         <>
+          <NexusAnalysisRailPanel />
           <QuickReviewRailPanel />
           <CaseSignalsPanel />
           <HypothesesRailPanel />
@@ -99,6 +102,7 @@ export const IntelligenceRail: React.FC = () => {
     if (overrideFilter === 'EVIDENCE') {
       return (
         <>
+          <NexusAnalysisRailPanel />
           <EvidenceRailPanel />
           <HypothesesRailPanel />
           <AskNexusRailPanel />
@@ -111,24 +115,17 @@ export const IntelligenceRail: React.FC = () => {
       case 'documents':
         return (
           <>
+            <NexusAnalysisRailPanel />
             <QuickReviewRailPanel />
             <CaseSignalsPanel />
             <EvidenceRailPanel />
           </>
         );
 
-      case 'investigations':
-        return (
-          <>
-            <CaseSignalsPanel />
-            <UncertaintyRailPanel />
-            <HypothesesRailPanel />
-          </>
-        );
-
       case 'findings':
         return (
           <>
+            <NexusAnalysisRailPanel />
             <QuickReviewRailPanel />
             <UncertaintyRailPanel />
             <HypothesesRailPanel />
@@ -138,6 +135,7 @@ export const IntelligenceRail: React.FC = () => {
       case 'reasoning':
         return (
           <>
+            <NexusAnalysisRailPanel />
             <HypothesesRailPanel />
             <EvidenceRailPanel />
             <UncertaintyRailPanel />
@@ -149,8 +147,19 @@ export const IntelligenceRail: React.FC = () => {
       case 'rules':
         return (
           <>
+            <NexusAnalysisRailPanel />
             <CaseSignalsPanel />
             <UncertaintyRailPanel />
+            <AskNexusRailPanel />
+          </>
+        );
+
+      case 'evidence':
+        return (
+          <>
+            <NexusAnalysisRailPanel />
+            <EvidenceRailPanel />
+            <HypothesesRailPanel />
             <AskNexusRailPanel />
           </>
         );
@@ -159,6 +168,7 @@ export const IntelligenceRail: React.FC = () => {
       default:
         return (
           <>
+            <NexusAnalysisRailPanel />
             <CaseSignalsPanel />
             <HypothesesRailPanel />
             <EvidenceRailPanel />

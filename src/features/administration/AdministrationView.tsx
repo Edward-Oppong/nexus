@@ -23,9 +23,19 @@ import { FhirEndpointsTab } from './tabs/FhirEndpointsTab';
 import { AuditLogTab } from './tabs/AuditLogTab';
 import { SystemDisclosureTab } from './tabs/SystemDisclosureTab';
 import { HfModelsTab } from './tabs/HfModelsTab';
-import { Building2, Users, Globe, Shield, Cpu, Lock, Sparkles } from 'lucide-react';
+import { AiGovernanceView } from '../ai-governance/AiGovernanceView';
+import { RegulatoryComplianceView } from '../regulatory-compliance/RegulatoryComplianceView';
+import { Building2, Users, Globe, Shield, Cpu, Lock, Sparkles, BrainCircuit, ShieldCheck } from 'lucide-react';
 
-type AdminTab = 'org-settings' | 'team' | 'fhir-endpoints' | 'audit-log' | 'hf-models' | 'system-disclosure';
+type AdminTab =
+  | 'org-settings'
+  | 'team'
+  | 'fhir-endpoints'
+  | 'audit-log'
+  | 'hf-models'
+  | 'ai-governance'
+  | 'compliance'
+  | 'system-disclosure';
 
 interface TabConfig {
   id: AdminTab;
@@ -71,6 +81,18 @@ const TABS: TabConfig[] = [
     description: 'Hugging Face models & inference endpoints',
   },
   {
+    id: 'ai-governance',
+    label: 'AI Governance',
+    icon: <BrainCircuit size={15} />,
+    description: 'Model drift, hallucination & safety consoles',
+  },
+  {
+    id: 'compliance',
+    label: 'Compliance',
+    icon: <ShieldCheck size={15} />,
+    description: 'MDCG 2021-6, FDA PCCP & audit manifests',
+  },
+  {
     id: 'system-disclosure',
     label: 'System Disclosure',
     icon: <Cpu size={15} />,
@@ -95,6 +117,8 @@ export const AdministrationView: React.FC = () => {
       case 'fhir-endpoints':     return <FhirEndpointsTab />;
       case 'audit-log':          return <AuditLogTab />;
       case 'hf-models':          return <HfModelsTab />;
+      case 'ai-governance':      return <AiGovernanceView />;
+      case 'compliance':         return <RegulatoryComplianceView />;
       case 'system-disclosure':  return <SystemDisclosureTab />;
     }
   };

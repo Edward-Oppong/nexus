@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCase } from '../../app/providers/CaseContext';
 import { usePersona } from '../../app/providers/PersonaContext';
-import { ArrowLeft, AlertTriangle, Plus, FileText, CheckCircle2, ShieldAlert, Wifi, WifiOff, Trash2 } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, FileText, CheckCircle2, ShieldAlert, Wifi, WifiOff, Trash2 } from 'lucide-react';
 import { offlineSyncEngine } from '../../lib/interoperability/advanced/offline-sync-engine';
 import { ACTIVE_COLLABORATIVE_REVIEWERS } from '../../lib/persistence/realtime-collaboration';
 
@@ -172,15 +172,6 @@ export const CaseHeader: React.FC = () => {
               </span>
             )}
           </div>
-          {currentPersona.allowedActions.canRequestInvestigations && (
-            <button
-              onClick={() => setActiveCaseSubTab('investigations')}
-              className="btn btn-sm"
-              title={currentPersona.roleDisplay}
-            >
-              <Plus size={13} /> Request Investigation
-            </button>
-          )}
 
           {currentPersona.allowedActions.canReviewNexusFindings && (
             <button

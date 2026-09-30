@@ -1,157 +1,248 @@
 // ============================================================
 // src/lib/intelligence/prompts/clinical-prompts.ts
-// Calibrated Clinical Prompt Engineering System for Nexus AI Models
-// High-confidence, few-shot, and regulatory-guarded prompt templates
-// Adheres strictly to EU MDR 2017/745 & MDCG 2020-1 Annex I standards
+// Calibrated Clinical Prompt Engineering for Nexus AI
+// Instruction-following format compatible with:
+//   - mistralai/Mistral-7B-Instruct-v0.3
+//   - HuggingFaceH4/zephyr-7b-beta
+//   - Any HF text-generation model
+// Adheres to EU MDR 2017/745 & MDCG 2020-1 Annex I standards
 // ============================================================
 
 export interface ClinicalPromptInput {
   caseId: string;
   clinicalSummary: string;
-  verifiedFindings: Array<{ id: string; category: string; label: string; value?: string; unit?: string }>;
-  investigationResults: Array<{ id: string; testName: string; value: string; interpretation: string; status?: string }>;
+  verifiedFindings: Array<{
+    id: string;
+    category: string;
+    label: string;
+    value?: string;
+    unit?: string;
+    verificationStatus?: string;
+  }>;
+  investigationResults: Array<{
+    id: string;
+    testName: string;
+    value: string;
+    interpretation: string;
+    status?: string;
+  }>;
   retrievedEvidence: Array<{ id: string; title: string; excerpt?: string; sourceUrl?: string }>;
   informationGaps: Array<{ id: string; description: string; priority: string }>;
-  patientDemographics?: { age?: number; gender?: string; allergies?: string[]; pastHistory?: string[] };
+  patientDemographics?: {
+    age?: number;
+    gender?: string;
+    allergies?: string[];
+    pastHistory?: string[];
+  };
+  existingHypotheses?: Array<{ id: string; title: string; status: string }>;
 }
 
-/**
- * 1. HIGH-CONFIDENCE CLINICAL REASONING & DIFFERENTIAL SYNTHESIS PROMPT
- * Used by generative reasoning models (MedGemma, Mixtral, Qwen-2.5, Falconsai)
- */
+// ----------------------------------------------------------
+// Instruction-following JSON prompt for clinical differential
+// diagnosis synthesis — works with Mistral, Zephyr, and
+// other instruction-tuned text-generation models via HF.
+// ----------------------------------------------------------
 export function buildClinicalReasoningPrompt(input: ClinicalPromptInput): string {
-  const verifiedFindingsList = input.verifiedFindings.length > 0
-    ? input.verifiedFindings.map((f) => `  - [${f.id}] [${f.category.toUpperCase()}] ${f.label}${f.value ? `: ${f.value}` : ''}${f.unit ? ` ${f.unit}` : ''}`).join('\n')
-    : '  (None documented yet)';
+  const verified = input.verifiedFindings.filter(
+    (f) => !f.label.startsWith('[UNVERIFIED]')
+  );
+  const unverified = input.verifiedFindings.filter(
+    (f) => f.label.startsWith('[UNVERIFIED]')
+  );
 
-  const investigationResultsList = input.investigationResults.length > 0
-    ? input.investigationResults.map((i) => `  - [${i.id}] ${i.testName}: ${i.value} -> ${i.interpretation}${i.status ? ` [${i.status}]` : ''}`).join('\n')
-    : '  (Pending laboratory/imaging results)';
+  const verifiedList =
+    verified.length > 0
+      ? verified
+          .map(
+            (f) =>
+              `  [${f.id}] (${f.category.toUpperCase()}) ${f.label}${f.value ? `: ${f.value}` : ''}${f.unit ? ` ${f.unit}` : ''}`
+          )
+          .join('\n')
+      : '  (No clinician-verified findings yet — reason from investigation results and history)';
 
-  const evidenceList = input.retrievedEvidence.length > 0
-    ? input.retrievedEvidence.map((e) => `  - [${e.id}] "${e.title}" (${e.excerpt ? e.excerpt.slice(0, 160) : 'Guideline reference'})`).join('\n')
-    : '  (Standard clinical guidelines apply)';
+  const unverifiedList =
+    unverified.length > 0
+      ? unverified
+          .map((f) => `  [${f.id}] ${f.label.replace('[UNVERIFIED] ', '')}`)
+          .join('\n')
+      : '  (None)';
 
-  const gapsList = input.informationGaps.length > 0
-    ? input.informationGaps.map((g) => `  - [${g.id}] [${g.priority}] ${g.description}`).join('\n')
-    : '  (No outstanding gaps recorded)';
+  const labsList =
+    input.investigationResults.length > 0
+      ? input.investigationResults
+          .map(
+            (i) =>
+              `  [${i.id}] ${i.testName}: ${i.value}  → ${i.interpretation}`
+          )
+          .join('\n')
+      : '  (No results available yet)';
+
+  const gapsList =
+    input.informationGaps.length > 0
+      ? input.informationGaps
+          .map((g) => `  [${g.id}] [${g.priority}] ${g.description}`)
+          .join('\n')
+      : '  (None documented)';
 
   const demographics = input.patientDemographics
-    ? `Patient: ${input.patientDemographics.age ? `${input.patientDemographics.age}yo` : ''} ${input.patientDemographics.gender || ''}
-Documented Allergies: ${input.patientDemographics.allergies?.join(', ') || 'NKDA'}
-Relevant PMHx: ${input.patientDemographics.pastHistory?.join('; ') || 'None reported'}`
-    : `Case ID: ${input.caseId}`;
+    ? [
+        input.patientDemographics.age
+          ? `Age: ${input.patientDemographics.age}yo`
+          : '',
+        input.patientDemographics.gender
+          ? `Sex: ${input.patientDemographics.gender}`
+          : '',
+        input.patientDemographics.allergies?.length
+          ? `Allergies: ${input.patientDemographics.allergies.join(', ')}`
+          : 'Allergies: NKDA',
+        input.patientDemographics.pastHistory?.length
+          ? `PMHx: ${input.patientDemographics.pastHistory.join('; ')}`
+          : '',
+      ]
+        .filter(Boolean)
+        .join(' | ')
+    : '';
 
-  return `[SYSTEM ROLE: SENIOR ATTENDING CLINICIAN & CLINICAL REASONING FELLOW]
-You are the Nexus Clinical Diagnostic Engine, an advanced medical intelligence co-pilot designed to assist acute physicians with diagnostic reasoning, differential hypothesis weighting, and safety hazard detection.
+  const hypothesesHint =
+    input.existingHypotheses && input.existingHypotheses.length > 0
+      ? `\nPrior hypotheses on file:\n${input.existingHypotheses.map((h) => `  - ${h.title} [${h.status}]`).join('\n')}`
+      : '';
 
-=== CLINICAL PATIENT DOSSIER ===
-${demographics}
-Presentation Narrative: "${input.clinicalSummary}"
+  const findingIds = input.verifiedFindings.map((f) => f.id);
+  const labIds = input.investigationResults.map((i) => i.id);
+  const allIds = [...findingIds, ...labIds];
 
-VERIFIED CLINICAL FINDINGS (Ground Truth):
-${verifiedFindingsList}
+  return `<s>[INST]
+You are the Nexus Clinical Diagnostic Engine — a precision differential diagnosis co-pilot for acute hospital physicians. Your task is to analyze the clinical case below and return a structured differential diagnosis assessment.
 
-DIAGNOSTIC INVESTIGATION RESULTS:
-${investigationResultsList}
+=== CLINICAL CASE ===
+${demographics ? demographics + '\n' : ''}Presentation: ${input.clinicalSummary}
+${hypothesesHint}
 
-RETRIEVED GUIDELINE EVIDENCE POOL:
-${evidenceList}
+VERIFIED CLINICAL FINDINGS:
+${verifiedList}
 
-CRITICAL INFORMATION GAPS:
+UNVERIFIED AI-EXTRACTED FINDINGS (do not treat as fact, but may generate hypotheses):
+${unverifiedList}
+
+LABORATORY & INVESTIGATION RESULTS:
+${labsList}
+
+INFORMATION GAPS:
 ${gapsList}
 
-=== 18 NON-NEGOTIABLE ARCHITECTURAL & SAFETY RULES ===
-1. GROUNDING REQUIREMENT: Every hypothesis claim MUST explicitly cite matching verified finding IDs (e.g. ["f-1", "f-2"]) from the dossier above. NEVER hallucinate or invent new IDs.
-2. NO NUMERICAL PROBABILITIES: NEVER output percentages or statistical diagnostic odds (e.g. no "85% likelihood", no "p = 0.04"). Use qualitative certainty terms: SUPPORTED, UNCERTAIN, or CONTRADICTED.
-3. EPISTEMIC SEPARATION: Strictly isolate what is KNOWN (verified findings), what is INFERRED (pathophysiologic link), and what is UNKNOWN (information gaps).
-4. SAFETY FIRST: Actively flag drug-allergy conflicts, organ dysfunction dosing adjustments, and urgent clinical escalations.
-5. IMMUTABLE CONTRADICTIONS: If clinical findings contradict each other (e.g. joint pains suggesting lupus vs splinter hemorrhages indicating bacterial emboli), explicitly document the contradiction.
+=== STRICT OUTPUT RULES ===
+1. GROUNDING: Every hypothesis MUST cite at least one ID from this list: ${JSON.stringify(allIds)}. Only use IDs that actually appear in the case data above. NEVER invent IDs.
+2. NO PROBABILITIES: Do not use percentages or numeric odds. Use qualitative terms: "Supported", "Uncertain", or "Contradicted".
+3. HYPOTHESES: Generate 2–4 clinically plausible differential diagnoses derived from the findings and labs above. If limited data, generate hypotheses based on the presentation and history.
+4. CONTRADICTIONS: If any two findings conflict clinically (e.g., normal WBC yet high CRP, or normal ECG yet high troponin), document that contradiction.
+5. SAFETY: Flag any drug-allergy conflicts, critical lab values, or urgent escalation triggers.
+6. LIMITATIONS: Always list data gaps that limit this assessment.
+7. ADVISORY ONLY: Never claim a definitive diagnosis. Output is for physician review only.
 
-=== REQUIRED OUTPUT FORMAT ===
-Return ONLY a valid JSON object matching this exact schema:
+Return ONLY valid JSON with this exact structure (no markdown, no prose, just JSON):
 {
-  "summary": "Concise 2-3 sentence executive clinical synthesis emphasizing acute priorities and pathophysiologic trajectory.",
+  "summary": "2-3 sentence executive synthesis of the case with key acute priorities and pathophysiologic trajectory.",
   "hypotheses": [
     {
-      "label": "Primary Diagnostic Hypothesis (e.g. Subacute Infective Endocarditis)",
+      "label": "Hypothesis name (e.g., Community-Acquired Pneumonia with Sepsis Features)",
       "status": "Supported",
-      "rationale": "Clear mechanistic rationale connecting verified findings to established clinical criteria (e.g. Modified Duke Criteria) without percentage probabilities.",
-      "supportingFindingIds": ["f-2", "f-3"],
+      "rationale": "Mechanistic clinical rationale linking specific findings to this diagnosis. Reference the finding IDs that support or contradict it.",
+      "supportingFindingIds": ["FINDING_ID_1", "FINDING_ID_2"],
       "contradictingFindingIds": [],
-      "missingInformation": ["Transesophageal Echocardiogram (TEE) to evaluate vegetation size"],
-      "evidenceSourceIds": ["ev-aha-2025"]
+      "missingInformation": ["Specific test or datum that would confirm or exclude this hypothesis"],
+      "evidenceSourceIds": []
     }
   ],
   "contradictions": [
     {
-      "findingAId": "f-1",
-      "findingBId": "f-2",
-      "explanation": "Detailed explanation of clinical tension between these observations."
+      "findingAId": "FINDING_ID_A",
+      "findingBId": "FINDING_ID_B",
+      "explanation": "Clinical explanation of why these two findings are in tension."
     }
   ],
   "safetyAlerts": [
     {
       "severity": "CRITICAL",
-      "issue": "Specific safety hazard (e.g. Penicillin allergy cross-reactivity contraindication).",
-      "action": "Clear actionable mitigation (e.g. Switch to IV Vancomycin with AUC-targeted therapeutic monitoring)."
+      "issue": "Specific safety concern",
+      "action": "Recommended mitigation"
     }
   ],
   "limitations": [
-    "Advisory output for licensed physician review; not an autonomous medical device."
+    "List each clinical data gap or caveat limiting this assessment."
   ]
-}`;
+}
+[/INST]`;
 }
 
 /**
- * 2. STRUCTURED SBAR LONGITUDINAL SYNTHESIS PROMPT
- * Used for clinical handover notes, multidisciplinary summaries, and round briefings
+ * SBAR Clinical Handover Synthesis Prompt
  */
-export function buildSbarHandoverPrompt(patientName: string, caseSummary: string, findings: string[], planNotes: string): string {
-  return `[TASK: SBAR CLINICAL HANDOVER SYNTHESIS]
-Synthesize the following acute clinical case into a pristine, high-fidelity SBAR (Situation, Background, Assessment, Recommendation) structured note for incoming physician handover:
+export function buildSbarHandoverPrompt(
+  patientName: string,
+  caseSummary: string,
+  findings: string[],
+  planNotes: string
+): string {
+  return `<s>[INST]
+Synthesize the following acute clinical case into a pristine SBAR (Situation, Background, Assessment, Recommendation) structured handover note for an incoming physician.
 
 Patient: ${patientName}
 Presentation: ${caseSummary}
-Active Findings & Parameters:
+Active Findings:
 ${findings.map((f) => `- ${f}`).join('\n')}
 Active Orders & Plan: ${planNotes}
 
-Format output cleanly in four standardized sections:
-- S (Situation): Immediate reason for admission, acuity, current bed location.
-- B (Background): Relevant past medical history, predisposing events (e.g. recent procedures), baseline functional status.
-- A (Assessment): Current working diagnosis, hemodynamic stability, key laboratory / imaging results.
-- R (Recommendation): Next 12-hour critical milestones, pending laboratory cultures, and contingency safety parameters.`;
+Format output cleanly in four sections:
+- S (Situation): Immediate reason for admission, acuity level, current location.
+- B (Background): Relevant past medical history, predisposing events, baseline functional status.
+- A (Assessment): Current working diagnosis, hemodynamic stability, key laboratory/imaging results.
+- R (Recommendation): Next 12-hour milestones, pending cultures, contingency safety parameters.
+[/INST]`;
 }
 
 /**
- * 3. DENSE LITERATURE RETRIEVAL PROMPT (PICO FORMAT)
- * Formulates optimized semantic queries for MedCPT literature encoders
+ * Dense Literature Retrieval Query (PICO Format)
  */
-export function buildPicoQuery(condition: string, findings: string[], contraindications?: string[]): string {
+export function buildPicoQuery(
+  condition: string,
+  findings: string[],
+  contraindications?: string[]
+): string {
   const p = findings.slice(0, 4).join(', ');
-  const c = contraindications && contraindications.length > 0 ? `with ${contraindications.join(', ')}` : 'standard inpatient';
+  const c =
+    contraindications && contraindications.length > 0
+      ? `with ${contraindications.join(', ')}`
+      : 'standard inpatient';
   return `Patient population with ${condition} presenting with ${p} ${c}. Guideline-recommended diagnostic criteria, antimicrobial pharmacotherapy regimens, and risk stratification.`;
 }
 
 /**
- * 4. CLINICAL NER GUIDELINES & SAMPLE PRESETS
- * Verified input benchmarks for biomedical entity recognition models
+ * Clinical NER Benchmarks
  */
 export const CLINICAL_NER_BENCHMARKS = [
   {
     title: 'Infective Endocarditis with Allergy',
     text: 'A 42-year-old female presents with persistent high fever of 39.2°C, night sweats, and new splinter hemorrhages under nail beds after dental extraction 3 weeks ago. Auscultation reveals a grade 3/6 holosystolic murmur at cardiac apex. Documented severe anaphylaxis to amoxicillin. Blood cultures grew Streptococcus viridans in 3 of 3 sets.',
-    expectedEntities: ['fever', 'splinter hemorrhages', 'dental extraction', 'holosystolic murmur', 'anaphylaxis', 'amoxicillin', 'Streptococcus viridans'],
+    expectedEntities: [
+      'fever',
+      'splinter hemorrhages',
+      'dental extraction',
+      'holosystolic murmur',
+      'anaphylaxis',
+      'amoxicillin',
+      'Streptococcus viridans',
+    ],
   },
   {
     title: 'Acute Coronary Syndrome & Renal Impairment',
-    text: '68-year-old male presenting with acute substernal crushing chest pain radiating to left jaw, diaphoresis, and shortness of breath. ECG demonstrates 2mm ST-segment elevation in leads V1-V4. Serum troponin I elevated at 4.8 ng/mL. Serum creatinine is 2.1 mg/dL. Prescribed aspirin 300mg and ticagrelor 180mg.',
-    expectedEntities: ['crushing chest pain', 'diaphoresis', 'shortness of breath', 'ST-segment elevation', 'troponin I', 'creatinine', 'aspirin', 'ticagrelor'],
-  },
-  {
-    title: 'Severe COPD Exacerbation with Infection',
-    text: '71-year-old female with severe COPD admitted with acute respiratory distress, wheezing, and purulent green sputum. Arterial blood gas shows pH 7.29, PaCO2 58 mmHg, PaO2 55 mmHg. Chest X-ray reveals left lower lobe consolidation. Started on non-invasive ventilation (BiPAP), IV methylprednisolone 40mg, and nebulized ipratropium.',
-    expectedEntities: ['COPD', 'respiratory distress', 'wheezing', 'purulent green sputum', 'PaCO2', 'PaO2', 'consolidation', 'methylprednisolone', 'ipratropium'],
+    text: '68-year-old male presenting with acute substernal crushing chest pain radiating to left jaw, diaphoresis, and shortness of breath. ECG demonstrates 2mm ST-segment elevation in leads V1-V4. Serum troponin I elevated at 4.8 ng/mL. Serum creatinine is 2.1 mg/dL.',
+    expectedEntities: [
+      'crushing chest pain',
+      'diaphoresis',
+      'ST-segment elevation',
+      'troponin I',
+      'creatinine',
+    ],
   },
 ];

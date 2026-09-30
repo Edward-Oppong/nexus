@@ -43,6 +43,16 @@ export async function deleteCase(
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(caseId);
 
     if (isUuid) {
+      // 0. Fetch patient_id and encounter_id before deleting
+      const { data: caseRow } = await supabase
+        .from('cases')
+        .select('patient_id, encounter_id')
+        .eq('id', caseId)
+        .maybeSingle();
+
+      const patientId = caseRow?.patient_id;
+      const encounterId = caseRow?.encounter_id;
+
       // 1. Explicitly purge all associated records across all clinical sections
       await Promise.allSettled([
         supabase.from('tasks').delete().eq('case_id', caseId),
@@ -81,6 +91,20 @@ export async function deleteCase(
             updated_at: new Date().toISOString(),
           })
           .eq('id', caseId);
+      }
+
+      // 4. Cascade delete connected encounter and patient if no other case references them
+      if (encounterId) {
+        await supabase.from('encounters').delete().eq('id', encounterId);
+      }
+      if (patientId) {
+        const { count } = await supabase
+          .from('cases')
+          .select('id', { count: 'exact', head: true })
+          .eq('patient_id', patientId);
+        if (!count || count === 0) {
+          await supabase.from('patients').delete().eq('id', patientId);
+        }
       }
     }
 

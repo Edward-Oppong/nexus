@@ -195,9 +195,14 @@ export const RulesTab: React.FC = () => {
   // ------------------------------------------------------------
   // SUB-SECTION 4: ALLERGY CROSS-REACTIVITY STATE
   // ------------------------------------------------------------
+  // Derive allergy list from live case data so the engine uses real intake records,
+  // not a hardcoded demo list.
   const patientKnownAllergies = useMemo(() => {
-    return ['Penicillin (Severe anaphylactic shock at age 28)', 'Sulfa antibiotics (Urticaria)'];
-  }, []);
+    const allergies = activeCase.overview.patient.allergies;
+    if (!allergies || allergies.length === 0) return [];
+    // Format to match allergy-engine input: "<allergen> (<reaction>)"
+    return allergies.map((a) => `${a.allergen} (${a.reaction})`);
+  }, [activeCase.overview.patient.allergies]);
 
   const [testAntimicrobial, setTestAntimicrobial] = useState<string>('Ceftriaxone');
 

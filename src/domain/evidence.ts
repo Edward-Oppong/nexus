@@ -135,4 +135,5 @@ export interface EvidenceItem {
   authorityTier?: AuthorityTier;
   abstract?: string;
   hypothesisIds?: string[];
+  url?: string;
 }

@@ -1,7 +1,7 @@
 # Nexus Clinical Workstation
 
 > **An AI-augmented clinical reasoning workstation for structured diagnostic decision support.**
-> **Version 1.2.0 (Live Backend, GoTrue Auth & Clinical PDF Reconstruction)**
+> **Version 1.5.0 (Live Mistral-7B Reasoning, Contextual Rail, Europe PMC & Clinical Safety Architecture)**
 
 Nexus is a structured clinical reasoning environment — not an AI chatbot, not a diagnosis engine. It supports clinicians in gathering, organising, and evaluating clinical evidence, while ensuring all AI-generated content is explicitly flagged and requires human review before any clinical decision is made.
 
@@ -369,18 +369,17 @@ interface QualitativeUncertainty {
 
 ### Contextual Intelligence & Review Rail
 
-The right pane of the clinical workstation is a contextual **Intelligence & Review Rail** (not a chatbot sidebar). It mounts 2–4 specialized panels based on the clinician's active center tab via the **Context Dispatch Matrix**:
+The right pane of the clinical workstation is a contextual **Intelligence & Review Rail** (not a chatbot sidebar). It mounts specialized panels based on the clinician's active center tab via the **Context Dispatch Matrix**:
 
-| Center Tab | Mounted Rail Panels | Clinical Purpose |
-|------------|---------------------|------------------|
-| Overview | `CaseSignalsPanel`, `UncertaintyRailPanel` | Immediate situational awareness & case trajectory |
-| Findings | `CaseSignalsPanel`, `QuickReviewRailPanel` | Unverified AI extraction sign-off & critical flags |
-| Reasoning | `HypothesesRailPanel`, `EvidenceRailPanel`, `UncertaintyRailPanel` | Deep differential evaluation, citation grounding, gaps |
-| Investigations | `EvidenceRailPanel`, `CaseSignalsPanel` | Investigation yield, diagnostic protocols & safety checks |
-| Timeline | `CaseSignalsPanel`, `UncertaintyRailPanel` | Temporal anomaly detection & interval consistency |
-| Documents | `QuickReviewRailPanel`, `EvidenceRailPanel` | Document extraction review & literature grounding |
-| Rules | `EvidenceRailPanel`, `UncertaintyRailPanel` | Guideline rule grounding & criteria satisfaction |
-| Decision / Safety | `QuickReviewRailPanel`, `UncertaintyRailPanel` | Final sign-off verification & critical safety alerts |
+| Center Tab | Mounted Rail Panels (Top to Bottom) | Clinical Purpose |
+|------------|-------------------------------------|------------------|
+| Overview / Summary | `NexusAnalysisRailPanel`, `CaseSignalsPanel`, `HypothesesRailPanel`, `EvidenceRailPanel`, `AskNexusRailPanel` | Real-time Nexus Assessment status, acute signals, candidate hypotheses, literature & grounded queries |
+| Findings | `NexusAnalysisRailPanel`, `QuickReviewRailPanel`, `UncertaintyRailPanel`, `HypothesesRailPanel` | In-rail finding sign-off, qualitative uncertainty, and hypothesis linkage |
+| Reasoning | `NexusAnalysisRailPanel`, `HypothesesRailPanel`, `EvidenceRailPanel`, `UncertaintyRailPanel`, `AskNexusRailPanel` | Deep differential evaluation, citation grounding, missing information gaps & interactive reasoning query |
+| Investigations | `NexusAnalysisRailPanel`, `CaseSignalsPanel`, `UncertaintyRailPanel`, `HypothesesRailPanel` | Diagnostic yield, protocol satisfaction & safety checks |
+| Documents | `NexusAnalysisRailPanel`, `QuickReviewRailPanel`, `CaseSignalsPanel`, `EvidenceRailPanel` | Document extraction review & literature grounding |
+| Rules / Safety | `NexusAnalysisRailPanel`, `CaseSignalsPanel`, `UncertaintyRailPanel`, `AskNexusRailPanel` | Guideline rule grounding, criteria satisfaction & critical safety issues |
+| Evidence | `NexusAnalysisRailPanel`, `EvidenceRailPanel`, `HypothesesRailPanel`, `AskNexusRailPanel` | Europe PMC & MedCPT peer-reviewed guideline synthesis |
 
 ---
 
@@ -412,11 +411,28 @@ Archived (immutable audit trail)
 
 ### Contradiction Detection
 
-The `contradiction-check` edge function uses:
+The `contradiction-check` edge function and local rules engine use:
 1. **Semantic contradiction** — embedding similarity between findings with opposite implications.
 2. **Rule-based contradiction** — vital sign contradictions (e.g., SpO2 > 98% AND "respiratory failure" finding).
 
----
+### False Positive & False Negative Defense-in-Depth
+
+In compliance with EU MDR 2017/745 and FDA Clinical Decision Support (CDS) guidance, Nexus employs an architectural barrier against erroneous machine outputs:
+
+#### Mitigating False Positives (Over-Diagnosis & Hallucination)
+- **Zero Autonomous Writes (Rules 1 & 3):** All AI outputs are typed as candidate proposals and flagged with yellow/orange `UNVERIFIED` badges. They never alter the patient's canonical chart without clinician acceptance.
+- **Strict Grounding & Citation Validation (Rules 6 & 7):** Outputs must strictly map to verified `findingIds` and retrieved `evidenceSourceIds`. Invented conditions or citations fail schema validation and are rejected.
+- **Prohibition of Numeric Probability (Rules 5 & 10):** Prevents false pseudo-precision (e.g., "91% likelihood of PE"). Uncertainty is strictly qualitative (`QualitativeUncertainty`).
+- **Contradiction Detection:** Opposing findings are surfaced directly in `NexusAnalysisRailPanel` and `SafetyTab` to challenge confirmation bias.
+- **Mandatory Rejection Auditing:** Clinician dismissals require structured rationale (`INCORRECT`, `UNSUPPORTED`, `EVIDENCE_NOT_APPLICABLE`), logging telemetry for post-market surveillance.
+
+#### Mitigating False Negatives (Missed Diagnoses & Omission)
+- **Deterministic Safety Precedence (Rules 4 & 5):** Life-critical checks (Wells PE, CURB-65, RxNorm drug-drug interactions, allergy cross-reactivity) execute as deterministic algorithms immune to LLM hallucination or omission.
+- **Active Information Gap Detection:** Nexus proactively identifies and flags missing diagnostic investigations (`MISSING_INFORMATION`) before premature diagnostic closure.
+- **Mandatory Broad Differential Formulation:** Reasoning prompts require 3–5 candidate hypotheses including high-risk emergent mimics.
+- **Dual-Engine Resilience:** If serverless LLM calls (`Mistral-7B-Instruct-v0.3`) fail or time out, the system automatically falls back to `DeterministicClinicalProvider` (covering 18 acute presentations).
+- **Live Peer-Reviewed Literature (Europe PMC / PubMed):** Live retrieval fetches recent clinical guidelines to prevent missing rare conditions or newly published protocols.
+- **Pre-Flight Data Quality Checks:** Low chart completeness triggers `INSUFFICIENT_DATA` rather than guessing on incomplete data.
 
 ## 8. Interoperability — FHIR R4
 
@@ -622,6 +638,14 @@ Duplicate imports are safely skipped.
 - [x] High-fidelity clinical PDF document reconstruction and verification review with `pdfjs-dist` text layer extraction (`DocumentReconstructionReview.tsx`)
 - [x] Live Hugging Face Inference API integration (`VITE_HF_API_TOKEN`) for zero-shot clinical entity extraction
 - [x] Structured hypothesis rejection modal with mandatory clinical justification (`HypothesisRejectionModal.tsx`)
+
+### Phase 16 — Live Mistral-7B Differential Reasoning, Contextual Rail & Clinical Safety (v1.5.0)
+- [x] Primary differential reasoning powered by `mistralai/Mistral-7B-Instruct-v0.3` with live JSON schema validation and deterministic failover (18 acute conditions)
+- [x] Model Testing Console expansion with dedicated Mistral-7B execution tab (`HuggingFaceModelTestingModal.tsx`)
+- [x] Contextual Intelligence Rail overhaul: `NexusAnalysisRailPanel.tsx` mounted across all tabs, quick-prompt chips in `AskNexusRailPanel.tsx`, live assessment badges in `HypothesesRailPanel.tsx`
+- [x] Live biomedical literature retrieval via Europe PMC / PubMed REST API integration (`pubmed-service.ts`)
+- [x] Comprehensive False Positive & False Negative defense-in-depth safety architecture documented and enforced across schemas and deterministic rule engines
+- [x] Full build verification: 0 TypeScript errors (`npx tsc --noEmit`)
 
 ---
 

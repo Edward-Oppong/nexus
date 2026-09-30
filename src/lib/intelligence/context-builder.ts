@@ -1,7 +1,7 @@
 // ============================================================
 // src/lib/intelligence/context-builder.ts
 // Phase 6F: Context Builder
-// Builds the structured CaseContext from FullSyntheticCase.
+// Builds the structured ReasoningInput from FullSyntheticCase.
 // The context is the only thing that goes into the reasoning engine.
 // The model cannot invent data outside what the context provides.
 // ============================================================
@@ -11,18 +11,28 @@ import { ReasoningInput } from './reasoning-provider';
 
 // ----------------------------------------------------------
 // Build ReasoningInput from a FullSyntheticCase
-// Only verified findings enter the reasoning context.
-// AI-extracted-unverified findings are excluded from reasoning
-// but flagged by the data quality layer.
+// Includes ALL findings (verified + unverified) so the AI
+// always has clinical data to reason against.
+// Unverified findings are flagged — the AI must not treat
+// them as authoritative but can use them for hypothesis generation.
 // ----------------------------------------------------------
 export function buildReasoningContext(
   activeCase: FullSyntheticCase,
   retrievedEvidence: ReasoningInput['retrievedEvidence'],
   scope: ReasoningInput['scope']
 ): ReasoningInput {
-  const { overview, chiefComplaint, historyOfPresentIllness, findings, hypotheses, informationGaps, investigations, safetyIssues } = activeCase;
+  const {
+    overview,
+    chiefComplaint,
+    historyOfPresentIllness,
+    findings,
+    hypotheses,
+    informationGaps,
+    investigations,
+    safetyIssues,
+  } = activeCase;
 
-  // Only include clinician-verified findings in reasoning context
+  // Include ALL findings — verified ones are primary, unverified are flagged
   const verifiedFindings = findings
     .filter(
       (f) =>
@@ -34,8 +44,30 @@ export function buildReasoningContext(
       label: f.label,
       category: f.category,
       provenanceType: String(f.provenance.provenanceType),
-      verificationStatus: String(f.provenance.verificationStatus),
+      verificationStatus: 'Verified' as const,
+      value: (f as any).value ?? (f as any).observedValue ?? '',
+      unit: (f as any).unit ?? '',
     }));
+
+  // Also pass unverified findings as context (flagged clearly)
+  const unverifiedFindings = findings
+    .filter(
+      (f) =>
+        f.provenance.verificationStatus !== 'Verified' &&
+        f.provenance.verificationStatus !== 'VERIFIED'
+    )
+    .map((f) => ({
+      id: f.id,
+      label: `[UNVERIFIED] ${f.label}`,
+      category: f.category,
+      provenanceType: String(f.provenance.provenanceType),
+      verificationStatus: 'Unverified' as const,
+      value: (f as any).value ?? (f as any).observedValue ?? '',
+      unit: (f as any).unit ?? '',
+    }));
+
+  // All findings (verified first)
+  const allFindings = [...verifiedFindings, ...unverifiedFindings];
 
   // Completed investigations with results
   const investigationResults = investigations
@@ -71,18 +103,36 @@ export function buildReasoningContext(
     priority: g.priority,
   }));
 
+  // Extract patient demographics from overview
+  const patientAge = (overview as any).patientAge ?? (overview as any).age;
+  const patientGender = (overview as any).patientGender ?? (overview as any).gender;
+
+  // Build rich clinical summary
+  const findingSummaryParts: string[] = [];
+  if (verifiedFindings.length > 0) {
+    findingSummaryParts.push(`${verifiedFindings.length} verified finding(s)`);
+  }
+  if (unverifiedFindings.length > 0) {
+    findingSummaryParts.push(`${unverifiedFindings.length} unverified finding(s)`);
+  }
+  if (investigationResults.length > 0) {
+    findingSummaryParts.push(`${investigationResults.length} investigation result(s)`);
+  }
+
   const clinicalSummary =
-    `Case ${overview.id}: ${chiefComplaint}. ` +
-    `HPI: ${historyOfPresentIllness.substring(0, 200)}... ` +
-    `${verifiedFindings.length} verified finding(s). ` +
-    `${investigationResults.length} investigation result(s). ` +
-    `${informationGapsContext.length} information gap(s). ` +
-    `Safety issues: ${safetyContext.length}.`;
+    `${chiefComplaint || 'Clinical case under review'}. ` +
+    (historyOfPresentIllness
+      ? `History: ${historyOfPresentIllness.substring(0, 300)}. `
+      : '') +
+    (patientAge ? `Patient age: ${patientAge}. ` : '') +
+    (patientGender ? `Gender: ${patientGender}. ` : '') +
+    (findingSummaryParts.length > 0 ? findingSummaryParts.join(', ') + '. ' : '') +
+    (safetyContext.length > 0 ? `${safetyContext.length} active safety concern(s).` : '');
 
   return {
     caseId: overview.id,
     clinicalSummary,
-    verifiedFindings,
+    verifiedFindings: allFindings, // Pass all findings to the prompt
     investigationResults,
     existingHypotheses,
     retrievedEvidence,

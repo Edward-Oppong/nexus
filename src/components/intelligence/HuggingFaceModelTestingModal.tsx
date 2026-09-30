@@ -38,7 +38,7 @@ export const HuggingFaceModelTestingModal: React.FC<Props> = ({ isOpen, onClose 
   const [isTestingAll, setIsTestingAll] = useState(false);
 
   // Active Interactive Test Panel
-  const [activeTestTab, setActiveTestTab] = useState<'NER' | 'DOC_CLF' | 'FINDING' | 'MEDCPT' | 'MEDGEMMA'>('NER');
+  const [activeTestTab, setActiveTestTab] = useState<'NER' | 'DOC_CLF' | 'FINDING' | 'MEDCPT' | 'MEDGEMMA' | 'MISTRAL'>('NER');
 
   // Test Inputs & Outputs
   const [nerInput, setNerInput] = useState(
@@ -64,6 +64,12 @@ export const HuggingFaceModelTestingModal: React.FC<Props> = ({ isOpen, onClose 
     'Summary: 64-year-old male with persistent fever, dyspnea, and left lower lobe consolidation despite 48h oral amoxicillin.\nVerified findings: [f1] High fever, [f2] Tachypnea, [f3] Left lower lobe crackles, [f4] Procalcitonin 2.4 ng/mL.'
   );
   const [gemmaResult, setGemmaResult] = useState<any | null>(null);
+
+  // Mistral-7B Reasoning Provider test state
+  const [mistralInput, setMistralInput] = useState(
+    'Patient: 72yo male. Findings: [f1] Temp 39.1C, [f2] RR 28/min, [f3] SpO2 88% RA, [f4] RLL consolidation CXR, [f5] CRP 180 mg/L. Labs: [l1] WBC 14.2, [l2] Lactate 2.8. Generate a differential diagnosis JSON.'
+  );
+  const [mistralResult, setMistralResult] = useState<any | null>(null);
 
   const [rawJson, setRawJson] = useState<string | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
@@ -236,6 +242,71 @@ export const HuggingFaceModelTestingModal: React.FC<Props> = ({ isOpen, onClose 
       }
     } catch (err: any) {
       alert(`Summarizer error: ${err.message}`);
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
+  // 6. Run Mistral-7B Clinical Reasoning (primary Nexus Analysis provider)
+  const runLiveMistral = async () => {
+    setIsExecuting(true);
+    setMistralResult(null);
+    try {
+      if (!huggingFaceClient.isConfigured()) {
+        setMistralResult({
+          error: 'No HF token. Add your Hugging Face token above (hf_...) to test Mistral-7B live.',
+          mode: 'unauthenticated',
+        });
+        return;
+      }
+
+      const prompt = `[INST] You are a clinical decision support AI. Analyse the case data and generate a structured differential diagnosis as valid JSON only.
+
+Case data: ${mistralInput}
+
+Return ONLY this JSON structure, no extra text:
+{
+  "summary": "One sentence clinical summary",
+  "hypotheses": [
+    { "label": "Diagnosis", "rationale": "Clinical reasoning based on provided data", "missingInformation": ["test1", "test2"] }
+  ],
+  "contradictions": [],
+  "limitations": ["Advisory output for clinician review only"]
+}
+[/INST]`;
+
+      const { data, latencyMs } = await huggingFaceClient.invokeModel<any>(
+        'mistralai/Mistral-7B-Instruct-v0.3',
+        {
+          inputs: prompt,
+          parameters: {
+            max_new_tokens: 800,
+            temperature: 0.1,
+            top_p: 0.9,
+            do_sample: false,
+            return_full_text: false,
+          },
+        },
+        { timeoutMs: 60000 }
+      );
+
+      let rawText = '';
+      if (Array.isArray(data) && data[0]?.generated_text) rawText = data[0].generated_text;
+      else if (data?.generated_text) rawText = data.generated_text;
+      else if (typeof data === 'string') rawText = data;
+
+      let parsedJson: any = null;
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try { parsedJson = JSON.parse(jsonMatch[0]); } catch { /* partial JSON */ }
+      }
+
+      setMistralResult({ rawText, parsedJson, latencyMs, model: 'mistralai/Mistral-7B-Instruct-v0.3' });
+      setRawJson(JSON.stringify({ model: 'mistralai/Mistral-7B-Instruct-v0.3', latencyMs, rawText, parsedJson }, null, 2));
+    } catch (err: any) {
+      const msg = err?.message || String(err);
+      setMistralResult({ error: msg });
+      setRawJson(JSON.stringify({ error: msg }, null, 2));
     } finally {
       setIsExecuting(false);
     }
@@ -540,6 +611,7 @@ export const HuggingFaceModelTestingModal: React.FC<Props> = ({ isOpen, onClose 
                 { key: 'FINDING', label: '3. Clinical BERT (Bio_ClinicalBERT)' },
                 { key: 'MEDCPT', label: '4. MedCPT Embed & Rerank' },
                 { key: 'MEDGEMMA', label: '5. Clinical Summarizer (Falconsai)' },
+                { key: 'MISTRAL', label: '6. Mistral-7B Reasoning (Nexus Engine)' },
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -921,6 +993,151 @@ export const HuggingFaceModelTestingModal: React.FC<Props> = ({ isOpen, onClose 
                       >
                         {gemmaResult.text}
                       </pre>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* TAB 6: MISTRAL-7B REASONING */}
+              {activeTestTab === 'MISTRAL' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ fontSize: '12px', color: '#94a3b8', lineHeight: 1.5 }}>
+                    Test <strong style={{ color: '#a78bfa' }}>Mistral-7B-Instruct-v0.3</strong> — the primary reasoning model
+                    that powers the Nexus Analysis differential diagnosis engine. Formatted JSON is validated against clinical safety schemas.
+                  </div>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>
+                    Clinical Case Context for Differential Reasoning:
+                  </label>
+                  <textarea
+                    rows={5}
+                    value={mistralInput}
+                    onChange={(e) => setMistralInput(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      backgroundColor: '#0a101d',
+                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                      borderRadius: '8px',
+                      color: '#f8fafc',
+                      fontSize: '12px',
+                      fontFamily: 'sans-serif',
+                      lineHeight: '1.5',
+                    }}
+                  />
+                  <div>
+                    <button
+                      onClick={runLiveMistral}
+                      disabled={isExecuting}
+                      style={{
+                        padding: '8px 18px',
+                        backgroundColor: '#7c3aed',
+                        border: 'none',
+                        borderRadius: '6px',
+                        color: '#fff',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        cursor: isExecuting ? 'not-allowed' : 'pointer',
+                        width: 'fit-content',
+                      }}
+                    >
+                      {isExecuting ? 'Calling Mistral-7B...' : 'Run Mistral Differential Reasoning'}
+                    </button>
+                  </div>
+
+                  {mistralResult && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {mistralResult.error ? (
+                        <div
+                          style={{
+                            padding: '10px 14px',
+                            background: 'rgba(239, 68, 68, 0.1)',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            borderRadius: '6px',
+                            color: '#fca5a5',
+                            fontSize: '12px',
+                          }}
+                        >
+                          {mistralResult.error}
+                        </div>
+                      ) : (
+                        <>
+                          <div style={{ fontSize: '11px', color: '#64748b', display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Model: <span style={{ color: '#a78bfa' }}>{mistralResult.model}</span></span>
+                            <span>Latency: {mistralResult.latencyMs}ms</span>
+                          </div>
+
+                          {mistralResult.parsedJson && (
+                            <div
+                              style={{
+                                padding: '14px',
+                                background: '#0a101d',
+                                borderRadius: '8px',
+                                border: '1px solid rgba(124, 58, 237, 0.3)',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  fontSize: '11px',
+                                  fontWeight: 700,
+                                  color: '#a78bfa',
+                                  marginBottom: '8px',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.05em',
+                                }}
+                              >
+                                Parsed Structured Differential
+                              </div>
+                              {mistralResult.parsedJson.summary && (
+                                <div style={{ fontSize: '12px', color: '#cbd5e1', marginBottom: '10px', lineHeight: 1.4 }}>
+                                  <strong style={{ color: '#f1f5f9' }}>Clinical Synthesis:</strong> {mistralResult.parsedJson.summary}
+                                </div>
+                              )}
+                              {Array.isArray(mistralResult.parsedJson.hypotheses) && (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                  {mistralResult.parsedJson.hypotheses.map((h: any, i: number) => (
+                                    <div
+                                      key={i}
+                                      style={{
+                                        padding: '8px 10px',
+                                        background: 'rgba(124, 58, 237, 0.08)',
+                                        border: '1px solid rgba(124, 58, 237, 0.2)',
+                                        borderRadius: '6px',
+                                      }}
+                                    >
+                                      <div style={{ fontSize: '12px', fontWeight: 600, color: '#f1f5f9' }}>
+                                        {i + 1}. {h.label || h.condition}
+                                      </div>
+                                      {h.rationale && (
+                                        <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>
+                                          {h.rationale}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {!mistralResult.parsedJson && mistralResult.rawText && (
+                            <div
+                              style={{
+                                padding: '10px 12px',
+                                background: '#0a101d',
+                                borderRadius: '6px',
+                                fontSize: '11px',
+                                color: '#94a3b8',
+                                fontFamily: 'monospace',
+                                whiteSpace: 'pre-wrap',
+                                maxHeight: '180px',
+                                overflowY: 'auto',
+                              }}
+                            >
+                              {mistralResult.rawText.slice(0, 1000)}
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
