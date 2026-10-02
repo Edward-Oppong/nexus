@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useCase } from '../../../app/providers/CaseContext';
 import { useDrawer } from '../../../app/providers/DrawerContext';
 import { usePersona } from '../../../app/providers/PersonaContext';
@@ -20,12 +20,19 @@ export const FindingsTab: React.FC = () => {
   const [localFindings, setLocalFindings] = useState<ClinicalFinding[]>([]);
 
   const allFindings: ClinicalFinding[] = [...localFindings, ...(activeCase?.findings ?? [])];
-  const filteredFindings = filterCategory === 'all'
-    ? allFindings
-    : allFindings.filter((f: ClinicalFinding) =>
-        f.category === filterCategory ||
-        f.category === filterCategory.toUpperCase()
-      );
+
+  // Derive unique categories that actually exist in the data so filters are never empty
+  const presentCategories = useMemo(() => {
+    const cats = new Set(allFindings.map((f) => (f.category ?? 'other').toLowerCase()));
+    return Array.from(cats).sort();
+  }, [allFindings]);
+
+  const filteredFindings = useMemo(() => {
+    if (filterCategory === 'all') return allFindings;
+    return allFindings.filter((f: ClinicalFinding) =>
+      (f.category ?? '').toLowerCase() === filterCategory.toLowerCase()
+    );
+  }, [allFindings, filterCategory]);
 
   const handleAddFinding = (e: React.FormEvent) => {
     e.preventDefault();
@@ -198,9 +205,9 @@ export const FindingsTab: React.FC = () => {
         </div>
       )}
 
-      {/* Filter Chips */}
-      <div style={{ display: 'flex', gap: '6px' }}>
-        {['all', 'symptom', 'sign', 'vital', 'history'].map((cat) => (
+      {/* Filter Chips — derived from actual categories in the data */}
+      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        {['all', ...presentCategories].map((cat) => (
           <button
             key={cat}
             onClick={() => setFilterCategory(cat)}
@@ -219,7 +226,7 @@ export const FindingsTab: React.FC = () => {
               cursor: 'pointer',
             }}
           >
-            {cat === 'all' ? 'All categories' : cat}
+            {cat === 'all' ? 'All Categories' : cat}
           </button>
         ))}
       </div>
@@ -245,7 +252,15 @@ export const FindingsTab: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredFindings.map((f) => {
+            {filteredFindings.length === 0 ? (
+              <tr>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '28px', color: '#94A3B8', fontSize: '13px' }}>
+                  {filterCategory === 'all'
+                    ? 'No clinical findings recorded yet. Use “+ Add Clinical Finding” or add observations during intake.'
+                    : `No findings in the “${filterCategory}” category yet.`}
+                </td>
+              </tr>
+            ) : filteredFindings.map((f) => {
               const { verificationStatus, provenanceType, extractionModel } = f.provenance;
               return (
                 <tr

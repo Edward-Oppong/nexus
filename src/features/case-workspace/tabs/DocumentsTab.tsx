@@ -81,61 +81,10 @@ export const DocumentsTab: React.FC = () => {
   // ------------------------------------------------------------
   // CONSOLE 1: CLINICAL DOCUMENTS & FHIR EXPORT
   // ------------------------------------------------------------
-  const [documents, setDocuments] = useState<ClinicalDocument[]>([
-    {
-      id: 'doc-101',
-      caseId: activeCase.overview.id,
-      patientId: activeCase.overview.patient.id,
-      organizationId: 'org-kbth-001',
-      title: 'Initial Emergency Assessment Note',
-      documentClass: 'CONSULTATION_NOTE',
-      documentStatus: 'REVIEWED',
-      mimeType: 'application/pdf',
-      fileSizeBytes: 245760,
-      storageBucket: 'clinical-documents',
-      storagePath: 'clinical-documents/doc-101.pdf',
-      uploadedBy: 'dr.mensah',
-      receivedAt: new Date(Date.now() - 3600000 * 24).toISOString(),
-      createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
-      updatedAt: new Date(Date.now() - 3600000 * 20).toISOString(),
-    },
-    {
-      id: 'doc-102',
-      caseId: activeCase.overview.id,
-      patientId: activeCase.overview.patient.id,
-      organizationId: 'org-kbth-001',
-      title: 'Portable Chest Radiograph Impression',
-      documentClass: 'IMAGING_REPORT',
-      documentStatus: 'REVIEWED',
-      mimeType: 'text/plain',
-      fileSizeBytes: 18400,
-      storageBucket: 'clinical-documents',
-      storagePath: 'clinical-documents/doc-102.txt',
-      uploadedBy: 'rad.staff',
-      receivedAt: new Date(Date.now() - 3600000 * 12).toISOString(),
-      createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
-      updatedAt: new Date(Date.now() - 3600000 * 10).toISOString(),
-    },
-    {
-      id: 'doc-103',
-      caseId: activeCase.overview.id,
-      patientId: activeCase.overview.patient.id,
-      organizationId: 'org-kbth-001',
-      title: 'Transfer Referral Summary from District Clinic',
-      documentClass: 'REFERRAL_LETTER',
-      documentStatus: 'RECEIVED',
-      mimeType: 'application/pdf',
-      fileSizeBytes: 512000,
-      storageBucket: 'clinical-documents',
-      storagePath: 'clinical-documents/doc-103.pdf',
-      uploadedBy: 'transfers.team',
-      receivedAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-      createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-      updatedAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-    },
-  ]);
+  // Documents are populated from real uploads only — no mock data.
+  const [documents, setDocuments] = useState<ClinicalDocument[]>([]);
 
-  const [selectedDoc, setSelectedDoc] = useState<ClinicalDocument | null>(documents[0]);
+  const [selectedDoc, setSelectedDoc] = useState<ClinicalDocument | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [exportedJson, setExportedJson] = useState<string | null>(null);
 

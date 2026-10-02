@@ -61,13 +61,12 @@ export const HuggingFaceModelTestingModal: React.FC<Props> = ({ isOpen, onClose 
   const [cptResults, setCptResults] = useState<any | null>(null);
 
   const [gemmaInput, setGemmaInput] = useState(
-    'Summary: 64-year-old male with persistent fever, dyspnea, and left lower lobe consolidation despite 48h oral amoxicillin.\nVerified findings: [f1] High fever, [f2] Tachypnea, [f3] Left lower lobe crackles, [f4] Procalcitonin 2.4 ng/mL.'
+    'Summary: [Age]-year-old [gender] with [chief complaint].\nVerified findings: [f1] [Finding 1], [f2] [Finding 2], [f3] [Finding 3], [f4] [Lab]: [value].'
   );
   const [gemmaResult, setGemmaResult] = useState<any | null>(null);
 
-  // Mistral-7B Reasoning Provider test state
   const [mistralInput, setMistralInput] = useState(
-    'Patient: 72yo male. Findings: [f1] Temp 39.1C, [f2] RR 28/min, [f3] SpO2 88% RA, [f4] RLL consolidation CXR, [f5] CRP 180 mg/L. Labs: [l1] WBC 14.2, [l2] Lactate 2.8. Generate a differential diagnosis JSON.'
+    'Patient: [Age]yo [gender]. Findings: [f1] [Finding 1], [f2] [Finding 2], [f3] [Finding 3]. Labs: [l1] [Lab 1]: [value], [l2] [Lab 2]: [value]. Generate a differential diagnosis JSON.'
   );
   const [mistralResult, setMistralResult] = useState<any | null>(null);
 

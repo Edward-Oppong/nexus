@@ -80,13 +80,26 @@ export const DecisionTab: React.FC = () => {
 
   // Form states for new decision
   const [decisionType, setDecisionType] = useState<DecisionType>('CLINICAL_ASSESSMENT');
-  const [summary, setSummary] = useState(
-    '42-year-old female with persistent Streptococcus viridans bacteremia, new apical regurgitant murmur, splinter hemorrhages, and recent dental manipulation, highly consistent with Subacute Bacterial Infective Endocarditis.'
-  );
-  const [rationale, setRationale] = useState(
-    'Fulfills modified Duke clinical criteria for high-probability endocarditis. Immediate bactericidal therapy is mandatory to prevent embolic phenomena or progressive valvular destruction.'
-  );
-  const [hasAcknowledged, setHasAcknowledged] = useState(true);
+
+  // Pre-fill from the active case so the clinician has a starting point grounded
+  // in the actual intake data, not a hardcoded demo scenario.
+  const defaultSummary = useMemo(() => {
+    const cc = activeCase.chiefComplaint || activeCase.overview.patient.syntheticIdentifier;
+    const primaryHyp = activeCase.hypotheses?.[0]?.title || '';
+    if (!cc && !primaryHyp) return '';
+    if (cc && primaryHyp) return `${cc}. Working hypothesis: ${primaryHyp}.`;
+    return cc || primaryHyp;
+  }, [activeCase]);
+
+  const defaultRationale = useMemo(() => {
+    const hyp = activeCase.hypotheses?.[0];
+    if (!hyp) return '';
+    return hyp.nexusAssessment || hyp.statusDetail || '';
+  }, [activeCase]);
+
+  const [summary, setSummary] = useState(() => defaultSummary);
+  const [rationale, setRationale] = useState(() => defaultRationale);
+  const [hasAcknowledged, setHasAcknowledged] = useState(false);
 
   // Amendment state
   const [isAmending, setIsAmending] = useState(false);

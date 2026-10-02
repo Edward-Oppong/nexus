@@ -13,6 +13,8 @@ import { ClinicalFinding, FindingCategory } from '../../../domain/finding';
 import { TimelineEvent } from '../../../domain/timeline';
 import { runDeterministicSafetyChecks } from './deterministic-safety';
 import { evaluateCriteria, evaluateOptimalCriteria } from './criteria-engine';
+import { parseDelimitedList } from './clinical-knowledge';
+import { generateDifferentialHypotheses } from './differential-generator';
 
 export interface CreatePatientCaseResult {
   success: boolean;
@@ -178,6 +180,79 @@ export async function createPatientCase(
       });
     });
 
+    // Extract Past Medical History items as structured findings with category 'history'
+    const parsedPMH = parseDelimitedList(draft.presentation.pastMedicalHistory);
+    parsedPMH.forEach((pmhItem, idx) => {
+      clinicalFindings.push({
+        id: `fnd-pmh-${caseId.slice(0, 5)}-${idx + 1}`,
+        caseId,
+        label: pmhItem,
+        description: 'Documented in past medical history intake',
+        category: 'history',
+        sourceDisplay: 'Clinical History',
+        statusDisplay: 'Documented History',
+        status: 'VERIFIED',
+        createdAt: now,
+        provenance: {
+          sourceText: pmhItem,
+          sourceContext: 'Past medical history intake entry',
+          recordedBy: context.userDisplayName,
+          recordedAt: now,
+          provenanceType: 'HUMAN_ENTERED',
+          verificationStatus: 'Verified',
+        },
+      });
+    });
+
+    // Extract Presentation / Chief Complaint as finding with category 'symptom'
+    if (draft.presentation.title?.trim()) {
+      clinicalFindings.push({
+        id: `fnd-cc-${caseId.slice(0, 5)}`,
+        caseId,
+        label: draft.presentation.title.trim(),
+        description: draft.presentation.historyOfPresentIllness?.trim() || 'Chief presenting clinical complaint',
+        category: 'symptom',
+        sourceDisplay: 'Intake Presentation',
+        statusDisplay: 'Active Complaint',
+        status: 'VERIFIED',
+        createdAt: now,
+        provenance: {
+          sourceText: draft.presentation.title,
+          sourceContext: 'History of present illness intake',
+          recordedBy: context.userDisplayName,
+          recordedAt: now,
+          provenanceType: 'HUMAN_ENTERED',
+          verificationStatus: 'Verified',
+        },
+      });
+    }
+
+    // Extract Bedside Exam notes as structured findings with category 'sign'
+    if (draft.presentation.physicalExamNotes?.trim()) {
+      const parsedExam = parseDelimitedList(draft.presentation.physicalExamNotes);
+      parsedExam.forEach((examItem, idx) => {
+        clinicalFindings.push({
+          id: `fnd-pe-${caseId.slice(0, 5)}-${idx + 1}`,
+          caseId,
+          label: examItem,
+          description: 'Bedside physical examination finding',
+          category: 'sign',
+          sourceDisplay: 'Bedside Physical Exam',
+          statusDisplay: 'Observed Sign',
+          status: 'VERIFIED',
+          createdAt: now,
+          provenance: {
+            sourceText: examItem,
+            sourceContext: 'Bedside physical exam notes',
+            recordedBy: context.userDisplayName,
+            recordedAt: now,
+            provenanceType: 'HUMAN_ENTERED',
+            verificationStatus: 'Verified',
+          },
+        });
+      });
+    }
+
     // ── 5. Construct Audit Timeline Events ─────────────────────────────
     const timeline: TimelineEvent[] = [
       {
@@ -296,6 +371,15 @@ export async function createPatientCase(
       })),
     };
 
+    // Generate 3–4 evidence-grounded differential hypotheses
+    const diffResult = generateDifferentialHypotheses({
+      caseId,
+      presentation: draft.presentation,
+      observations: draft.observations,
+      criteriaEval,
+      findings: clinicalFindings,
+    });
+
     const overview: CaseOverview = {
       id: caseId,
       patient: syntheticPatient,
@@ -305,15 +389,15 @@ export async function createPatientCase(
       assignedTeam: [context.userDisplayName],
       lastUpdate: 'Just now',
       safetyIssueCount: concerns.length,
-      gapsCount: criteriaEval?.inputsMissing.length ?? 0,
-      hypothesesCount: 1,
+      gapsCount: diffResult.informationGaps.length,
+      hypothesesCount: diffResult.hypotheses.length,
     };
 
     const fullCase: FullSyntheticCase = {
       overview,
       chiefComplaint: draft.presentation.title,
       historyOfPresentIllness: draft.presentation.historyOfPresentIllness,
-      pastMedicalHistory: draft.presentation.pastMedicalHistory ? draft.presentation.pastMedicalHistory.split('\n').filter(Boolean) : [],
+      pastMedicalHistory: parsedPMH,
       vitalSigns: draft.observations
         .filter((o) => o.category === 'vital-signs')
         .map((v) => ({
@@ -326,47 +410,16 @@ export async function createPatientCase(
           status: v.interpretation === 'CRITICAL' ? 'Critical' : v.interpretation === 'HIGH' ? 'Elevated' : v.interpretation === 'LOW' ? 'Low' : 'Normal',
         })),
       findings: clinicalFindings,
-      hypotheses: [
-        {
-          id: `hyp-${Date.now()}-1`,
-          caseId,
-          title: criteriaEval ? criteriaEval.summarySentence : 'Primary Clinical Differential',
-          status: criteriaEval?.overallStatus === 'DEFINITE' ? 'Supported' : 'Uncertain',
-          canonicalStatus: criteriaEval?.overallStatus === 'DEFINITE' ? 'SUPPORTED' : 'CANDIDATE',
-          statusDetail: criteriaEval ? criteriaEval.summarySentence : 'Initial clinical candidate formulated from intake presentation.',
-          supportingFindingIds: clinicalFindings.map((f) => f.id),
-          contradictingFindingIds: [],
-          informationGapIds: criteriaEval?.inputsMissing?.length ? ['gap-1'] : [],
-          evidenceIds: ['ev-duke-2024'],
-          nexusAssessment: criteriaEval?.summarySentence || 'Initial candidate hypothesis formulated from clinical intake findings.',
-          clinicalReviewStatus: 'Pending Review',
-        },
-      ],
-      uncertainty: {
-        dataCompleteness: draft.observations.length > 3 ? 'High' : 'Moderate',
-        dataCompletenessReason: `Intake recorded ${clinicalFindings.length} observations and ${draft.medications.length} active medications.`,
-        evidenceConsistency: concerns.length > 0 ? 'Moderate' : 'High',
-        evidenceConsistencyReason: concerns.length > 0 ? 'Safety concerns flagged regarding medication allergy or renal thresholds.' : 'Reported findings are internally consistent.',
-        modelApplicability: 'High',
-        modelApplicabilityReason: 'Standard diagnostic criteria and guideline rules applied to clinical intake data.',
-        overallState: concerns.some((c) => c.severity === 'SAFETY_CRITICAL') ? 'REQUIRES REVIEW' : 'STABLE',
-        primaryReason: concerns.length > 0 ? 'Attending review required for flagged safety alerts.' : 'Intake validated successfully.',
-      },
-      informationGaps: (criteriaEval?.inputsMissing || []).map((gap, gIdx) => ({
-        id: `gap-${gIdx + 1}`,
-        testName: gap,
-        priority: 'HIGH PRIORITY' as const,
-        whyItMatters: 'Required input to satisfy definitive clinical diagnostic criteria.',
-        affectedHypotheses: [criteriaEval?.summarySentence || 'Primary Differential'],
-        status: 'Not yet resolved' as const,
-      })),
+      hypotheses: diffResult.hypotheses,
+      uncertainty: diffResult.uncertainty,
+      informationGaps: diffResult.informationGaps,
       investigations: [],
       timeline,
       safetyIssues: concerns.map((c) => ({
         id: c.id,
         title: c.category,
         severity: (c.severity === 'SAFETY_CRITICAL' ? 'High' : c.severity === 'URGENT_REVIEW' ? 'Moderate' : 'Low') as 'High' | 'Moderate' | 'Low',
-        affectedHypotheses: [criteriaEval?.summarySentence || 'Primary Clinical Differential'],
+        affectedHypotheses: [diffResult.hypotheses[0]?.title || 'Primary Differential'],
         reason: c.category,
         details: c.description,
         recommendedStep: c.recommendedAction || 'Attending review required before administration or decision sign-off.',

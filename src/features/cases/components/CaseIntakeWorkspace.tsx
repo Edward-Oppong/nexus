@@ -49,6 +49,8 @@ import { DocumentReconstructionReview } from './DocumentReconstructionReview';
 import {
   evaluateClinicalObservation,
   inferCaseTriage,
+  getTestUnitOptions,
+  getCanonicalTestName,
 } from '../services/clinical-knowledge';
 
 
@@ -847,7 +849,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                       rows={3}
                       value={draft.presentation.pastMedicalHistory}
                       onChange={(e) => setDraft((p) => ({ ...p, presentation: { ...p.presentation, pastMedicalHistory: e.target.value } }))}
-                      placeholder="e.g. Congenital bicuspid valve, prior endocarditis, valvular prostheses..."
+                      placeholder="List conditions separated by comma, semicolon, or new line. E.g.: Hypertension, Type 2 DM; Prior MI"
                       style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', lineHeight: 1.5 }}
                     />
                   </div>
@@ -947,18 +949,18 @@ export const CaseIntakeWorkspace: React.FC = () => {
                             alignItems: 'center',
                             padding: '12px',
                             backgroundColor: '#F8FAFC',
-                            border: '1px solid #E2E8F0',
-                            borderRadius: '6px',
+                            borderRadius: '4px',
+                            border: '1px solid #CBD5E1',
                           }}
                         >
                           <div>
                             <input
                               type="text"
-                              placeholder="Test name (e.g. Potassium, Temp)"
+                              placeholder="Test name (e.g. Potassium, SpO₂, Temp)"
                               value={obs.display}
                               onChange={(e) => {
                                 const val = e.target.value;
-                                const evaluated = evaluateClinicalObservation(val, obs.value, obs.referenceRange, obs.interpretation);
+                                const evaluated = evaluateClinicalObservation(val, obs.value, obs.referenceRange, obs.interpretation, obs.unit || undefined);
                                 setDraft((p) => ({
                                   ...p,
                                   observations: p.observations.map((o, i) =>
@@ -967,7 +969,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                                           ...o,
                                           display: val,
                                           referenceRange: evaluated.referenceRange || o.referenceRange,
-                                          unit: evaluated.unit || o.unit,
+                                          unit: o.unit || evaluated.unit || '',
                                           interpretation: evaluated.interpretation,
                                         }
                                       : o
@@ -977,14 +979,14 @@ export const CaseIntakeWorkspace: React.FC = () => {
                               style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
                             />
                           </div>
-                          <div>
+                          <div style={{ display: 'flex', gap: '4px' }}>
                             <input
                               type="text"
-                              placeholder="Value (e.g. 6.2 mmol/L, Positive)"
+                              placeholder="Value (e.g. 6.2, 140/90, Positive)"
                               value={obs.value}
                               onChange={(e) => {
                                 const val = e.target.value;
-                                const evaluated = evaluateClinicalObservation(obs.display, val, obs.referenceRange, obs.interpretation);
+                                const evaluated = evaluateClinicalObservation(obs.display, val, obs.referenceRange, obs.interpretation, obs.unit || undefined);
                                 setDraft((p) => ({
                                   ...p,
                                   observations: p.observations.map((o, i) =>
@@ -993,15 +995,54 @@ export const CaseIntakeWorkspace: React.FC = () => {
                                           ...o,
                                           value: val,
                                           referenceRange: evaluated.referenceRange || o.referenceRange,
-                                          unit: evaluated.unit || o.unit,
                                           interpretation: evaluated.interpretation,
                                         }
                                       : o
                                   ),
                                 }));
                               }}
-                              style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                              style={{ flex: 1, padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
                             />
+                            {/* Unit selector — only shown when the test has multiple valid units */}
+                            {(() => {
+                              const unitOpts = getTestUnitOptions(obs.display);
+                              if (unitOpts.length <= 1) return null;
+                              return (
+                                <select
+                                  value={obs.unit || unitOpts[0]}
+                                  onChange={(e) => {
+                                    const newUnit = e.target.value;
+                                    const evaluated = evaluateClinicalObservation(obs.display, obs.value, undefined, obs.interpretation, newUnit);
+                                    setDraft((p) => ({
+                                      ...p,
+                                      observations: p.observations.map((o, i) =>
+                                        i === idx
+                                          ? {
+                                              ...o,
+                                              unit: newUnit,
+                                              referenceRange: evaluated.referenceRange,
+                                              interpretation: evaluated.interpretation,
+                                            }
+                                          : o
+                                      ),
+                                    }));
+                                  }}
+                                  style={{
+                                    padding: '7px 6px',
+                                    borderRadius: '4px',
+                                    border: '1px solid #0F766E',
+                                    fontSize: '11px',
+                                    backgroundColor: '#F0FDFA',
+                                    color: '#0F766E',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    minWidth: '80px',
+                                  }}
+                                >
+                                  {unitOpts.map((u) => <option key={u} value={u}>{u}</option>)}
+                                </select>
+                              );
+                            })()}
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

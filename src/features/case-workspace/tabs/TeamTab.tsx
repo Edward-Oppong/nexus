@@ -12,51 +12,6 @@ interface TeamMember {
   initials: string;
 }
 
-// Static member definitions — reviewStatus for pharmacist is computed dynamically below
-const BASE_MEMBERS: TeamMember[] = [
-  {
-    name: 'Dr. Edward Vance, MD',
-    role: 'Attending Physician',
-    scope: 'Lead Clinician & Case Owner',
-    department: 'Internal Medicine',
-    reviewStatus: 'In Progress (Reviewing Nexus Reasoning)',
-    initials: 'EV',
-  },
-  {
-    name: 'Sarah Chen, RN',
-    role: 'Staff Clinical Nurse',
-    scope: 'Patient intake, vitals acquisition, telemetry monitoring',
-    department: 'Ambulatory Care',
-    reviewStatus: 'Vitals verified (09:42)',
-    initials: 'SC',
-  },
-  {
-    name: 'Marcus Rivera, MLS',
-    role: 'Senior Medical Laboratory Scientist',
-    scope: 'Blood cultures, gram staining, susceptibility testing',
-    department: 'Microbiology & Pathology',
-    reviewStatus: 'Culture preliminary reported (09:44)',
-    initials: 'MR',
-  },
-  {
-    name: 'Dr. Alistair Thorne, MD, PhD',
-    role: 'Consultant Cardiologist',
-    scope: 'Echocardiographic review & valvular intervention',
-    department: 'Cardiovascular Medicine',
-    reviewStatus: 'Urgent Consult Requested (TEE pending)',
-    initials: 'AT',
-  },
-  {
-    name: 'Chioma Okafor, PharmD',
-    role: 'Clinical Pharmacist',
-    scope: 'Antimicrobial stewardship & allergy contraindication check',
-    department: 'Infectious Disease Pharmacy',
-    // Placeholder — overridden at render time from live safety concerns
-    reviewStatus: 'Reviewing active medications',
-    initials: 'CO',
-  },
-];
-
 export const TeamTab: React.FC = () => {
   const { activeCase, safetyConcerns } = useCase();
   const { currentPersona } = usePersona();
@@ -78,20 +33,20 @@ export const TeamTab: React.FC = () => {
     return 'No active safety alerts — review complete';
   }, [safetyConcerns, activeCase.overview.id]);
 
-  // Inject the live pharmacist status into member list
-  const INITIAL_MEMBERS = useMemo<TeamMember[]>(
-    () => BASE_MEMBERS.map((m) => (m.initials === 'CO' ? { ...m, reviewStatus: pharmacistStatus } : m)),
-    [pharmacistStatus]
-  );
+  // Initialise with only the currently logged-in clinician.
+  // Additional collaborators are added through the UI below.
+  const [members, setMembers] = useState<TeamMember[]>(() => [
+    {
+      name: `${currentPersona.title} ${currentPersona.name}`.trim(),
+      role: currentPersona.roleDisplay,
+      scope: 'Lead Clinician & Case Owner',
+      department: currentPersona.department,
+      reviewStatus: 'Active — case owner',
+      initials: currentPersona.avatarInitials,
+    },
+  ]);
 
-  const [members, setMembers] = useState<TeamMember[]>(INITIAL_MEMBERS);
 
-  // Keep members in sync if the pharmacist status changes (e.g. concern resolved)
-  React.useEffect(() => {
-    setMembers((prev) =>
-      prev.map((m) => (m.initials === 'CO' ? { ...m, reviewStatus: pharmacistStatus } : m))
-    );
-  }, [pharmacistStatus]);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newCollabName, setNewCollabName] = useState('');
   const [newCollabRole, setNewCollabRole] = useState('Consultant Specialist');

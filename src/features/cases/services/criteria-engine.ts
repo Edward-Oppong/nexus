@@ -347,14 +347,16 @@ export const CommunityAcquiredPneumoniaEvaluator: ClinicalCriteriaEvaluator = {
     const hasHypoxemia =
       (spo2Obs && (parseFloat(spo2Obs.value) < 92 || spo2Obs.interpretation === 'LOW' || spo2Obs.interpretation === 'CRITICAL')) ||
       hasAffirmative(textAll, 'hypox') ||
-      hasAffirmative(textAll, '89%') ||
-      hasAffirmative(textAll, '90%') ||
-      hasAffirmative(textAll, '91%');
+      hasAffirmative(textAll, 'hypoxemia') ||
+      hasAffirmative(textAll, 'low oxygen saturation') ||
+      hasAffirmative(textAll, 'desaturation');
 
     const hasTachypnea =
       (rrObs && (parseFloat(rrObs.value) >= 24 || rrObs.interpretation === 'HIGH' || rrObs.interpretation === 'CRITICAL')) ||
       hasAffirmative(textAll, 'tachypnea') ||
-      hasAffirmative(textAll, '28/min');
+      hasAffirmative(textAll, 'tachypnoea') ||
+      hasAffirmative(textAll, 'increased respiratory rate') ||
+      hasAffirmative(textAll, 'respiratory distress');
 
     const hasGasExchangeImpairment = hasHypoxemia || hasTachypnea;
 

@@ -5,7 +5,7 @@
 // Pharmacotherapy & Renal Dosing, Drug-Drug Interactions, and Allergy Cross-Reactivity
 // ============================================================
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useCase } from '../../../app/providers/CaseContext';
 import {
   Cpu,
@@ -57,50 +57,15 @@ export const RulesTab: React.FC = () => {
   const [activeSection, setActiveSection] = useState<CdsSubSection>('RULES');
 
   // ------------------------------------------------------------
-  // SUB-SECTION 1: CLINICAL RULES STATE
+  // SUB-SECTION 1: CLINICAL RULES STATE & AUTO-DETECTION
   // ------------------------------------------------------------
-  const [selectedRuleId, setSelectedRuleId] = useState<string>('rule-duke-endocarditis');
-  const selectedRule = useMemo(
-    () => CLINICAL_RULES_REGISTRY.find((r) => r.id === selectedRuleId) || CLINICAL_RULES_REGISTRY[0],
-    [selectedRuleId]
-  );
 
-  // Default criteria active for Case 10482 (Infective Endocarditis demo)
-  const defaultCriteriaMap: Record<string, string[]> = {
-    'rule-duke-endocarditis': ['duke-major-1', 'duke-major-2', 'duke-minor-2', 'duke-minor-3'],
-    'rule-curb-65': [],
-    'rule-wells-pe': ['wells-tachycardia'],
-    'rule-qsofa': ['qsofa-rr'],
-    'rule-cha2ds2-vasc': ['chads-sc'],
-  };
-
-  const [activeCriteria, setActiveCriteria] = useState<Record<string, string[]>>(defaultCriteriaMap);
-
-  const currentRuleActiveCriteria = activeCriteria[selectedRule.id] || [];
-
-  const toggleCriterion = (criterionId: string) => {
-    setActiveCriteria((prev) => {
-      const existing = prev[selectedRule.id] || [];
-      const updated = existing.includes(criterionId)
-        ? existing.filter((id) => id !== criterionId)
-        : [...existing, criterionId];
-      return { ...prev, [selectedRule.id]: updated };
-    });
-  };
-
-  const ruleResult = useMemo(
-    () => evaluateClinicalRule(selectedRule, currentRuleActiveCriteria),
-    [selectedRule, currentRuleActiveCriteria]
-  );
-
-  // ------------------------------------------------------------
-  // AUTO-DETECTION: scan finding labels for rule criteria signals
-  // ------------------------------------------------------------
+  // Auto-detection: scan finding labels and values for guideline rule criteria signals
   const autoDetectedCriteria = useMemo<Record<string, string[]>>(() => {
-    const findingText = activeCase.findings
+    const findingText = (activeCase?.findings ?? [])
       .map((f) => (f.label + ' ' + (f.description || '')).toLowerCase())
       .join(' ');
-    const patientAge = activeCase.overview.patient.age ?? 0;
+    const patientAge = activeCase?.overview?.patient?.age ?? 0;
 
     const detected: Record<string, string[]> = {};
 
@@ -131,8 +96,95 @@ export const RulesTab: React.FC = () => {
     if (/osler|roth|glomerulo|rheumatoid factor/.test(findingText)) duke.push('duke-minor-4');
     if (duke.length) detected['rule-duke-endocarditis'] = duke;
 
+    // qSOFA (Sepsis)
+    const qsofa: string[] = [];
+    if (/respiratory rate|tachypnea|rr \d|resp rate/.test(findingText)) qsofa.push('qsofa-rr');
+    if (/hypotension|low bp|sbp|systolic/.test(findingText)) qsofa.push('qsofa-sbp');
+    if (/confusion|altered mental|encephalopathy/.test(findingText)) qsofa.push('qsofa-ams');
+    if (qsofa.length) detected['rule-qsofa'] = qsofa;
+
     return detected;
-  }, [activeCase.findings, activeCase.overview.patient.age]);
+  }, [activeCase.findings, activeCase.overview?.patient?.age]);
+
+  // Determine optimal rule from case hypotheses, presentation, or most detected criteria
+  const optimalRuleId = useMemo(() => {
+    const hypTitle = (activeCase?.hypotheses ?? []).map((h) => h.title.toLowerCase()).join(' ');
+    const findingText = (activeCase?.findings ?? [])
+      .map((f) => (f.label + ' ' + (f.description || '')).toLowerCase())
+      .join(' ');
+    const allText = `${activeCase?.chiefComplaint || ''} ${hypTitle} ${findingText}`.toLowerCase();
+
+    if (/pneumonia|curb|respiratory|crackles|infiltrate/i.test(allText)) {
+      return 'rule-curb-65';
+    }
+    if (/pulmonary embolism|wells|dvt|thromb/i.test(allText)) {
+      return 'rule-wells-pe';
+    }
+    if (/endocarditis|duke|vegetation|valve|bacteremia/i.test(allText)) {
+      return 'rule-duke-endocarditis';
+    }
+    if (/sepsis|qsofa|shock|lactate/i.test(allText)) {
+      return 'rule-qsofa';
+    }
+    if (/atrial fib|afib|chads|stroke/i.test(allText)) {
+      return 'rule-cha2ds2-vasc';
+    }
+
+    // Pick rule with the most auto-detected criteria
+    let maxRule = 'rule-duke-endocarditis';
+    let maxCount = 0;
+    Object.entries(autoDetectedCriteria).forEach(([ruleId, crit]) => {
+      if (crit.length > maxCount) {
+        maxCount = crit.length;
+        maxRule = ruleId;
+      }
+    });
+
+    return maxRule;
+  }, [activeCase.chiefComplaint, activeCase.hypotheses, activeCase.findings, autoDetectedCriteria]);
+
+  const [selectedRuleId, setSelectedRuleId] = useState<string>(optimalRuleId);
+
+  // Sync rule selection when optimal rule changes
+  useEffect(() => {
+    setSelectedRuleId(optimalRuleId);
+  }, [optimalRuleId]);
+
+  const selectedRule = useMemo(
+    () => CLINICAL_RULES_REGISTRY.find((r) => r.id === selectedRuleId) || CLINICAL_RULES_REGISTRY[0],
+    [selectedRuleId]
+  );
+
+  // Active criteria state initialized and synchronized from auto-detected findings
+  const [activeCriteria, setActiveCriteria] = useState<Record<string, string[]>>(() => autoDetectedCriteria);
+
+  useEffect(() => {
+    setActiveCriteria((prev) => {
+      const merged = { ...prev };
+      Object.entries(autoDetectedCriteria).forEach(([ruleId, criteria]) => {
+        const existing = merged[ruleId] || [];
+        merged[ruleId] = Array.from(new Set([...existing, ...criteria]));
+      });
+      return merged;
+    });
+  }, [autoDetectedCriteria, activeCase.overview?.id]);
+
+  const currentRuleActiveCriteria = activeCriteria[selectedRule.id] || [];
+
+  const toggleCriterion = (criterionId: string) => {
+    setActiveCriteria((prev) => {
+      const existing = prev[selectedRule.id] || [];
+      const updated = existing.includes(criterionId)
+        ? existing.filter((id) => id !== criterionId)
+        : [...existing, criterionId];
+      return { ...prev, [selectedRule.id]: updated };
+    });
+  };
+
+  const ruleResult = useMemo(
+    () => evaluateClinicalRule(selectedRule, currentRuleActiveCriteria),
+    [selectedRule, currentRuleActiveCriteria]
+  );
 
   const autoForCurrentRule = autoDetectedCriteria[selectedRule.id] ?? [];
   const unappliedAuto = autoForCurrentRule.filter((id) => !currentRuleActiveCriteria.includes(id));
@@ -145,6 +197,7 @@ export const RulesTab: React.FC = () => {
       return { ...prev, [selectedRule.id]: merged };
     });
   };
+
 
   // ------------------------------------------------------------
   // SUB-SECTION 2: DOSING & RENAL STATE

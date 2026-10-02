@@ -1,7 +1,8 @@
 // ============================================================
 // src/features/cases/services/clinical-knowledge.ts
 // Clinical Knowledge Base for Automated Reference Ranges,
-// Test Value Interpretation, and Intelligent Triage Routing.
+// Test Value Interpretation, Unit Selection, and Triage Routing.
+// v2.0 — unit-aware, subscript/superscript aware
 // ============================================================
 
 export interface ClinicalEvaluationResult {
@@ -9,6 +10,13 @@ export interface ClinicalEvaluationResult {
   unit: string;
   interpretation: 'NORMAL' | 'HIGH' | 'LOW' | 'CRITICAL' | 'ABNORMAL';
   isRecognized: boolean;
+  unitOptions: string[];
+}
+
+interface UnitConfig {
+  label: string;       // display label in the dropdown
+  referenceRange: string;
+  evaluate: (num: number) => 'NORMAL' | 'HIGH' | 'LOW' | 'CRITICAL' | 'ABNORMAL';
 }
 
 interface TestRule {
@@ -16,10 +24,17 @@ interface TestRule {
   canonicalName: string;
   defaultUnit: string;
   referenceRange: string;
-  evaluate: (valueStr: string) => {
+  /** Available units for this test, with per-unit thresholds */
+  units: Record<string, UnitConfig>;
+  evaluate: (valueStr: string, selectedUnit?: string) => {
     interpretation: 'NORMAL' | 'HIGH' | 'LOW' | 'CRITICAL' | 'ABNORMAL';
     detectedUnit?: string;
   };
+}
+
+// Helper: extract numeric portion from a value string
+function parseNum(val: string): number {
+  return parseFloat(val.replace(/[^\d.\-]/g, ''));
 }
 
 const CLINICAL_TEST_RULES: TestRule[] = [
@@ -28,7 +43,10 @@ const CLINICAL_TEST_RULES: TestRule[] = [
     pattern: /(?:blood\s*pressure|bp|systolic|diastolic)/i,
     canonicalName: 'Blood Pressure',
     defaultUnit: 'mmHg',
-    referenceRange: '90/60 - 120/80',
+    referenceRange: '90/60 – 120/80',
+    units: {
+      'mmHg': { label: 'mmHg', referenceRange: '90/60 – 120/80', evaluate: () => 'NORMAL' },
+    },
     evaluate: (val) => {
       const match = val.match(/(\d{2,3})\s*(?:\/|\s)\s*(\d{2,3})/);
       if (!match) return { interpretation: 'NORMAL' };
@@ -41,12 +59,14 @@ const CLINICAL_TEST_RULES: TestRule[] = [
     },
   },
   {
-    pattern: /(?:heart\s*rate|pulse|hr|bpm)/i,
+    // Accepts: HR, Heart Rate, Pulse, bpm
+    pattern: /(?:heart\s*rate|pulse|hr\b|bpm)/i,
     canonicalName: 'Heart Rate',
     defaultUnit: 'bpm',
-    referenceRange: '60 - 100',
+    referenceRange: '60 – 100',
+    units: { 'bpm': { label: 'bpm', referenceRange: '60 – 100', evaluate: (n) => n >= 130 || n < 45 ? 'CRITICAL' : n > 100 ? 'HIGH' : n < 60 ? 'LOW' : 'NORMAL' } },
     evaluate: (val) => {
-      const num = parseFloat(val);
+      const num = parseNum(val);
       if (isNaN(num)) return { interpretation: 'NORMAL' };
       if (num >= 130 || num < 45) return { interpretation: 'CRITICAL' };
       if (num > 100) return { interpretation: 'HIGH' };
@@ -58,14 +78,16 @@ const CLINICAL_TEST_RULES: TestRule[] = [
     pattern: /(?:temp(?:erature)?|triage\s*temp|pyrexia)/i,
     canonicalName: 'Body Temperature',
     defaultUnit: '°C',
-    referenceRange: '36.5 - 37.5',
-    evaluate: (val) => {
-      let num = parseFloat(val);
+    referenceRange: '36.5 – 37.5',
+    units: {
+      '°C': { label: '°C', referenceRange: '36.5 – 37.5', evaluate: (n) => n >= 39.5 || n < 35 ? 'CRITICAL' : n >= 38 ? 'HIGH' : n < 36 ? 'LOW' : 'NORMAL' },
+      '°F': { label: '°F', referenceRange: '97.7 – 99.5', evaluate: (n) => n >= 103.1 || n < 95 ? 'CRITICAL' : n >= 100.4 ? 'HIGH' : n < 96.8 ? 'LOW' : 'NORMAL' },
+    },
+    evaluate: (val, selectedUnit) => {
+      let num = parseNum(val);
       if (isNaN(num)) return { interpretation: 'NORMAL' };
-      // Convert Fahrenheit if > 45
-      if (num > 45) {
-        num = (num - 32) * (5 / 9);
-      }
+      const inFahrenheit = selectedUnit === '°F' || (selectedUnit !== '°C' && num > 45);
+      if (inFahrenheit) num = (num - 32) * (5 / 9);
       if (num >= 39.5 || num < 35.0) return { interpretation: 'CRITICAL' };
       if (num >= 38.0) return { interpretation: 'HIGH' };
       if (num < 36.0) return { interpretation: 'LOW' };
@@ -73,12 +95,14 @@ const CLINICAL_TEST_RULES: TestRule[] = [
     },
   },
   {
-    pattern: /(?:sp\s*o2|oxygen\s*sat(?:uration)?|o2\s*sat)/i,
-    canonicalName: 'Oxygen Saturation (SpO2)',
+    // Accepts: SpO2, SpO₂, O2 sat, Oxygen sat, spo2
+    pattern: /(?:sp\s*o[2₂]|oxygen\s*sat(?:uration)?|o2\s*sat|spo2)/i,
+    canonicalName: 'Oxygen Saturation (SpO₂)',
     defaultUnit: '%',
-    referenceRange: '95 - 100',
+    referenceRange: '95 – 100',
+    units: { '%': { label: '%', referenceRange: '95 – 100', evaluate: (n) => n < 90 ? 'CRITICAL' : n < 95 ? 'LOW' : 'NORMAL' } },
     evaluate: (val) => {
-      const num = parseFloat(val);
+      const num = parseNum(val);
       if (isNaN(num)) return { interpretation: 'NORMAL' };
       if (num < 90) return { interpretation: 'CRITICAL' };
       if (num < 95) return { interpretation: 'LOW' };
@@ -86,12 +110,13 @@ const CLINICAL_TEST_RULES: TestRule[] = [
     },
   },
   {
-    pattern: /(?:respiratory\s*rate|resp\s*rate|rr)/i,
+    pattern: /(?:respiratory\s*rate|resp\s*rate|rr\b|breaths)/i,
     canonicalName: 'Respiratory Rate',
     defaultUnit: 'breaths/min',
-    referenceRange: '12 - 20',
+    referenceRange: '12 – 20',
+    units: { 'breaths/min': { label: 'breaths/min', referenceRange: '12 – 20', evaluate: (n) => n >= 30 || n < 8 ? 'CRITICAL' : n > 20 ? 'HIGH' : n < 12 ? 'LOW' : 'NORMAL' } },
     evaluate: (val) => {
-      const num = parseFloat(val);
+      const num = parseNum(val);
       if (isNaN(num)) return { interpretation: 'NORMAL' };
       if (num >= 30 || num < 8) return { interpretation: 'CRITICAL' };
       if (num > 20) return { interpretation: 'HIGH' };
@@ -102,28 +127,39 @@ const CLINICAL_TEST_RULES: TestRule[] = [
 
   // ── BIOCHEMISTRY & INFLAMMATORY MARKERS ──────────────────────
   {
-    pattern: /(?:c-reactive\s*protein|crp|c\s*reactive)/i,
-    canonicalName: 'C-Reactive Protein',
+    pattern: /(?:c-?reactive\s*protein|crp)/i,
+    canonicalName: 'C-Reactive Protein (CRP)',
     defaultUnit: 'mg/L',
     referenceRange: '< 5.0',
-    evaluate: (val) => {
-      const num = parseFloat(val);
+    units: {
+      'mg/L':  { label: 'mg/L',  referenceRange: '< 5.0',   evaluate: (n) => n >= 100 ? 'CRITICAL' : n > 5.0 ? 'HIGH' : 'NORMAL' },
+      'mg/dL': { label: 'mg/dL', referenceRange: '< 0.5',   evaluate: (n) => n >= 10  ? 'CRITICAL' : n > 0.5 ? 'HIGH' : 'NORMAL' },
+    },
+    evaluate: (val, sel) => {
+      const num = parseNum(val);
       if (isNaN(num)) return { interpretation: 'NORMAL' };
-      if (num >= 100) return { interpretation: 'CRITICAL' };
-      if (num > 5.0) return { interpretation: 'HIGH' };
+      const cfg = sel === 'mg/dL' ? { crit: 10, high: 0.5 } : { crit: 100, high: 5 };
+      if (num >= cfg.crit) return { interpretation: 'CRITICAL' };
+      if (num > cfg.high) return { interpretation: 'HIGH' };
       return { interpretation: 'NORMAL' };
     },
   },
   {
-    pattern: /(?:d-dimer|dimer)/i,
+    pattern: /(?:d-?dimer|dimer)/i,
     canonicalName: 'D-Dimer',
     defaultUnit: 'ng/mL',
     referenceRange: '< 500',
-    evaluate: (val) => {
-      const num = parseFloat(val);
+    units: {
+      'ng/mL':  { label: 'ng/mL',  referenceRange: '< 500',   evaluate: (n) => n >= 1500 ? 'CRITICAL' : n > 500 ? 'HIGH' : 'NORMAL' },
+      'µg/mL':  { label: 'µg/mL',  referenceRange: '< 0.5',   evaluate: (n) => n >= 1.5  ? 'CRITICAL' : n > 0.5 ? 'HIGH' : 'NORMAL' },
+    },
+    evaluate: (val, sel) => {
+      const num = parseNum(val);
       if (isNaN(num)) return { interpretation: 'NORMAL' };
-      if (num >= 1500) return { interpretation: 'CRITICAL' };
-      if (num > 500) return { interpretation: 'HIGH' };
+      const factor = sel === 'µg/mL' ? 1000 : 1;
+      const v = num * factor;
+      if (v >= 1500) return { interpretation: 'CRITICAL' };
+      if (v > 500)   return { interpretation: 'HIGH' };
       return { interpretation: 'NORMAL' };
     },
   },
@@ -132,21 +168,32 @@ const CLINICAL_TEST_RULES: TestRule[] = [
     canonicalName: 'Troponin',
     defaultUnit: 'ng/mL',
     referenceRange: '< 0.04',
-    evaluate: (val) => {
-      const num = parseFloat(val);
+    units: {
+      'ng/mL': { label: 'ng/mL', referenceRange: '< 0.04', evaluate: (n) => n >= 0.1 ? 'CRITICAL' : n > 0.04 ? 'HIGH' : 'NORMAL' },
+      'pg/mL': { label: 'pg/mL', referenceRange: '< 40',   evaluate: (n) => n >= 100 ? 'CRITICAL' : n > 40  ? 'HIGH' : 'NORMAL' },
+    },
+    evaluate: (val, sel) => {
+      const num = parseNum(val);
       if (isNaN(num)) return { interpretation: 'NORMAL' };
-      if (num >= 0.1) return { interpretation: 'CRITICAL' };
-      if (num > 0.04) return { interpretation: 'HIGH' };
+      const hi = sel === 'pg/mL' ? 40 : 0.04;
+      const crit = sel === 'pg/mL' ? 100 : 0.1;
+      if (num >= crit) return { interpretation: 'CRITICAL' };
+      if (num > hi) return { interpretation: 'HIGH' };
       return { interpretation: 'NORMAL' };
     },
   },
   {
-    pattern: /(?:potassium|k\+)/i,
-    canonicalName: 'Potassium (K+)',
+    // Accepts: K+, Potassium
+    pattern: /(?:potassium|k\s*\+|\bk\b)/i,
+    canonicalName: 'Potassium (K⁺)',
     defaultUnit: 'mmol/L',
-    referenceRange: '3.5 - 5.0',
+    referenceRange: '3.5 – 5.0',
+    units: {
+      'mmol/L': { label: 'mmol/L', referenceRange: '3.5 – 5.0', evaluate: (n) => n >= 6.0 || n <= 2.8 ? 'CRITICAL' : n > 5.0 ? 'HIGH' : n < 3.5 ? 'LOW' : 'NORMAL' },
+      'mEq/L':  { label: 'mEq/L',  referenceRange: '3.5 – 5.0', evaluate: (n) => n >= 6.0 || n <= 2.8 ? 'CRITICAL' : n > 5.0 ? 'HIGH' : n < 3.5 ? 'LOW' : 'NORMAL' },
+    },
     evaluate: (val) => {
-      const num = parseFloat(val);
+      const num = parseNum(val);
       if (isNaN(num)) return { interpretation: 'NORMAL' };
       if (num >= 6.0 || num <= 2.8) return { interpretation: 'CRITICAL' };
       if (num > 5.0) return { interpretation: 'HIGH' };
@@ -155,12 +202,17 @@ const CLINICAL_TEST_RULES: TestRule[] = [
     },
   },
   {
-    pattern: /(?:sodium|na\+)/i,
-    canonicalName: 'Sodium (Na+)',
+    // Accepts: Na+, Sodium
+    pattern: /(?:sodium|na\s*\+|\bna\b)/i,
+    canonicalName: 'Sodium (Na⁺)',
     defaultUnit: 'mmol/L',
-    referenceRange: '135 - 145',
+    referenceRange: '135 – 145',
+    units: {
+      'mmol/L': { label: 'mmol/L', referenceRange: '135 – 145', evaluate: (n) => n >= 155 || n <= 125 ? 'CRITICAL' : n > 145 ? 'HIGH' : n < 135 ? 'LOW' : 'NORMAL' },
+      'mEq/L':  { label: 'mEq/L',  referenceRange: '135 – 145', evaluate: (n) => n >= 155 || n <= 125 ? 'CRITICAL' : n > 145 ? 'HIGH' : n < 135 ? 'LOW' : 'NORMAL' },
+    },
     evaluate: (val) => {
-      const num = parseFloat(val);
+      const num = parseNum(val);
       if (isNaN(num)) return { interpretation: 'NORMAL' };
       if (num >= 155 || num <= 125) return { interpretation: 'CRITICAL' };
       if (num > 145) return { interpretation: 'HIGH' };
@@ -169,42 +221,78 @@ const CLINICAL_TEST_RULES: TestRule[] = [
     },
   },
   {
-    pattern: /(?:creatinine|cr|serum\s*creatinine)/i,
+    // Accepts: Creatinine, Cr, Serum Creatinine, Creatine (common typo)
+    pattern: /(?:creatinine|creatine|serum\s*creatinine|\bcr\b)/i,
     canonicalName: 'Serum Creatinine',
     defaultUnit: 'mg/dL',
-    referenceRange: '0.7 - 1.3',
-    evaluate: (val) => {
-      const num = parseFloat(val);
+    referenceRange: '0.7 – 1.3',
+    units: {
+      'mg/dL':  { label: 'mg/dL',  referenceRange: '0.7 – 1.3',   evaluate: (n) => n >= 3.0 ? 'CRITICAL' : n > 1.3 ? 'HIGH' : n < 0.5 ? 'LOW' : 'NORMAL' },
+      'µmol/L': { label: 'µmol/L', referenceRange: '62 – 115',    evaluate: (n) => n >= 265 ? 'CRITICAL' : n > 115 ? 'HIGH' : n < 44  ? 'LOW' : 'NORMAL' },
+      'umol/L': { label: 'umol/L', referenceRange: '62 – 115',    evaluate: (n) => n >= 265 ? 'CRITICAL' : n > 115 ? 'HIGH' : n < 44  ? 'LOW' : 'NORMAL' },
+    },
+    evaluate: (val, sel) => {
+      const num = parseNum(val);
       if (isNaN(num)) return { interpretation: 'NORMAL' };
+      if (sel === 'µmol/L' || sel === 'umol/L') {
+        if (num >= 265) return { interpretation: 'CRITICAL' };
+        if (num > 115)  return { interpretation: 'HIGH' };
+        if (num < 44)   return { interpretation: 'LOW' };
+        return { interpretation: 'NORMAL' };
+      }
+      // mg/dL (default)
       if (num >= 3.0) return { interpretation: 'CRITICAL' };
-      if (num > 1.3) return { interpretation: 'HIGH' };
+      if (num > 1.3)  return { interpretation: 'HIGH' };
       return { interpretation: 'NORMAL' };
     },
   },
   {
-    pattern: /(?:glucose|blood\s*sugar|fbg|rbs)/i,
+    // Accepts: Glucose, Blood Sugar, FBG, RBS, Blood Glucose
+    pattern: /(?:glucose|blood\s*sugar|fbg|rbs|blood\s*glucose)/i,
     canonicalName: 'Blood Glucose',
     defaultUnit: 'mg/dL',
-    referenceRange: '70 - 100',
-    evaluate: (val) => {
-      const num = parseFloat(val);
+    referenceRange: '70 – 100',
+    units: {
+      'mg/dL':  { label: 'mg/dL',  referenceRange: '70 – 100',  evaluate: (n) => n >= 300 || n <= 50 ? 'CRITICAL' : n > 140 ? 'HIGH' : n < 70 ? 'LOW' : 'NORMAL' },
+      'mmol/L': { label: 'mmol/L', referenceRange: '3.9 – 5.6', evaluate: (n) => n >= 16.7 || n <= 2.8 ? 'CRITICAL' : n > 7.8 ? 'HIGH' : n < 3.9 ? 'LOW' : 'NORMAL' },
+    },
+    evaluate: (val, sel) => {
+      const num = parseNum(val);
       if (isNaN(num)) return { interpretation: 'NORMAL' };
+      if (sel === 'mmol/L') {
+        if (num >= 16.7 || num <= 2.8) return { interpretation: 'CRITICAL' };
+        if (num > 7.8) return { interpretation: 'HIGH' };
+        if (num < 3.9) return { interpretation: 'LOW' };
+        return { interpretation: 'NORMAL' };
+      }
+      // mg/dL (default)
       if (num >= 300 || num <= 50) return { interpretation: 'CRITICAL' };
       if (num > 140) return { interpretation: 'HIGH' };
-      if (num < 70) return { interpretation: 'LOW' };
+      if (num < 70)  return { interpretation: 'LOW' };
       return { interpretation: 'NORMAL' };
     },
   },
 
   // ── HEMATOLOGY ───────────────────────────────────────────────
   {
-    pattern: /(?:ha?emoglobin|hgb|hb)/i,
+    // Accepts: Haemoglobin, Hemoglobin, Hgb, Hb, HbA1c, HbA₁c
+    pattern: /(?:ha?emoglobin|hgb|\bhb\b|hba\s*[1₁]c?)/i,
     canonicalName: 'Haemoglobin (Hb)',
     defaultUnit: 'g/dL',
-    referenceRange: '12.0 - 17.5',
-    evaluate: (val) => {
-      const num = parseFloat(val);
+    referenceRange: '12.0 – 17.5',
+    units: {
+      'g/dL': { label: 'g/dL', referenceRange: '12.0 – 17.5', evaluate: (n) => n < 7.0 || n > 20.0 ? 'CRITICAL' : n < 12.0 ? 'LOW' : n > 17.5 ? 'HIGH' : 'NORMAL' },
+      'g/L':  { label: 'g/L',  referenceRange: '120 – 175',   evaluate: (n) => n < 70  || n > 200  ? 'CRITICAL' : n < 120  ? 'LOW' : n > 175  ? 'HIGH' : 'NORMAL' },
+    },
+    evaluate: (val, sel) => {
+      const num = parseNum(val);
       if (isNaN(num)) return { interpretation: 'NORMAL' };
+      if (sel === 'g/L') {
+        if (num < 70 || num > 200) return { interpretation: 'CRITICAL' };
+        if (num < 120) return { interpretation: 'LOW' };
+        if (num > 175) return { interpretation: 'HIGH' };
+        return { interpretation: 'NORMAL' };
+      }
       if (num < 7.0 || num > 20.0) return { interpretation: 'CRITICAL' };
       if (num < 12.0) return { interpretation: 'LOW' };
       if (num > 17.5) return { interpretation: 'HIGH' };
@@ -212,16 +300,24 @@ const CLINICAL_TEST_RULES: TestRule[] = [
     },
   },
   {
-    pattern: /(?:white\s*blood|wbc|leukocyte)/i,
+    // Accepts: WBC, White Blood Cell, Leukocyte, White cell count
+    // Also: 8.7 ×10⁹/L or 8.7 x10^9/L or 8.7 x109/L
+    pattern: /(?:white\s*blood|wbc|leukocyte|white\s*cell)/i,
     canonicalName: 'White Blood Cell Count (WBC)',
     defaultUnit: '×10⁹/L',
-    referenceRange: '4.0 - 11.0',
-    evaluate: (val) => {
-      const num = parseFloat(val);
+    referenceRange: '4.0 – 11.0',
+    units: {
+      '×10⁹/L': { label: '×10⁹/L', referenceRange: '4.0 – 11.0',    evaluate: (n) => n >= 20 || n < 2 ? 'CRITICAL' : n > 11 ? 'HIGH' : n < 4 ? 'LOW' : 'NORMAL' },
+      '10³/µL': { label: '10³/µL', referenceRange: '4.0 – 11.0',    evaluate: (n) => n >= 20 || n < 2 ? 'CRITICAL' : n > 11 ? 'HIGH' : n < 4 ? 'LOW' : 'NORMAL' },
+      'cells/µL': { label: 'cells/µL', referenceRange: '4000 – 11000', evaluate: (n) => n >= 20000 || n < 2000 ? 'CRITICAL' : n > 11000 ? 'HIGH' : n < 4000 ? 'LOW' : 'NORMAL' },
+    },
+    evaluate: (val, sel) => {
+      const num = parseNum(val);
       if (isNaN(num)) return { interpretation: 'NORMAL' };
-      if (num >= 20.0 || num < 2.0) return { interpretation: 'CRITICAL' };
-      if (num > 11.0) return { interpretation: 'HIGH' };
-      if (num < 4.0) return { interpretation: 'LOW' };
+      const v = (sel === 'cells/µL') ? num / 1000 : num;
+      if (v >= 20.0 || v < 2.0) return { interpretation: 'CRITICAL' };
+      if (v > 11.0) return { interpretation: 'HIGH' };
+      if (v < 4.0)  return { interpretation: 'LOW' };
       return { interpretation: 'NORMAL' };
     },
   },
@@ -229,9 +325,13 @@ const CLINICAL_TEST_RULES: TestRule[] = [
     pattern: /(?:platelet|plt)/i,
     canonicalName: 'Platelet Count',
     defaultUnit: '×10⁹/L',
-    referenceRange: '150 - 450',
+    referenceRange: '150 – 450',
+    units: {
+      '×10⁹/L': { label: '×10⁹/L',  referenceRange: '150 – 450',   evaluate: (n) => n < 50 ? 'CRITICAL' : n < 150 ? 'LOW' : n > 450 ? 'HIGH' : 'NORMAL' },
+      '10³/µL': { label: '10³/µL', referenceRange: '150 – 450',   evaluate: (n) => n < 50 ? 'CRITICAL' : n < 150 ? 'LOW' : n > 450 ? 'HIGH' : 'NORMAL' },
+    },
     evaluate: (val) => {
-      const num = parseFloat(val);
+      const num = parseNum(val);
       if (isNaN(num)) return { interpretation: 'NORMAL' };
       if (num < 50) return { interpretation: 'CRITICAL' };
       if (num < 150) return { interpretation: 'LOW' };
@@ -242,70 +342,76 @@ const CLINICAL_TEST_RULES: TestRule[] = [
 
   // ── MICROBIOLOGY & CULTURES ──────────────────────────────────
   {
-    pattern: /(?:blood\s*culture|culture|bld-cult|urine\s*culture)/i,
+    pattern: /(?:blood\s*culture|culture|bld-?cult|urine\s*culture)/i,
     canonicalName: 'Cultures & Microbiology',
     defaultUnit: '',
     referenceRange: 'Negative / No growth',
+    units: {},
     evaluate: (val) => {
       const lower = val.toLowerCase();
-      if (
-        lower.includes('positive') ||
-        lower.includes('pos ') ||
-        lower.includes('pos/') ||
-        lower.includes('growth') ||
-        lower.includes('strep') ||
-        lower.includes('staph') ||
-        lower.includes('bacter') ||
-        lower.includes('organisms')
-      ) {
-        return { interpretation: 'CRITICAL' };
-      }
-      if (lower.includes('negative') || lower.includes('no growth') || lower.includes('clear')) {
-        return { interpretation: 'NORMAL' };
-      }
+      if (lower.includes('positive') || lower.includes('growth') || lower.includes('strep') || lower.includes('staph') || lower.includes('bacter') || lower.includes('organisms')) return { interpretation: 'CRITICAL' };
+      if (lower.includes('negative') || lower.includes('no growth') || lower.includes('clear')) return { interpretation: 'NORMAL' };
       return { interpretation: 'ABNORMAL' };
     },
   },
 
   // ── IMAGING & CARDIAC STUDIES ────────────────────────────────
   {
-    pattern: /(?:tee|echo|echocardiogram|ultrasound|ct|mri|x-ray|radiology)/i,
+    pattern: /(?:tee|echo|echocardiogram|ultrasound|\bct\b|mri|x-?ray|radiology)/i,
     canonicalName: 'Diagnostic Imaging / Echo',
     defaultUnit: '',
     referenceRange: 'Normal morphology',
+    units: {},
     evaluate: (val) => {
       const lower = val.toLowerCase();
-      if (
-        lower.includes('vegetation') ||
-        lower.includes('embolism') ||
-        lower.includes('infarct') ||
-        lower.includes('stenosis') ||
-        lower.includes('regurgitation') ||
-        lower.includes('thrombus') ||
-        lower.includes('effusion') ||
-        lower.includes('hemorrhage')
-      ) {
-        return { interpretation: 'CRITICAL' };
-      }
-      if (lower.includes('normal') || lower.includes('unremarkable') || lower.includes('intact')) {
-        return { interpretation: 'NORMAL' };
-      }
+      if (/(vegetation|embolism|infarct|stenosis|regurgitation|thrombus|effusion|hemorrhage)/.test(lower)) return { interpretation: 'CRITICAL' };
+      if (lower.includes('normal') || lower.includes('unremarkable') || lower.includes('intact')) return { interpretation: 'NORMAL' };
       return { interpretation: 'ABNORMAL' };
     },
   },
 ];
 
+
+
+/**
+ * Returns the available unit options for a given test name.
+ * Returns [] for unrecognized tests or tests with only one unit.
+ */
+export function getTestUnitOptions(name: string): string[] {
+  const trimmed = (name || '').trim();
+  if (!trimmed) return [];
+  const matchedRule = CLINICAL_TEST_RULES.find((r) => r.pattern.test(trimmed));
+  if (!matchedRule) return [];
+  return Object.keys(matchedRule.units);
+}
+
+/**
+ * Returns the canonical test name for a given input name.
+ * Useful for normalizing subscript/superscript variants.
+ */
+export function getCanonicalTestName(name: string): string {
+  const trimmed = (name || '').trim();
+  if (!trimmed) return trimmed;
+  const matchedRule = CLINICAL_TEST_RULES.find((r) => r.pattern.test(trimmed));
+  return matchedRule ? matchedRule.canonicalName : trimmed;
+}
+
 /**
  * Automatically evaluates a test name and value to determine:
- * 1. The standard reference range
+ * 1. The standard reference range (unit-aware)
  * 2. Standard clinical units
  * 3. Interpretation (NORMAL, HIGH, LOW, CRITICAL, ABNORMAL)
+ *
+ * Pass selectedUnit to get unit-specific reference ranges and thresholds.
+ * E.g. evaluateClinicalObservation('Glucose', '6.2', undefined, undefined, 'mmol/L')
+ * correctly returns interpretation: 'NORMAL' and referenceRange: '3.9 – 5.6'
  */
 export function evaluateClinicalObservation(
   name: string,
   value: string,
   existingRange?: string,
-  existingInterpretation?: 'NORMAL' | 'HIGH' | 'LOW' | 'CRITICAL' | 'ABNORMAL'
+  existingInterpretation?: 'NORMAL' | 'HIGH' | 'LOW' | 'CRITICAL' | 'ABNORMAL',
+  selectedUnit?: string
 ): ClinicalEvaluationResult {
   const trimmedName = (name || '').trim();
   const trimmedValue = (value || '').trim();
@@ -314,9 +420,10 @@ export function evaluateClinicalObservation(
   if (!trimmedName) {
     return {
       referenceRange: existingRange || '',
-      unit: '',
+      unit: selectedUnit || '',
       interpretation: existingInterpretation || 'NORMAL',
       isRecognized: false,
+      unitOptions: [],
     };
   }
 
@@ -324,15 +431,23 @@ export function evaluateClinicalObservation(
   const matchedRule = CLINICAL_TEST_RULES.find((rule) => rule.pattern.test(trimmedName));
 
   if (matchedRule) {
+    const unitOptions = Object.keys(matchedRule.units);
+    const effectiveUnit = selectedUnit && matchedRule.units[selectedUnit]
+      ? selectedUnit
+      : matchedRule.defaultUnit;
+    const unitCfg = matchedRule.units[effectiveUnit];
+    const refRange = unitCfg?.referenceRange ?? matchedRule.referenceRange;
+
     const evalResult = trimmedValue
-      ? matchedRule.evaluate(trimmedValue)
-      : { interpretation: existingInterpretation || 'NORMAL' };
+      ? matchedRule.evaluate(trimmedValue, effectiveUnit)
+      : { interpretation: existingInterpretation || ('NORMAL' as const) };
 
     return {
-      referenceRange: matchedRule.referenceRange,
-      unit: evalResult.detectedUnit || matchedRule.defaultUnit,
+      referenceRange: refRange,
+      unit: effectiveUnit,
       interpretation: evalResult.interpretation,
       isRecognized: true,
+      unitOptions,
     };
   }
 
@@ -352,11 +467,13 @@ export function evaluateClinicalObservation(
 
   return {
     referenceRange: existingRange || 'Normal clinical limits',
-    unit: '',
+    unit: selectedUnit || '',
     interpretation: fallbackInterp,
     isRecognized: false,
+    unitOptions: [],
   };
 }
+
 
 /**
  * Automatically derives triage priority and department routing from
@@ -431,3 +548,38 @@ export function inferCaseTriage(
 
   return { priority, department, rationale };
 }
+
+/**
+ * Parses freeform clinical lists (past medical history, symptoms, physical signs)
+ * delimited by commas, semicolons, periods/full-stops, newlines, or numbered/bullet lists.
+ * E.g. "Hypertension, T2DM. Prior MI; Asthma\nCKD" -> ['Hypertension', 'T2DM', 'Prior MI', 'Asthma', 'CKD']
+ */
+export function parseDelimitedList(text?: string | null): string[] {
+  if (!text || typeof text !== 'string') return [];
+  const trimmed = text.trim();
+  if (!trimmed) return [];
+
+  // Split on commas, semicolons, newlines, or periods followed by space/line end
+  const rawParts = trimmed.split(/[,;\n\r]+|\.(?:\s+|$)/);
+
+  const cleaned = rawParts
+    .map((item) =>
+      item
+        .trim()
+        .replace(/^[-*•\d+.)]\s*/, '') // strip bullets/numbering like "1. ", "- ", "* "
+        .replace(/^[–—]\s*/, '')
+        .trim()
+    )
+    .filter((item) => item.length > 1 && !/^(and|or|with|the)$/i.test(item));
+
+  // If punctuation didn't match and we only have 1 large chunk, check if multiple lines or double spaces exist
+  if (cleaned.length <= 1 && trimmed.includes('  ')) {
+    return trimmed
+      .split(/\s{2,}/)
+      .map((i) => i.trim())
+      .filter((i) => i.length > 1);
+  }
+
+  return cleaned.length > 0 ? cleaned : [trimmed];
+}
+

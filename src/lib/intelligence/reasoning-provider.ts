@@ -146,7 +146,7 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
       kws.some((kw) => isAffirmativelyPresent(summaryText, kw));
 
     // ── Comprehensive Signal Extraction across all Organ Systems ────
-    const fevFindingIds = matchFindings(['fever', 'pyrexia', 'temperature', 'febrile', '38.', '39.']);
+    const fevFindingIds = matchFindings(['fever', 'pyrexia', 'febrile', 'hyperthermia', 'elevated temperature']);
     const coughFindingIds = matchFindings(['cough', 'productive', 'sputum', 'purulent', 'yellowish']);
     const cracklesFindingIds = matchFindings(['crackle', 'crepitation', 'bronchial breath', 'dullness']);
     const consolidationFindingIds = matchFindings(['consolidation', 'air-space opacity', 'opacity', 'infiltrate', 'cxr', 'x-ray', 'bronchogram']);
@@ -158,7 +158,7 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
     const pneumothoraxFindingIds = matchFindings(['pneumothorax', 'absent breath sound', 'diminished breath sound', 'hyperresonance', 'tracheal deviat']);
     const chestPainFindingIds = matchFindings(['chest pain', 'thoracic', 'substernal', 'precordial', 'angina', 'crushing chest', 'pressure']);
     const cardiacLabIds = matchLabs(['troponin', 'ck-mb', 'bnp', 'pro-bnp']);
-    const inflammatoryLabIds = matchLabs(['crp', 'esr', 'wbc', 'leukocyte', 'neutrophil', 'procalcitonin']);
+    const inflammatoryLabIds = matchLabs(['crp', 'esr', 'procalcitonin']);
     const lactateLabIds = matchLabs(['lactate', 'lactic']);
     const ecgFindingIds = matchFindings(['ecg', 'st elevation', 'st depression', 'arrhythmia', 'af', 'ischemia', 't-wave', 'q-wave']);
     const oedemaFindingIds = matchFindings(['oedema', 'edema', 'swelling', 'effusion', 'jvp', 'fluid overload', 'orthopnea']);
@@ -187,23 +187,68 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
     const glucoseLabIds = matchLabs(['glucose', 'blood sugar', 'ketone', 'bicarbonate', 'hco3', 'anion gap', 'ph', 'blood gas']);
     const anaphylaxisFindingIds = matchFindings(['anaphylaxis', 'urticaria', 'hives', 'angioedema', 'swollen tongue', 'swollen lips', 'stridor', 'allergen']);
 
-    // Boolean features derived dynamically from case chart
-    const hasFever = fevFindingIds.length > 0 || hasFeature(['fever', 'pyrexia', 'febrile', '38.', '39.']);
-    const hasProductiveCough = coughFindingIds.length > 0 || hasFeature(['productive cough', 'yellowish sputum', 'cough', 'sputum']);
-    const hasCrackles = cracklesFindingIds.length > 0 || hasFeature(['crackles', 'crepitations', 'bronchial breath', 'dullness to percussion']);
-    const hasConsolidation = consolidationFindingIds.length > 0 || hasFeature(['consolidation', 'air-space opacity', 'infiltrate', 'lobar opacity']);
-    const hasDyspnea = respiratoryFindingIds.length > 0 || hasFeature(['shortness of breath', 'dyspnea', 'dyspnoea', 'work of breathing']);
-    const hasHypoxemia = hasFeature(['hypox', '89%', '90%', '91%', 'spo2']) || matchFindings(['hypox', '89%', '90%', '91%']).length > 0;
-    const hasTachypnea = hasFeature(['tachypnea', '28/min', 'respiratory rate: 28', 'rr: 28']) || matchFindings(['tachypnea', '28']).length > 0;
-    const hasTachycardia = hasFeature(['tachycardia', '112 bpm', 'heart rate: 112', 'pulse']) || matchFindings(['tachycardia', '112']).length > 0;
-    const hasNeutrophilicLeukocytosis = inflammatoryLabIds.length > 0 || hasFeature(['leukocytosis', 'wbc', 'neutrophil']);
-    const hasElevatedInflammatory = inflammatoryLabIds.length > 0 || hasFeature(['crp: markedly elevated', 'crp', 'c-reactive protein', 'esr']);
-    const hasElevatedLactate = lactateLabIds.length > 0 || hasFeature(['lactate', 'lactic']);
-    const hasChestPain = chestPainFindingIds.length > 0 || (hasFeature(['chest pain', 'substernal']) && !hasFeature(['no chest pain', 'denies chest pain']));
+    // ── Boolean features derived STRICTLY from this case's findings & labs ─────
+    // IMPORTANT: Do NOT use hardcoded numeric vital values (e.g. '112 bpm', '89%')
+    // in hasFeature() calls — these will produce false positives in unrelated cases.
+    // Only match on semantic clinical labels, categories, and abnormal interpretations.
+
+    const hasFever = fevFindingIds.length > 0 || hasFeature(['fever', 'pyrexia', 'febrile']);
+    const hasProductiveCough = coughFindingIds.length > 0 || hasFeature(['productive cough', 'yellowish sputum', 'purulent sputum']);
+    const hasCrackles = cracklesFindingIds.length > 0 || hasFeature(['crackles', 'crepitations', 'bronchial breath sounds', 'dullness to percussion']);
+    const hasConsolidation = consolidationFindingIds.length > 0 || hasFeature(['consolidation', 'air-space opacity', 'lobar opacity', 'infiltrate']);
+    const hasDyspnea = respiratoryFindingIds.length > 0 || hasFeature(['shortness of breath', 'dyspnea', 'dyspnoea', 'breathlessness']);
+
+    // Hypoxemia: match on semantic terms only — never hardcoded SpO2 percentages
+    const hasHypoxemia = matchFindings(['hypox', 'hypoxia', 'hypoxemia', 'low spo2', 'reduced oxygen saturation']).length > 0 ||
+      hasFeature(['hypoxemia', 'hypoxia', 'low oxygen saturation', 'desaturation']) ||
+      // Lab: SpO2 or PaO2 if abnormal interpretation
+      labs.some((l) => (l.testName.toLowerCase().includes('spo2') || l.testName.toLowerCase().includes('oxygen saturation') || l.testName.toLowerCase().includes('pao2')) && l.interpretation.toLowerCase().includes('low'));
+
+    // Tachypnea: match semantic labels only — not hardcoded RR values
+    const hasTachypnea = matchFindings(['tachypnea', 'tachypnoea', 'increased respiratory rate', 'rapid breathing', 'elevated respiratory rate']).length > 0 ||
+      hasFeature(['tachypnea', 'tachypnoea', 'respiratory distress']) ||
+      labs.some((l) => l.testName.toLowerCase().includes('respiratory rate') && (l.interpretation.toLowerCase().includes('high') || l.interpretation.toLowerCase().includes('elevated')));
+
+    // Tachycardia: match semantic labels only — not hardcoded HR values
+    const hasTachycardia = matchFindings(['tachycardia', 'rapid heart rate', 'elevated heart rate', 'fast pulse']).length > 0 ||
+      hasFeature(['tachycardia']) ||
+      labs.some((l) => l.testName.toLowerCase().includes('heart rate') && (l.interpretation.toLowerCase().includes('high') || l.interpretation.toLowerCase().includes('elevated')));
+
+    // Leukocytosis: only fire if the WBC/inflammatory lab is explicitly abnormal
+    const hasNeutrophilicLeukocytosis =
+      labs.some((l) =>
+        (l.testName.toLowerCase().includes('wbc') ||
+         l.testName.toLowerCase().includes('white blood') ||
+         l.testName.toLowerCase().includes('leukocyte') ||
+         l.testName.toLowerCase().includes('neutrophil')) &&
+        (l.interpretation.toLowerCase().includes('high') ||
+         l.interpretation.toLowerCase().includes('elevated') ||
+         l.interpretation.toLowerCase().includes('leukocytosis') ||
+         l.interpretation.toLowerCase().includes('raised'))
+      ) || hasFeature(['leukocytosis', 'neutrophilia', 'elevated wbc', 'raised white cell count']);
+
+    // Elevated inflammatory markers: only if CRP/ESR/PCT are explicitly abnormal
+    const hasElevatedInflammatory =
+      labs.some((l) =>
+        (l.testName.toLowerCase().includes('crp') ||
+         l.testName.toLowerCase().includes('c-reactive') ||
+         l.testName.toLowerCase().includes('esr') ||
+         l.testName.toLowerCase().includes('procalcitonin')) &&
+        (l.interpretation.toLowerCase().includes('high') ||
+         l.interpretation.toLowerCase().includes('elevated') ||
+         l.interpretation.toLowerCase().includes('raised') ||
+         l.interpretation.toLowerCase().includes('markedly'))
+      ) || hasFeature(['markedly elevated crp', 'elevated esr', 'raised crp', 'raised procalcitonin']);
+
+    const hasElevatedLactate = lactateLabIds.length > 0 || hasFeature(['lactate', 'lactic acidosis', 'hyperlactatemia']);
+
+    // Chest pain: require positive finding label match; do not infer from summary text alone
+    const hasChestPain = chestPainFindingIds.length > 0;
+
     const hasCardiacMarkers = cardiacLabIds.length > 0;
     const hasECGChanges = ecgFindingIds.length > 0;
     const hasOedema = oedemaFindingIds.length > 0;
-    const hasAbdominalPain = abdoFindingIds.length > 0 || hasFeature(['abdominal pain', 'periton', 'guarding', 'rebound', 'appendicitis']);
+    const hasAbdominalPain = abdoFindingIds.length > 0 || hasFeature(['abdominal pain', 'peritonism', 'guarding', 'rebound tenderness']);
 
     // Modified Duke criteria signals
     const hasAffirmativeMurmur = hasFeature(['new murmur', 'regurgitant murmur', 'systolic murmur', 'diastolic murmur', 'holosystolic']);
@@ -377,7 +422,11 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
     // 5. Diabetic Ketoacidosis (DKA) / Hyperosmolar Crisis
     // ──────────────────────────────────────────────────────────
     const hasDkaSignals = hasFeature(['ketoacidosis', 'dka', 'ketones', 'kussmaul', 'fruity breath']) ||
-      (hasFeature(['hyperglycemia', 'glucose: 2', 'glucose: 3', 'glucose: 4']) && hasFeature(['acidosis', 'bicarbonate', 'anion gap']));
+      // DKA: glucose must be explicitly high per lab interpretation
+      (labs.some((l) =>
+        (l.testName.toLowerCase().includes('glucose') || l.testName.toLowerCase().includes('blood sugar')) &&
+        (l.interpretation.toLowerCase().includes('high') || l.interpretation.toLowerCase().includes('critical') || l.interpretation.toLowerCase().includes('hyperglycemi'))
+      ) && hasFeature(['acidosis', 'bicarbonate', 'anion gap', 'ketones']));
     if (hasDkaSignals) {
       candidates.push({
         label: 'Diabetic Ketoacidosis (DKA) / Severe Metabolic Crisis',
@@ -399,8 +448,14 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
     // ──────────────────────────────────────────────────────────
     // 6. Acute Kidney Injury (AKI) — KDIGO Staged
     // ──────────────────────────────────────────────────────────
-    const hasAkiSignals = hasFeature(['acute kidney injury', 'aki', 'elevated creatinine', 'creatinine: 2', 'creatinine: 3', 'oliguria', 'anuria']) ||
-      (renalLabIds.length > 0 && (hasFeature(['high creatinine', 'elevated bun', 'azotemia']) || oliguriaFindingIds.length > 0));
+    const hasAkiSignals = hasFeature(['acute kidney injury', 'aki', 'elevated creatinine', 'raised creatinine', 'oliguria', 'anuria']) ||
+      // AKI: creatinine or urea must be explicitly elevated per lab interpretation
+      (labs.some((l) =>
+        (l.testName.toLowerCase().includes('creatinine') || l.testName.toLowerCase().includes('urea') || l.testName.toLowerCase().includes('egfr')) &&
+        (l.interpretation.toLowerCase().includes('high') || l.interpretation.toLowerCase().includes('elevated') ||
+         l.interpretation.toLowerCase().includes('raised') || l.interpretation.toLowerCase().includes('critical') ||
+         l.interpretation.toLowerCase().includes('low') && l.testName.toLowerCase().includes('egfr'))
+      ) && (hasFeature(['high creatinine', 'elevated bun', 'azotemia']) || oliguriaFindingIds.length > 0));
     if (hasAkiSignals) {
       candidates.push({
         label: 'Acute Kidney Injury (AKI) — KDIGO Staged',
@@ -744,7 +799,7 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
 
     // Contradiction 1: Severe hypoxemia (SpO2 <= 89%) while on room air
     if (hasHypoxemia && hasFeature(['room air', 'ambient air', 'on room air'])) {
-      const spo2Id = matchFindings(['89%', '90%', 'spo2', 'oxygen']).concat(matchLabs(['spo2', 'oxygen']))[0] || 'hypox-spo2';
+      const spo2Id = matchFindings(['hypoxia', 'hypoxemia', 'low spo2', 'spo2', 'oxygen saturation']).concat(matchLabs(['spo2', 'oxygen saturation', 'pao2']))[0] || 'hypox-spo2';
       contradictions.push({
         findingAId: spo2Id,
         findingBId: fevFindingIds[0] || spo2Id,
