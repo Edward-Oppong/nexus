@@ -345,26 +345,145 @@ export function generateDifferentialHypotheses({
     ];
   }
   // ─────────────────────────────────────────────────────────────
-  // 4. SEPSIS / SYSTEMIC INFECTION / FUO PATTERN
+  // 4. ACUTE ABDOMEN / ACUTE APPENDICITIS PATTERN
+  // ─────────────────────────────────────────────────────────────
+  else if (
+    /(appendic|mcburney|right lower quadrant|rlq|rovsing|iliac fossa)/i.test(combinedContext) ||
+    (/(abdominal pain|periton|guarding|rebound)/i.test(combinedContext) && /(fever|pyrexia|wbc|leukocyt|ultrasound)/i.test(combinedContext))
+  ) {
+    const hasCompletedImaging =
+      /(ultrasound|sonograph|usg|ct scan|computed tomography).*(appendix|appendic|rlq|right lower quadrant|abdomen|pelvis)|(appendix|appendicitis).*(ultrasound|sonograph|usg)/i.test(combinedContext);
+
+    const appSupporting = findSupporting(/(appendix|rlq|mcburney|right lower quadrant|abdominal|guarding|rebound|fever|temp|wbc|crp|leukocyte|ultrasound)/i);
+
+    hypotheses = [
+      {
+        id: `hyp-${caseId}-1`,
+        caseId,
+        title: 'Acute Appendicitis',
+        status: 'Supported',
+        canonicalStatus: 'SUPPORTED',
+        statusDetail: hasCompletedImaging
+          ? 'Acute appendicitis confirmed on targeted imaging with localized right lower quadrant peritoneal signs and systemic inflammatory response.'
+          : 'High clinical suspicion for acute appendicitis supported by localized RLQ peritonitis and inflammatory response.',
+        supportingFindingIds: appSupporting.length ? appSupporting : allFindingIds,
+        contradictingFindingIds: [],
+        informationGapIds: hasCompletedImaging ? ['gap-surgical-consult', 'gap-preop-prep', 'gap-group-screen'] : ['gap-appendix-us', 'gap-surgical-consult'],
+        evidenceIds: ['ev-wses-appendicitis-2020'],
+        nexusAssessment: hasCompletedImaging
+          ? 'Radiologically confirmed acute appendicitis. Urgent surgical consultation for appendectomy and pre-operative optimization indicated.'
+          : 'Urgent targeted ultrasound and surgical consultation indicated.',
+        clinicalReviewStatus: 'Pending Review',
+      },
+      {
+        id: `hyp-${caseId}-2`,
+        caseId,
+        title: 'Mesenteric Adenitis',
+        status: 'Uncertain',
+        canonicalStatus: 'CANDIDATE',
+        statusDetail: 'Self-limiting inflammation of mesenteric lymph nodes frequently mimicking acute appendiceal pathology in patients with fever and RLQ pain.',
+        supportingFindingIds: findSupporting(/(fever|temp|abdominal|wbc|crp)/i),
+        contradictingFindingIds: hasCompletedImaging ? findSupporting(/(ultrasound|appendix|sonograph)/i) : [],
+        informationGapIds: hasCompletedImaging ? [] : ['gap-appendix-us'],
+        evidenceIds: ['ev-wses-appendicitis-2020'],
+        nexusAssessment: 'Essential pediatric and young-adult differential when acute appendicitis cannot be definitively excluded.',
+        clinicalReviewStatus: 'Pending Review',
+      },
+      {
+        id: `hyp-${caseId}-3`,
+        caseId,
+        title: 'Meckel Diverticulitis / Cecal Diverticulitis',
+        status: 'Uncertain',
+        canonicalStatus: 'CANDIDATE',
+        statusDetail: 'Inflammation of lower gastrointestinal diverticulum presenting with right lower quadrant peritonism clinically identical to appendicitis.',
+        supportingFindingIds: findSupporting(/(abdominal|guarding|rebound|fever|wbc)/i),
+        contradictingFindingIds: [],
+        informationGapIds: ['gap-surgical-consult'],
+        evidenceIds: ['ev-wses-appendicitis-2020'],
+        nexusAssessment: 'Surgical differential to consider if intraoperative inspection reveals a normal vermiform appendix.',
+        clinicalReviewStatus: 'Pending Review',
+      },
+    ];
+
+    informationGaps = hasCompletedImaging
+      ? [
+          {
+            id: 'gap-surgical-consult',
+            testName: 'Urgent General Surgical Consultation',
+            priority: 'HIGH PRIORITY',
+            whyItMatters: 'Mandatory definitive specialty evaluation for emergency laparoscopic appendectomy.',
+            affectedHypotheses: ['Acute Appendicitis'],
+            status: 'Not yet resolved',
+          },
+          {
+            id: 'gap-preop-prep',
+            testName: 'Nil-by-Mouth (NPO) & Maintenance Crystalloid Infusion',
+            priority: 'HIGH PRIORITY',
+            whyItMatters: 'Aspiration prevention during anesthetic induction and hemodynamic maintenance.',
+            affectedHypotheses: ['Acute Appendicitis'],
+            status: 'Not yet resolved',
+          },
+          {
+            id: 'gap-group-screen',
+            testName: 'Group & Screen / Crossmatch & Coagulation Screen',
+            priority: 'MODERATE PRIORITY',
+            whyItMatters: 'Pre-operative preparation for potential intraoperative blood product administration.',
+            affectedHypotheses: ['Acute Appendicitis'],
+            status: 'Not yet resolved',
+          },
+        ]
+      : [
+          {
+            id: 'gap-appendix-us',
+            testName: 'Targeted Graded-Compression Appendix Ultrasound',
+            priority: 'HIGH PRIORITY',
+            whyItMatters: 'First-line non-ionizing diagnostic imaging to confirm non-compressible tubular structure in RLQ.',
+            affectedHypotheses: ['Acute Appendicitis', 'Mesenteric Adenitis'],
+            status: 'Not yet resolved',
+          },
+          {
+            id: 'gap-surgical-consult',
+            testName: 'Urgent General Surgical Consultation',
+            priority: 'HIGH PRIORITY',
+            whyItMatters: 'Definitive evaluation for operative intervention.',
+            affectedHypotheses: ['Acute Appendicitis'],
+            status: 'Not yet resolved',
+          },
+        ];
+  }
+  // ─────────────────────────────────────────────────────────────
+  // 5. SEPSIS / SYSTEMIC INFECTION / FUO PATTERN
   // ─────────────────────────────────────────────────────────────
   else if (
     /(sepsis|pyrexia|fever|shock|lactate|qsofa|hypotension|bacteremia|leukocytosis|rigors|chills)/.test(combinedContext)
   ) {
+    const hasHypotension = /(bp|sbp|systolic|blood pressure)\s*[:=]?\s*([0-9]{1,2}|100)\b|hypotension/i.test(combinedContext);
+    const hasTachypnea = /(rr|respiratory rate)\s*[:=]?\s*(2[2-9]|[3-9]\d)\b|tachypnea/i.test(combinedContext);
+    const hasAlteredMental = /(confusion|altered mental|encephalopathy|disoriented|gcs\s*(?:<|<=|:\s*(?:1[0-4]|[0-9])))/i.test(combinedContext);
+    const qsofaPoints = (hasHypotension ? 1 : 0) + (hasTachypnea ? 1 : 0) + (hasAlteredMental ? 1 : 0);
+    const isQsofaPositive = qsofaPoints >= 2;
+
+    const sepsisDetail = isQsofaPositive
+      ? `Dysregulated host response to suspected infection with organ dysfunction risk (qSOFA criteria flagged: ${qsofaPoints}/3).`
+      : `Acute systemic inflammatory response (SIRS) to infection; hemodynamically stable without organ dysfunction (qSOFA: ${qsofaPoints}/3 negative).`;
+
     const sepsisSupporting = findSupporting(/(fever|temp|lactate|wbc|crp|blood pressure|pulse|heart rate)/i);
 
     hypotheses = [
       {
         id: `hyp-${caseId}-1`,
         caseId,
-        title: 'Systemic Sepsis / Severe Systemic Inflammatory Response (SIRS)',
-        status: 'Supported',
-        canonicalStatus: 'SUPPORTED',
-        statusDetail: 'Dysregulated host response to suspected infection with organ dysfunction risk (qSOFA criteria flagged).',
+        title: isQsofaPositive ? 'Systemic Sepsis with Organ Dysfunction Risk' : 'Systemic Inflammatory Response Syndrome (SIRS)',
+        status: isQsofaPositive ? 'Supported' : 'Uncertain',
+        canonicalStatus: isQsofaPositive ? 'SUPPORTED' : 'CANDIDATE',
+        statusDetail: sepsisDetail,
         supportingFindingIds: sepsisSupporting.length ? sepsisSupporting : allFindingIds,
         contradictingFindingIds: [],
-        informationGapIds: ['gap-pan-cultures', 'gap-serum-lactate'],
+        informationGapIds: isQsofaPositive ? ['gap-pan-cultures', 'gap-serum-lactate'] : ['gap-source-id'],
         evidenceIds: ['ev-sepsis3-2021'],
-        nexusAssessment: 'Surviving Sepsis 1-hour bundle execution indicated: broad-spectrum IV antimicrobials, serum lactate measurement, and fluid resuscitation.',
+        nexusAssessment: isQsofaPositive
+          ? 'Surviving Sepsis bundle execution indicated: broad-spectrum IV antimicrobials, serum lactate measurement, and fluid resuscitation.'
+          : 'Hemodynamically stable inflammatory presentation. Monitor vital parameters and identify source focus prior to broad-spectrum antimicrobials.',
         clinicalReviewStatus: 'Pending Review',
       },
       {

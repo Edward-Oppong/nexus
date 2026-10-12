@@ -116,13 +116,67 @@ async function runMultiCaseTest() {
   const capCorrectlyIdentified = capAssessment.hypotheses[0]?.label.includes('Community-Acquired Pneumonia');
   console.log('CAP Test Passed (Correctly identified when findings present):', capCorrectlyIdentified ? 'PASSED ✅' : 'FAILED ❌');
 
-  if (acsDoesNotContainCap && hfDoesNotContainCap && capCorrectlyIdentified) {
+  // ── Case 4: Acute Appendicitis (Test Case 004) ──
+  console.log('\n--- TEST CASE 4: Acute Appendicitis (Test Case 004) ---');
+  const appInput: ReasoningInput = {
+    caseId: 'case-app',
+    clinicalSummary: '24-year-old presenting with acute right lower quadrant abdominal pain, anorexia, McBurney point tenderness, and guarding. Clear breath sounds bilaterally, no chest discomfort.',
+    verifiedFindings: [
+      { id: 'fnd-app-1', category: 'symptom', label: 'Acute abdominal pain localized to right lower quadrant', provenanceType: 'HUMAN_ENTERED', verificationStatus: 'VERIFIED' },
+      { id: 'fnd-app-2', category: 'symptom', label: 'Anorexia and localized guarding at McBurney point', provenanceType: 'HUMAN_ENTERED', verificationStatus: 'VERIFIED' },
+      { id: 'fnd-app-3', category: 'vital', label: 'Body Temperature', value: '38.4', unit: '°C', provenanceType: 'HUMAN_ENTERED', verificationStatus: 'VERIFIED' },
+      { id: 'fnd-app-4', category: 'vital', label: 'Blood Pressure', value: '118/76', unit: 'mmHg', provenanceType: 'HUMAN_ENTERED', verificationStatus: 'VERIFIED' },
+      { id: 'fnd-app-5', category: 'vital', label: 'Heart Rate', value: '102', unit: 'bpm', provenanceType: 'HUMAN_ENTERED', verificationStatus: 'VERIFIED' },
+      { id: 'fnd-app-6', category: 'vital', label: 'Respiratory Rate', value: '18', unit: '/min', provenanceType: 'HUMAN_ENTERED', verificationStatus: 'VERIFIED' },
+      { id: 'fnd-app-7', category: 'observation', label: 'Ultrasound: non-compressible blind-ending tubular structure measuring 8.2mm, findings consistent with acute appendicitis', provenanceType: 'HUMAN_ENTERED', verificationStatus: 'VERIFIED' },
+    ],
+    investigationResults: [
+      { id: 'lab-wbc', testName: 'WBC', value: '15.4', interpretation: 'HIGH', status: 'FINAL' },
+      { id: 'lab-crp', testName: 'CRP', value: '88.0', interpretation: 'HIGH', status: 'FINAL' },
+    ],
+    existingHypotheses: [],
+    retrievedEvidence: [],
+    safetyContext: [],
+    informationGaps: [],
+    scope: { purpose: 'CASE_REVIEW', allowedOutputs: [], prohibitedOutputs: [] },
+  };
+
+  const appAssessment = await provider.generateAssessment(appInput);
+  console.log('Appendicitis Primary Hypothesis:', appAssessment.hypotheses[0]?.label);
+  console.log('Appendicitis Summary:', appAssessment.summary);
+
+  const allMissing = appAssessment.hypotheses.flatMap((h) => h.missingInformation);
+  console.log('Appendicitis Missing Info Items:', allMissing);
+
+  // Check 1: No chest pain contamination
+  const noChestPainContamination = !appAssessment.summary.toLowerCase().includes('chest pain');
+  console.log('1. No Chest Pain Contamination:', noChestPainContamination ? 'PASSED ✅' : 'FAILED ❌');
+
+  // Check 2: No repeat ultrasound recommended (already performed)
+  const noRepeatUltrasound = !allMissing.some((m) => m.toLowerCase().includes('ultrasound of the appendix'));
+  console.log('2. No Repeat Ultrasound (Already Completed):', noRepeatUltrasound ? 'PASSED ✅' : 'FAILED ❌');
+
+  // Check 3: No troponin recommended
+  const noTroponinRecommended = !allMissing.some((m) => m.toLowerCase().includes('troponin'));
+  console.log('3. No Troponin Pathway:', noTroponinRecommended ? 'PASSED ✅' : 'FAILED ❌');
+
+  // Check 4: qSOFA not flagged (RR=18, SBP=118, GCS=15)
+  const noQsofaFlagged = !appAssessment.summary.toLowerCase().includes('qsofa criteria flagged') &&
+    !appAssessment.hypotheses.some((h) => h.label.includes('Systemic Sepsis'));
+  console.log('4. No False qSOFA / Sepsis Overcall:', noQsofaFlagged ? 'PASSED ✅' : 'FAILED ❌');
+
+  // Check 5: No generic pan-cultures / serial lactate
+  const noGenericPanCultures = !allMissing.some((m) => m.toLowerCase().includes('pan-culture') || m.toLowerCase().includes('serial serum lactate'));
+  console.log('5. No Generic Pan-Cultures or Serial Lactate:', noGenericPanCultures ? 'PASSED ✅' : 'FAILED ❌');
+
+  const appPassed = noChestPainContamination && noRepeatUltrasound && noTroponinRecommended && noQsofaFlagged && noGenericPanCultures;
+
+  if (acsDoesNotContainCap && hfDoesNotContainCap && capCorrectlyIdentified && appPassed) {
     console.log('\n====================================================');
-    console.log('ALL DISCRIMINATION TESTS PASSED! 🎉');
-    console.log('Pneumonia is NOT seeded as default, and only appears when genuine respiratory findings exist.');
+    console.log('ALL DISCRIMINATION & TEST CASE 004 TESTS PASSED! 🎉');
     console.log('====================================================');
   } else {
-    throw new Error('Discrimination test failed');
+    throw new Error('Test validation failed');
   }
 }
 

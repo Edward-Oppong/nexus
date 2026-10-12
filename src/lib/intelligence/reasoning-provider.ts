@@ -110,7 +110,7 @@ function isAffirmativelyPresent(text: string, kw: string): boolean {
 
 export class DeterministicClinicalProvider implements ReasoningProvider {
   readonly name = 'Nexus-Deterministic-v3';
-  readonly version = '3.1.0';
+  readonly version = '3.2.0';
 
   async generateAssessment(input: ReasoningInput): Promise<RawReasoningOutput> {
     const findings = input.verifiedFindings;
@@ -120,7 +120,9 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
     const allFindingIds = findings.map((f) => f.id);
     const allLabIds = labs.map((l) => l.id);
     const summaryText = input.clinicalSummary || '';
-    const fullCaseContext = `${summaryText} ${findings.map((f) => `${f.label} ${f.value ?? ''}`).join(' ')} ${labs.map((l) => `${l.testName} ${l.value}`).join(' ')}`.toLowerCase();
+    // fullCaseContext is used ONLY for benign sub-localisation (lobe, laterality)
+    // — NOT for firing hypotheses. See hasFeature() below.
+    const fullCaseContext = `${findings.map((f) => `${f.label} ${f.value ?? ''}`).join(' ')} ${labs.map((l) => `${l.testName} ${l.value}`).join(' ')}`.toLowerCase();
 
     // Match findings affirmatively (respecting negation e.g. "no murmurs")
     const matchFindings = (keywords: string[]) =>
@@ -139,11 +141,15 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
         })
         .map((l) => l.id);
 
-    // Check presence in findings, labs, or presentation summary
+    // ── PROVENANCE ISOLATION: hasFeature checks ONLY structured findings & labs ──
+    // The clinicalSummary / HPI text is deliberately excluded here to prevent
+    // symptom contamination: HPI may say "denies chest pain" or describe a
+    // differential history that includes symptoms the patient does NOT have.
+    // Only structured, explicitly recorded findings and lab results are
+    // authoritative evidence that a symptom belongs to THIS case.
     const hasFeature = (kws: string[]) =>
       matchFindings(kws).length > 0 ||
-      matchLabs(kws).length > 0 ||
-      kws.some((kw) => isAffirmativelyPresent(summaryText, kw));
+      matchLabs(kws).length > 0;
 
     // ── Comprehensive Signal Extraction across all Organ Systems ────
     const fevFindingIds = matchFindings(['fever', 'pyrexia', 'febrile', 'hyperthermia', 'elevated temperature']);
@@ -156,7 +162,20 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
     ]);
     const wheezeFindingIds = matchFindings(['wheeze', 'wheezing', 'rhonchi', 'expiratory wheeze', 'bronchospasm', 'stridor']);
     const pneumothoraxFindingIds = matchFindings(['pneumothorax', 'absent breath sound', 'diminished breath sound', 'hyperresonance', 'tracheal deviat']);
-    const chestPainFindingIds = matchFindings(['chest pain', 'thoracic', 'substernal', 'precordial', 'angina', 'crushing chest', 'pressure']);
+    const chestPainFindingIds = matchFindings([
+      'chest pain',
+      'chest tightness',
+      'chest pressure',
+      'substernal pain',
+      'substernal chest',
+      'retrosternal pain',
+      'retrosternal chest',
+      'precordial pain',
+      'angina',
+      'anginal pain',
+      'crushing chest pain',
+      'tight chest',
+    ]);
     const cardiacLabIds = matchLabs(['troponin', 'ck-mb', 'bnp', 'pro-bnp']);
     const inflammatoryLabIds = matchLabs(['crp', 'esr', 'procalcitonin']);
     const lactateLabIds = matchLabs(['lactate', 'lactic']);
@@ -477,21 +496,63 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
     // ──────────────────────────────────────────────────────────
     // 7. Acute Appendicitis
     // ──────────────────────────────────────────────────────────
-    const hasAppendicitis = appendicitisFindingIds.length > 0 || (hasAbdominalPain && hasFeature(['mcburney', 'rlq', 'right lower quadrant', 'anorexia']));
+    const hasAppendicitis = appendicitisFindingIds.length > 0 || (hasAbdominalPain && hasFeature(['mcburney', 'rlq', 'right lower quadrant', 'anorexia', 'appendix']));
     if (hasAppendicitis) {
+      // Check if appendix ultrasound or CT has already been completed in findings, labs, or clinical summary
+      const hasCompletedAppendixImaging =
+        findings.some((f) => /ultrasound|sonograph|usg|ct scan|computed tomography/i.test(`${f.label} ${f.value ?? ''}`) && /appendix|appendic|rlq|right lower quadrant/i.test(`${f.label} ${f.value ?? ''}`)) ||
+        labs.some((l) => /ultrasound|sonograph|usg|ct scan|computed tomography/i.test(l.testName) && /appendix|appendic/i.test(`${l.interpretation} ${l.value}`)) ||
+        hasFeature(['ultrasound:.*appendic', 'us appendix', 'ultrasound of the appendix', 'ultrasound.*consistent with.*appendicitis', 'sonographic findings of acute appendicitis']);
+
+      const appendicitisMissing = hasCompletedAppendixImaging
+        ? [
+            'Urgent general surgical consultation for definitive operative management (appendectomy)',
+            'Strict nil-by-mouth (NPO) status and maintenance IV isotonic crystalloid hydration',
+            'Pre-operative Group & Screen / crossmatch and baseline coagulation profile',
+          ]
+        : [
+            'Targeted graded-compression ultrasound of the appendix (or IV contrast CT abdomen/pelvis if ultrasound equivocal)',
+            'Alvarado / AIR clinical risk score calculation',
+            'Urgent general surgical review and NPO status',
+          ];
+
       candidates.push({
         label: 'Acute Appendicitis',
         status: 'Supported',
-        score: 15,
-        rationale:
-          'Localized right lower quadrant peritonitis, McBurney point tenderness, and inflammatory response characteristic of acute appendicitis. Urgent surgical evaluation indicated.',
+        score: hasCompletedAppendixImaging ? 22 : 16,
+        rationale: hasCompletedAppendixImaging
+          ? 'Confirmed acute appendicitis on targeted imaging with localized right lower quadrant peritoneal signs and active systemic inflammatory response. Emergent surgical consultation and operative preparation indicated.'
+          : 'Localized right lower quadrant peritonitis, McBurney point tenderness, and inflammatory response characteristic of acute appendicitis. Urgent surgical evaluation indicated.',
         supportingFindingIds: [...appendicitisFindingIds, ...abdoFindingIds, ...inflammatoryLabIds].slice(0, 4),
         contradictingFindingIds: [],
-        missingInformation: [
-          'Urgent targeted ultrasound of the appendix or IV contrast CT abdomen/pelvis',
-          'Alvarado / AIR score clinical risk calculation',
-          'Pre-operative surgical consultation and NPO status',
-        ],
+        missingInformation: appendicitisMissing,
+        evidenceSourceIds: [],
+      });
+
+      // Relevant, non-contaminated differential diagnoses for acute appendicitis
+      candidates.push({
+        label: 'Mesenteric Adenitis',
+        status: 'Uncertain',
+        score: hasCompletedAppendixImaging ? -2 : 6,
+        rationale:
+          'Inflammation of mesenteric lymph nodes frequently mimics acute appendicitis in young patients with fever and RLQ tenderness. Differentiated by imaging demonstrating normal appendix with cluster of enlarged mesenteric nodes.',
+        supportingFindingIds: [...abdoFindingIds, ...fevFindingIds].slice(0, 3),
+        contradictingFindingIds: hasCompletedAppendixImaging ? appendicitisFindingIds.slice(0, 1) : [],
+        missingInformation: hasCompletedAppendixImaging
+          ? ['Ultrasound already confirms appendiceal inflammation, effectively ruling out isolated mesenteric adenitis']
+          : ['Graded-compression abdominal ultrasound to evaluate mesenteric lymph nodes vs inflamed appendix'],
+        evidenceSourceIds: [],
+      });
+
+      candidates.push({
+        label: 'Meckel Diverticulitis / Cecal Diverticular Disease',
+        status: 'Uncertain',
+        score: hasCompletedAppendixImaging ? -4 : 4,
+        rationale:
+          'Inflammation of a Meckel diverticulum or solitary cecal diverticulum presents with right lower quadrant peritonism clinically indistinguishable from acute appendicitis prior to direct surgical or radiological visualization.',
+        supportingFindingIds: abdoFindingIds.slice(0, 2),
+        contradictingFindingIds: [],
+        missingInformation: ['Direct operative inspection during appendectomy or cross-sectional contrast imaging'],
         evidenceSourceIds: [],
       });
     }
@@ -655,8 +716,31 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
     // ──────────────────────────────────────────────────────────
     // 15. Sepsis / Severe Systemic Inflammatory Response
     // ──────────────────────────────────────────────────────────
+    // Sepsis-3 strictly requires infection + acute life-threatening organ dysfunction (SOFA >= 2, qSOFA >= 2, shock, hyperlactatemia > 2).
+    // Genuine qSOFA physiological criteria (0 to 3 points):
+    const hasSbpUnder100 =
+      labs.some((l) => (l.testName.toLowerCase().includes('sbp') || l.testName.toLowerCase().includes('blood pressure') || l.testName.toLowerCase().includes('systolic')) &&
+        (parseFloat(l.value) <= 100 || l.interpretation.toLowerCase().includes('low') || l.interpretation.toLowerCase().includes('critical'))) ||
+      hasFeature(['systolic blood pressure <= 100', 'sbp <= 100', 'hypotensive shock', 'hypotension']);
+
+    const hasRrOver22 =
+      labs.some((l) => (l.testName.toLowerCase().includes('respiratory rate') || l.testName.toLowerCase().includes('rr')) &&
+        (parseFloat(l.value) >= 22 || l.interpretation.toLowerCase().includes('high') || l.interpretation.toLowerCase().includes('critical'))) ||
+      hasFeature(['respiratory rate >= 22', 'rr >= 22', 'severe tachypnea', 'marked tachypnea']);
+
+    const hasAms = gcsFindingIds.length > 0 || hasFeature(['altered mental status', 'confusion', 'disoriented', 'encephalopathy', 'gcs < 15', 'obtunded']);
+
+    const qsofaScore = (hasSbpUnder100 ? 1 : 0) + (hasRrOver22 ? 1 : 0) + (hasAms ? 1 : 0);
+    const isQsofaFlagged = qsofaScore >= 2;
+    const hasOrganDysfunction = isQsofaFlagged || hasSbpUnder100 || hasElevatedLactate || oliguriaFindingIds.length > 0;
+
+    // A patient with a clear localized surgical focus (e.g. Acute Appendicitis) and normal hemodynamics (SBP > 100, RR < 22)
+    // exhibits SIRS, NOT Sepsis. Do NOT let Sepsis compete with or overshadow the primary localized diagnosis.
+    const hasLocalizedSurgicalInfection = hasAppendicitis || hasPancreatitis;
+
     const hasSepsisFeatures = hasFever && (hasTachycardia || hasTachypnea || hasElevatedLactate) && (hasNeutrophilicLeukocytosis || hasElevatedInflammatory);
-    if (hasSepsisFeatures) {
+
+    if (hasSepsisFeatures && (!hasLocalizedSurgicalInfection || hasOrganDysfunction)) {
       const sepsisSupport = [
         ...fevFindingIds,
         ...respiratoryFindingIds,
@@ -667,23 +751,30 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
       const isPulmonaryFocus = hasDefinitePulmonaryInfection || hasProbablePulmonaryInfection;
       const sepsisLabel = isPulmonaryFocus
         ? 'Sepsis Secondary to Lower Respiratory Infection'
-        : 'Sepsis / Severe Systemic Inflammatory Response';
+        : hasOrganDysfunction
+        ? 'Systemic Sepsis with Acute Organ Dysfunction'
+        : 'Systemic Inflammatory Response Syndrome (SIRS)';
 
       candidates.push({
         label: sepsisLabel,
-        status: 'Supported',
-        score: isPulmonaryFocus ? 11 : 18,
+        status: hasOrganDysfunction ? 'Supported' : 'Uncertain',
+        score: hasOrganDysfunction ? 18 : 7,
         rationale:
-          `Patient exhibits acute systemic inflammatory criteria (pyrexia, tachycardia/tachypnea, leukocytosis)` +
-          `${hasElevatedLactate ? ' with hyperlactatemia' : ''}.` +
-          `${isPulmonaryFocus ? ' The systemic response appears secondary to the active pulmonary infection.' : ' Thorough septic workup to identify primary infectious source is warranted.'}`,
+          `Patient exhibits acute systemic inflammatory criteria (pyrexia, tachycardia, leukocytosis)` +
+          `${hasElevatedLactate ? ' with hyperlactatemia' : ''}. ` +
+          `qSOFA score: ${qsofaScore}/3 (${isQsofaFlagged ? 'flagged for sepsis risk' : 'negative'}). ` +
+          `${hasOrganDysfunction ? 'Sepsis bundle resuscitation and pathogen isolation indicated.' : 'Hemodynamically stable inflammatory response; monitor for decompensation.'}`,
         supportingFindingIds: sepsisSupport.slice(0, 6),
         contradictingFindingIds: [],
-        missingInformation: [
-          'Blood cultures (≥2 sets) prior to antimicrobial administration',
-          'Repeat serum lactate at 2–4 hours to confirm clearance',
-          'Source localization (chest radiography, urinalysis, blood cultures)',
-        ],
+        missingInformation: hasOrganDysfunction
+          ? [
+              'Blood cultures (≥2 sets) prior to antimicrobial administration',
+              'Serial serum lactate kinetics at 2–4 hours',
+              'Targeted source localization and fluid resuscitation monitoring',
+            ]
+          : [
+              'Continuous hemodynamics monitoring (maintain SBP > 100, monitor urine output)',
+            ],
         evidenceSourceIds: [],
       });
     }
@@ -871,6 +962,12 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
     if (observedSignals.length > 0) {
       summaryParts.push(
         `Key active clinical drivers identified from chart data include ${observedSignals.slice(0, 5).join(', ')}.`
+      );
+    }
+
+    if (hasLocalizedSurgicalInfection && (hasFever || hasTachycardia || hasNeutrophilicLeukocytosis)) {
+      summaryParts.push(
+        `Severity profile: Systemic inflammatory response (SIRS) secondary to localized acute infection; hemodynamically stable without evidence of acute organ dysfunction (qSOFA: ${qsofaScore}/3 negative).`
       );
     }
 

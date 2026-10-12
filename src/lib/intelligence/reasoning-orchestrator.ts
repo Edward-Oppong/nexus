@@ -280,17 +280,106 @@ export async function runNexusAnalysis(
           },
         ]
       : []),
-    // Add investigation recommendations from hypotheses' missingInformation
+    // ── 3-Check Investigation Recommendation Filter ────────────────
+    // Check 1: Already available? — uses the structured investigationResults ONLY.
+    //          HPI / chart free-text is intentionally excluded to prevent the same
+    //          contamination vector that polluted hasFeature() in the provider.
+    // Check 2: Clinically relevant to a hypothesis the engine actually raised?
+    // Check 3: Not already documented as a completed finding in the findings list?
     ...rawOutput.hypotheses
       .flatMap((h) => h.missingInformation)
       .filter((m, i, arr) => arr.indexOf(m) === i)
+      .filter((item) => {
+        const itemLower = item.toLowerCase();
+
+        // ── Check 1: Already performed? (STRUCTURED LOOKUP ONLY) ────────────
+        // An investigation is "already done" only if its result is present in the
+        // structured investigations array — not just mentioned in free-text HPI.
+        const completedTests = (activeCase.investigations || [])
+          .filter((inv) => inv.result !== undefined)
+          .map((inv) => inv.testName.toLowerCase());
+
+        const completedFindingLabels = (activeCase.findings || []).map((f) =>
+          f.label.toLowerCase()
+        );
+
+        const isAlreadyDone = (testKeywords: string[]) =>
+          completedTests.some((t) => testKeywords.some((kw) => t.includes(kw))) ||
+          completedFindingLabels.some((f) => testKeywords.some((kw) => f.includes(kw)));
+
+        // Appendix ultrasound / CT abdomen
+        if (/ultrasound.*appendix|appendix.*ultrasound|ct.*abdomen|ct abdomen\/pelvis/i.test(itemLower)) {
+          if (isAlreadyDone(['ultrasound', 'sonograph', 'usg', 'ct abdomen', 'ct scan'])) return false;
+        }
+        // Chest X-ray / CXR
+        if (/chest radiograph|chest x-ray|cxr/i.test(itemLower)) {
+          if (isAlreadyDone(['chest x-ray', 'cxr', 'chest radiograph', 'chest imaging'])) return false;
+        }
+        // Head CT
+        if (/head ct|ct head|brain ct|ct brain|non-contrast ct/i.test(itemLower)) {
+          if (isAlreadyDone(['head ct', 'ct head', 'brain ct', 'non-contrast ct'])) return false;
+        }
+        // Troponin
+        if (/troponin/i.test(itemLower)) {
+          if (isAlreadyDone(['troponin'])) return false;
+        }
+        // Blood cultures
+        if (/blood culture/i.test(itemLower)) {
+          if (isAlreadyDone(['blood culture'])) return false;
+        }
+        // Lactate
+        if (/lactate/i.test(itemLower)) {
+          if (isAlreadyDone(['lactate', 'lactic'])) return false;
+        }
+        // FBC / CBC
+        if (/full blood count|fbc|complete blood count|cbc/i.test(itemLower)) {
+          if (isAlreadyDone(['full blood count', 'fbc', 'cbc', 'wbc', 'white blood', 'haemoglobin', 'hemoglobin'])) return false;
+        }
+        // CRP
+        if (/c-reactive protein|crp/i.test(itemLower)) {
+          if (isAlreadyDone(['crp', 'c-reactive'])) return false;
+        }
+        // Urine microscopy
+        if (/urine microscopy|urinalysis|urine culture/i.test(itemLower)) {
+          if (isAlreadyDone(['urine', 'urinalysis', 'urine mc', 'mcs'])) return false;
+        }
+
+        // ── Check 2: Clinical relevance gates ──────────────────────────────
+        // Troponin: only if cardiac hypothesis was raised OR a chest-pain finding
+        // is explicitly present in the structured findings list.
+        if (/troponin/i.test(itemLower)) {
+          const hasCardiacHypothesis = rawOutput.hypotheses.some((h) =>
+            /coronary|myocardial|stemi|angina|cardiac|acs/i.test(h.label)
+          );
+          const hasChestPainFinding = (activeCase.findings || []).some((f) =>
+            /chest pain|substernal|angina|chest tightness|chest pressure/i.test(f.label)
+          );
+          if (!hasCardiacHypothesis && !hasChestPainFinding) return false;
+        }
+
+        // Pan-cultures / broad sepsis workup: only if sepsis with organ dysfunction was raised
+        if (/pan-culture|sputum.*culture|blood.*x2|cultures.*x2/i.test(itemLower)) {
+          const hasSepsisOD = rawOutput.hypotheses.some((h) =>
+            /sepsis.*organ|systemic sepsis|septic shock|bacteremia|endocarditis/i.test(h.label)
+          );
+          if (!hasSepsisOD) return false;
+        }
+
+        // Serial lactate: only if a sepsis hypothesis was raised
+        if (/serial.*lactate|lactate kinetics/i.test(itemLower)) {
+          const hasSepsis = rawOutput.hypotheses.some((h) => /sepsis|septic/i.test(h.label));
+          if (!hasSepsis) return false;
+        }
+
+        return true;
+      })
       .slice(0, 4)
       .map((m, i) => ({
         id: `rec-${assessmentId}-inv-${i}`,
         assessmentId,
         category: 'INVESTIGATION' as const,
         content: m,
-        rationale: 'Identified as essential missing data for hypothesis confirmation.',
+        rationale: 'Identified as essential, unperformed diagnostic data required for clinical decision support.',
         status: 'PROPOSED' as const,
         createdAt: now,
       })),
@@ -306,8 +395,8 @@ export async function runNexusAnalysis(
     limitations: rawOutput.limitations,
     modelName: provider.name,
     modelVersion: provider.version,
-    promptVersion: '6F.1',
-    pipelineVersion: '6F.1',
+    promptVersion: '6F.2',
+    pipelineVersion: '6F.2',
     createdAt: now,
     nexusFindings,
     recommendations,

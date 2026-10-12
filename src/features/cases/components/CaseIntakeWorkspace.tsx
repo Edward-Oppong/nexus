@@ -40,6 +40,13 @@ import {
   X,
   Plus,
   Trash2,
+  Zap,
+  Stethoscope,
+  Building2,
+  Activity,
+  ChevronRight,
+  Bolt,
+  ClipboardList,
 } from 'lucide-react';
 import {
   extractClinicalDataFromFile,
@@ -300,9 +307,81 @@ const DEMO_TEMPLATES = [
   },
 ];
 
+// ── Care Context Types ──────────────────────────────────────
+type CareContext = 'TRIAGE' | 'OPD' | 'INPATIENT';
+
+interface ContextConfig {
+  id: CareContext;
+  label: string;
+  shortLabel: string;
+  tagline: string;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  dotColor: string;
+  steps: Array<{ num: number; label: string; icon: React.ReactNode }>;
+}
+
+const CONTEXT_CONFIGS: Record<CareContext, ContextConfig> = {
+  TRIAGE: {
+    id: 'TRIAGE',
+    label: 'Triage / Emergency',
+    shortLabel: 'Triage',
+    tagline: 'Fast-track patient registration with immediate vitals capture and one-click escalation.',
+    color: '#DC2626',
+    bgColor: '#FEF2F2',
+    borderColor: '#FECACA',
+    dotColor: '#EF4444',
+    steps: [
+      { num: 1, label: '01 Patient ID', icon: <User size={14} /> },
+      { num: 2, label: '02 Vitals & Presentation', icon: <Activity size={14} /> },
+      { num: 3, label: '03 Quick Review', icon: <CheckCircle2 size={14} /> },
+    ],
+  },
+  OPD: {
+    id: 'OPD',
+    label: 'Routine OPD',
+    shortLabel: 'OPD',
+    tagline: 'Outpatient consultation with chief complaint, vitals, and targeted diagnostics.',
+    color: '#B45309',
+    bgColor: '#FFFBEB',
+    borderColor: '#FDE68A',
+    dotColor: '#F59E0B',
+    steps: [
+      { num: 1, label: '01 Patient Identity', icon: <User size={14} /> },
+      { num: 2, label: '02 Presentation', icon: <FileText size={14} /> },
+      { num: 3, label: '03 Vitals & Labs', icon: <FlaskConical size={14} /> },
+      { num: 4, label: '04 Meds & Allergies', icon: <Pill size={14} /> },
+      { num: 5, label: '05 Review & Activate', icon: <CheckCircle2 size={14} /> },
+    ],
+  },
+  INPATIENT: {
+    id: 'INPATIENT',
+    label: 'Inpatient Admission',
+    shortLabel: 'Inpatient',
+    tagline: 'Comprehensive admission charting with document ingestion, full history, and AI extraction.',
+    color: '#0369A1',
+    bgColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+    dotColor: '#3B82F6',
+    steps: [
+      { num: 1, label: '01 Patient Identity', icon: <User size={14} /> },
+      { num: 2, label: '02 Documents & Ingestion', icon: <Paperclip size={14} /> },
+      { num: 3, label: '03 Presentation', icon: <FileText size={14} /> },
+      { num: 4, label: '04 Observations & Labs', icon: <FlaskConical size={14} /> },
+      { num: 5, label: '05 Meds & Allergies', icon: <Pill size={14} /> },
+      { num: 6, label: '06 Review & Activate', icon: <CheckCircle2 size={14} /> },
+    ],
+  },
+};
+
 export const CaseIntakeWorkspace: React.FC = () => {
   const { registerCreatedCase, setActiveView } = useCase();
   const { activeOrganization, user } = useAuth();
+
+  // ── Care Context State ────────────────────────────────────
+  const [careContext, setCareContext] = useState<CareContext>('OPD');
+  const [careContextChosen, setCareContextChosen] = useState(false);
 
   const [draft, setDraft] = useState<CaseIntakeDraft>(() => {
     try {
@@ -315,6 +394,127 @@ export const CaseIntakeWorkspace: React.FC = () => {
     }
     return INITIAL_DRAFT;
   });
+
+  const contextConfig = CONTEXT_CONFIGS[careContext];
+
+  type StepId = 'patient' | 'presentation' | 'triage_vitals' | 'vitals_labs' | 'meds_allergies' | 'documents' | 'review';
+
+  interface WizardStepItem {
+    num: number;
+    id: StepId;
+    label: string;
+    icon: React.ReactNode;
+  }
+
+  const getWizardSteps = (): WizardStepItem[] => {
+    if (careContext === 'TRIAGE') {
+      return [
+        { num: 1, id: 'patient', label: '01 Patient ID', icon: <User size={14} /> },
+        { num: 2, id: 'triage_vitals', label: '02 Vitals & Acuity', icon: <Activity size={14} /> },
+        { num: 3, id: 'review', label: '03 Escalate & Review', icon: <CheckCircle2 size={14} /> },
+      ];
+    }
+    if (careContext === 'INPATIENT') {
+      return [
+        { num: 1, id: 'patient', label: '01 Patient Identity', icon: <User size={14} /> },
+        { num: 2, id: 'documents', label: '02 Documents & Ingestion', icon: <Paperclip size={14} /> },
+        { num: 3, id: 'presentation', label: '03 Clinical Presentation', icon: <FileText size={14} /> },
+        { num: 4, id: 'vitals_labs', label: '04 Observations & Labs', icon: <FlaskConical size={14} /> },
+        { num: 5, id: 'meds_allergies', label: '05 Meds & Allergies', icon: <Pill size={14} /> },
+        { num: 6, id: 'review', label: '06 Review & Finalize', icon: <CheckCircle2 size={14} /> },
+      ];
+    }
+    // OPD
+    return [
+      { num: 1, id: 'patient', label: '01 Patient Identity', icon: <User size={14} /> },
+      { num: 2, id: 'presentation', label: '02 Presentation', icon: <FileText size={14} /> },
+      { num: 3, id: 'vitals_labs', label: '03 Vitals & Labs', icon: <FlaskConical size={14} /> },
+      { num: 4, id: 'meds_allergies', label: '04 Meds & Allergies', icon: <Pill size={14} /> },
+      { num: 5, id: 'review', label: '05 Review & Activate', icon: <CheckCircle2 size={14} /> },
+    ];
+  };
+
+  const currentSteps = getWizardSteps();
+  const currentStepNum = Math.min(Math.max(draft.currentStep || 1, 1), currentSteps.length);
+  const currentStepItem = currentSteps[currentStepNum - 1] || currentSteps[0];
+  const activeStepId = currentStepItem.id;
+
+  const handleSelectContext = (ctx: CareContext) => {
+    setCareContext(ctx);
+    setCareContextChosen(true);
+    setDraft((p) => ({
+      ...p,
+      currentStep: 1,
+      encounter: {
+        ...p.encounter,
+        priority: ctx === 'TRIAGE' ? 'URGENT' : ctx === 'INPATIENT' ? 'HIGH' : 'ROUTINE',
+        department:
+          ctx === 'TRIAGE'
+            ? 'Emergency Medicine'
+            : ctx === 'INPATIENT'
+            ? 'Inpatient Medicine'
+            : 'Internal Medicine',
+      },
+    }));
+  };
+
+  // Quick vitals helper for OPD & Triage
+  const getVitalValue = (codeOrDisplay: string): string => {
+    const obs = draft.observations.find(
+      (o) => o.code?.toLowerCase() === codeOrDisplay.toLowerCase() ||
+             o.display?.toLowerCase().includes(codeOrDisplay.toLowerCase())
+    );
+    return obs?.value ? String(obs.value) : '';
+  };
+
+  const setVitalValue = (vitalName: string, value: string, unit: string, category: 'vital-signs' | 'laboratory' = 'vital-signs') => {
+    setDraft((prev) => {
+      const idx = prev.observations.findIndex(
+        (o) => o.display?.toLowerCase() === vitalName.toLowerCase() ||
+               o.code?.toLowerCase() === vitalName.toLowerCase()
+      );
+      if (!value.trim()) {
+        if (idx >= 0) {
+          return {
+            ...prev,
+            observations: prev.observations.filter((_, i) => i !== idx),
+          };
+        }
+        return prev;
+      }
+
+      const evalRes = evaluateClinicalObservation(vitalName, value, undefined, undefined, unit);
+
+      const updatedObs: IntakeObservationInput = {
+        id: idx >= 0 ? prev.observations[idx].id : `vital-${Date.now()}-${vitalName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`,
+        category,
+        code: vitalName.toUpperCase().replace(/[^a-zA-Z0-9]/g, '_'),
+        display: vitalName,
+        value: value.trim(),
+        unit: evalRes.unit || unit,
+        referenceRange: evalRes.referenceRange || '',
+        interpretation: (evalRes.interpretation as any) || 'NORMAL',
+        observedAt: new Date().toISOString(),
+        source: 'Clinician / Nurse Entered',
+        provenanceType: 'HUMAN_ENTERED',
+        actorName: 'Attending Clinician',
+        verificationStatus: 'VERIFIED',
+      };
+
+      if (idx >= 0) {
+        return {
+          ...prev,
+          observations: prev.observations.map((o, i) => (i === idx ? updatedObs : o)),
+        };
+      } else {
+        return {
+          ...prev,
+          observations: [...prev.observations, updatedObs],
+        };
+      }
+    });
+  };
+
 
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -517,6 +717,346 @@ export const CaseIntakeWorkspace: React.FC = () => {
     }
   };
 
+  // Triage fast-track escalation handler
+  const handleTriageQuickEscalate = async () => {
+    if (!draft.patient.givenName.trim()) {
+      setStatusMessage({ type: 'error', text: 'Please enter at least a patient name or identifier (e.g. "Trauma 1") for emergency triage.' });
+      goToStep(1);
+      return;
+    }
+    const triageDraft: CaseIntakeDraft = {
+      ...draft,
+      patient: {
+        ...draft.patient,
+        familyName: draft.patient.familyName.trim() || 'Emergency Patient',
+      },
+      presentation: {
+        ...draft.presentation,
+        title: draft.presentation.title.trim() || 'Acute Emergency Triage - Resus / ED Bed',
+      },
+      encounter: {
+        ...draft.encounter,
+        priority: 'URGENT',
+        department: 'Emergency Medicine',
+      },
+    };
+    setIsSubmitting(true);
+    setStatusMessage(null);
+    try {
+      const res = await registerCreatedCase(triageDraft, {
+        runAnalysisImmediately: true,
+        organizationId: activeOrganization?.id || 'demo-org',
+        userId: user?.id || 'demo-user',
+        userDisplayName: user?.email ? user.email.split('@')[0] : 'Dr. Edward Vance, MD',
+      });
+      if (!res.success) {
+        setStatusMessage({ type: 'error', text: res.error || 'Failed to escalate emergency triage case.' });
+        setIsSubmitting(false);
+        return;
+      }
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
+    } catch (err: any) {
+      setStatusMessage({ type: 'error', text: err.message || 'An error occurred during triage escalation.' });
+      setIsSubmitting(false);
+    }
+  };
+
+  // ── Care Context Selection Landing Screen ───────────────────
+  if (!careContextChosen) {
+    return (
+      <div
+        style={{
+          flex: 1,
+          backgroundColor: '#F8FAFC',
+          minHeight: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '40px 24px',
+        }}
+      >
+        <div style={{ maxWidth: '960px', width: '100%' }}>
+          {/* Header */}
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '4px 14px',
+                borderRadius: '999px',
+                backgroundColor: '#F0FDFA',
+                border: '1px solid #CCFBF1',
+                color: '#0F766E',
+                fontSize: '12px',
+                fontWeight: 600,
+                marginBottom: '14px',
+              }}
+            >
+              <Sparkles size={14} /> Adaptive Clinical Intake Wizard
+            </div>
+            <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#0F172A', margin: '0 0 10px 0', letterSpacing: '-0.02em' }}>
+              Select Clinical Care Context
+            </h1>
+            <p style={{ fontSize: '14px', color: '#64748B', margin: 0, maxWidth: '620px', marginInline: 'auto', lineHeight: 1.6 }}>
+              Tailor the intake pace, field requirements, and step workflow to your clinical setting. Each mode adapts the form so data entry matches the urgency of care.
+            </p>
+          </div>
+
+          {/* 3 Care Context Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '28px' }}>
+            {/* 1. Triage */}
+            <div
+              onClick={() => handleSelectContext('TRIAGE')}
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '12px',
+                border: '2px solid #FECACA',
+                padding: '24px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 2px 8px rgba(220, 38, 38, 0.08)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#DC2626';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(220, 38, 38, 0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#FECACA';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(220, 38, 38, 0.08)';
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '10px', backgroundColor: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#DC2626' }}>
+                    <Zap size={22} />
+                  </div>
+                  <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', backgroundColor: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', textTransform: 'uppercase' }}>
+                    Seconds Count
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>
+                  Triage / Emergency
+                </h3>
+                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, margin: '0 0 16px 0' }}>
+                  Ultra-fast, 3-step rapid registration. Immediate vitals capture, instant acuity rating, and 1-click escalation straight to the trauma/ED board.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', color: '#475569', marginBottom: '18px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <CheckCircle2 size={14} color="#DC2626" /> 3 collapsed steps (Identity → Vitals → Escalate)
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <CheckCircle2 size={14} color="#DC2626" /> One-click "Quick-Save & Escalate"
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <CheckCircle2 size={14} color="#DC2626" /> Urgent priority preset
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                style={{
+                  width: '100%',
+                  padding: '10px 0',
+                  borderRadius: '6px',
+                  backgroundColor: '#FEF2F2',
+                  color: '#DC2626',
+                  border: '1px solid #FECACA',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                }}
+              >
+                <span>Launch Triage Intake</span>
+                <ArrowRight size={14} />
+              </button>
+            </div>
+
+            {/* 2. OPD */}
+            <div
+              onClick={() => handleSelectContext('OPD')}
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '12px',
+                border: '2px solid #FDE68A',
+                padding: '24px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 2px 8px rgba(217, 119, 6, 0.08)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#B45309';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(217, 119, 6, 0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#FDE68A';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(217, 119, 6, 0.08)';
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '10px', backgroundColor: '#FFFBEB', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#B45309' }}>
+                    <Stethoscope size={22} />
+                  </div>
+                  <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', backgroundColor: '#FFFBEB', color: '#B45309', border: '1px solid #FDE68A', textTransform: 'uppercase' }}>
+                    Balanced Pace
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>
+                  Routine Outpatient (OPD)
+                </h3>
+                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, margin: '0 0 16px 0' }}>
+                  Standard clinical consultation. Focused on chief complaint, rapid tab-traversable vitals grid (BP, HR, SpO2, Temp, BMI), and active medications.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', color: '#475569', marginBottom: '18px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <CheckCircle2 size={14} color="#B45309" /> 5 structured consultative steps
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <CheckCircle2 size={14} color="#B45309" /> Tab-traversable OPD vitals check-in grid
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <CheckCircle2 size={14} color="#B45309" /> Focused history & medication reconciliation
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                style={{
+                  width: '100%',
+                  padding: '10px 0',
+                  borderRadius: '6px',
+                  backgroundColor: '#FFFBEB',
+                  color: '#B45309',
+                  border: '1px solid #FDE68A',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                }}
+              >
+                <span>Launch OPD Intake</span>
+                <ArrowRight size={14} />
+              </button>
+            </div>
+
+            {/* 3. Inpatient */}
+            <div
+              onClick={() => handleSelectContext('INPATIENT')}
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '12px',
+                border: '2px solid #BFDBFE',
+                padding: '24px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 2px 8px rgba(3, 105, 161, 0.08)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#0369A1';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(3, 105, 161, 0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#BFDBFE';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(3, 105, 161, 0.08)';
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '10px', backgroundColor: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0369A1' }}>
+                    <Building2 size={22} />
+                  </div>
+                  <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', backgroundColor: '#EFF6FF', color: '#0369A1', border: '1px solid #BFDBFE', textTransform: 'uppercase' }}>
+                    Deep Charting
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>
+                  Inpatient Admission
+                </h3>
+                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, margin: '0 0 16px 0' }}>
+                  Comprehensive admission charting. Document and transfer packet ingestion placed at Step 2 so background AI parsing runs while clinical histories are entered.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', color: '#475569', marginBottom: '18px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <CheckCircle2 size={14} color="#0369A1" /> Early Document Ingestion (Step 2)
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <CheckCircle2 size={14} color="#0369A1" /> Full longitudinal admission history
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <CheckCircle2 size={14} color="#0369A1" /> Background OCR / AI clinical extraction
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                style={{
+                  width: '100%',
+                  padding: '10px 0',
+                  borderRadius: '6px',
+                  backgroundColor: '#EFF6FF',
+                  color: '#0369A1',
+                  border: '1px solid #BFDBFE',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                }}
+              >
+                <span>Launch Inpatient Intake</span>
+                <ArrowRight size={14} />
+              </button>
+            </div>
+          </div>
+
+          <div style={{ textAlign: 'center' }}>
+            <button
+              onClick={() => setActiveView('cases')}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#64748B',
+                fontSize: '13px',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <ArrowLeft size={14} /> Back to Cases List
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       style={{
@@ -542,7 +1082,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
         }}
       >
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             <button
               onClick={() => setActiveView('cases')}
               style={{
@@ -564,6 +1104,38 @@ export const CaseIntakeWorkspace: React.FC = () => {
             <span
               style={{
                 fontSize: '11px',
+                fontWeight: 700,
+                padding: '3px 8px',
+                borderRadius: '4px',
+                backgroundColor: contextConfig.bgColor,
+                color: contextConfig.color,
+                border: `1px solid ${contextConfig.borderColor}`,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+              }}
+            >
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: contextConfig.dotColor }} />
+              {contextConfig.label}
+            </span>
+            <button
+              onClick={() => setCareContextChosen(false)}
+              style={{
+                fontSize: '11px',
+                color: '#64748B',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                padding: '2px',
+              }}
+              title="Switch care context"
+            >
+              Change Mode
+            </button>
+            <span
+              style={{
+                fontSize: '11px',
                 fontFamily: 'var(--font-mono, monospace)',
                 backgroundColor: '#E0F2FE',
                 color: '#0369A1',
@@ -572,11 +1144,11 @@ export const CaseIntakeWorkspace: React.FC = () => {
                 fontWeight: 600,
               }}
             >
-              Step {draft.currentStep} of 6
+              Step {currentStepNum} of {currentSteps.length}
             </span>
           </div>
-          <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B' }}>
-            Enter longitudinal patient identity, structured clinical findings, and documents for contextual synthesis.
+          <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B' }}>
+            {contextConfig.tagline}
           </p>
         </div>
 
@@ -637,7 +1209,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
           width: '100%',
         }}
       >
-        {/* LEFT COLUMN: 6-Step Clinical Intake Form */}
+        {/* LEFT COLUMN: Adaptive Clinical Intake Form */}
         <div
           style={{
             backgroundColor: '#FFFFFF',
@@ -658,14 +1230,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
               overflowX: 'auto',
             }}
           >
-            {[
-              { num: 1, label: '01 Patient Identity', icon: <User size={14} /> },
-              { num: 2, label: '02 Presentation', icon: <FileText size={14} /> },
-              { num: 3, label: '03 Observations & Labs', icon: <FlaskConical size={14} /> },
-              { num: 4, label: '04 Meds & Allergies', icon: <Pill size={14} /> },
-              { num: 5, label: '05 Documents & PDFs', icon: <Paperclip size={14} /> },
-              { num: 6, label: '06 Review & Activate', icon: <CheckCircle2 size={14} /> },
-            ].map((s) => (
+            {currentSteps.map((s) => (
               <button
                 key={s.num}
                 onClick={() => goToStep(s.num)}
@@ -675,11 +1240,11 @@ export const CaseIntakeWorkspace: React.FC = () => {
                   gap: '6px',
                   padding: '12px 16px',
                   border: 'none',
-                  borderBottom: draft.currentStep === s.num ? '2px solid #0F766E' : '2px solid transparent',
-                  backgroundColor: draft.currentStep === s.num ? '#FFFFFF' : 'transparent',
-                  color: draft.currentStep === s.num ? '#0F766E' : '#64748B',
+                  borderBottom: currentStepNum === s.num ? `2px solid ${contextConfig.color}` : '2px solid transparent',
+                  backgroundColor: currentStepNum === s.num ? '#FFFFFF' : 'transparent',
+                  color: currentStepNum === s.num ? contextConfig.color : '#64748B',
                   fontSize: '12px',
-                  fontWeight: draft.currentStep === s.num ? 600 : 500,
+                  fontWeight: currentStepNum === s.num ? 600 : 500,
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
                 }}
@@ -693,7 +1258,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
           {/* Step Form Body */}
           <div style={{ padding: '24px', flex: 1, overflowY: 'auto' }}>
             {/* ── STEP 1: Patient Identity & Encounter Context ──────── */}
-            {draft.currentStep === 1 && (
+            {activeStepId === 'patient' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
                   <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
@@ -791,6 +1356,56 @@ export const CaseIntakeWorkspace: React.FC = () => {
                   </div>
                 </div>
 
+                {careContext === 'TRIAGE' && (
+                  <div
+                    style={{
+                      padding: '14px 18px',
+                      backgroundColor: '#FEF2F2',
+                      border: '1px solid #FECACA',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '12px',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <Zap size={20} color="#DC2626" />
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#991B1B' }}>
+                          Emergency Triage Fast-Track Mode
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#B91C1C' }}>
+                          Seconds count. Enter minimal identity and escalate immediately to trauma bay / ED tracking.
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleTriageQuickEscalate}
+                      disabled={isSubmitting}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '9px 18px',
+                        borderRadius: '6px',
+                        backgroundColor: '#DC2626',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                        boxShadow: '0 2px 4px rgba(220, 38, 38, 0.3)',
+                      }}
+                    >
+                      <Zap size={15} fill="#FFFFFF" />
+                      <span>{isSubmitting ? 'Escalating...' : 'Quick-Save & Escalate (ED / Trauma)'}</span>
+                    </button>
+                  </div>
+                )}
+
                 <div style={{ padding: '10px 14px', backgroundColor: '#F8FAFC', borderRadius: '6px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Sparkles size={14} color="#0F766E" />
@@ -802,8 +1417,174 @@ export const CaseIntakeWorkspace: React.FC = () => {
               </div>
             )}
 
-            {/* ── STEP 2: Clinical Presentation & History ────────── */}
-            {draft.currentStep === 2 && (
+            {/* ── STEP 2 (TRIAGE): Vitals & Presentation (Merged) ── */}
+            {activeStepId === 'triage_vitals' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                    <div>
+                      <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                        Triage Vitals & Acuity Evaluation
+                      </h3>
+                      <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B' }}>
+                        Rapid data entry: Acuity score, chief presenting complaint, and immediate bedside vital signs.
+                      </p>
+                    </div>
+                    <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', backgroundColor: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA' }}>
+                      EMERGENCY TRIAGE
+                    </span>
+                  </div>
+                </div>
+
+                {/* Acuity Level / Priority Selector */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '8px' }}>
+                    Triage Acuity Priority *
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                    {[
+                      { label: 'CRITICAL / RESUS (ESI 1)', val: 'URGENT', desc: 'Immediate resuscitation / airway threat', bg: '#FEF2F2', border: '#FECACA', color: '#DC2626' },
+                      { label: 'EMERGENT (ESI 2-3)', val: 'HIGH', desc: 'High potential for deterioration', bg: '#FFFBEB', border: '#FDE68A', color: '#B45309' },
+                      { label: 'URGENT / STABLE (ESI 4-5)', val: 'ROUTINE', desc: 'Non-life-threatening urgent evaluation', bg: '#F0FDF4', border: '#BBF7D0', color: '#166534' },
+                    ].map((pri) => (
+                      <button
+                        key={pri.val}
+                        type="button"
+                        onClick={() => setDraft((p) => ({ ...p, encounter: { ...p.encounter, priority: pri.val as any } }))}
+                        style={{
+                          padding: '12px',
+                          borderRadius: '8px',
+                          border: draft.encounter.priority === pri.val ? `2px solid ${pri.color}` : `1px solid ${pri.border}`,
+                          backgroundColor: draft.encounter.priority === pri.val ? pri.bg : '#FFFFFF',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '4px',
+                        }}
+                      >
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: pri.color }}>{pri.label}</span>
+                        <span style={{ fontSize: '11px', color: '#64748B' }}>{pri.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Chief Complaint / Acuity Title */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    Chief Complaint / Presenting Acuity *
+                  </label>
+                  <input
+                    type="text"
+                    value={draft.presentation.title}
+                    onChange={(e) => setDraft((p) => ({ ...p, presentation: { ...p.presentation, title: e.target.value } }))}
+                    placeholder="e.g. Acute severe central chest pain radiating to left arm, diaphoresis"
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '14px', fontWeight: 500 }}
+                  />
+                </div>
+
+                {/* Rapid Triage Vitals Strip */}
+                <div style={{ padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Activity size={16} color="#DC2626" />
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                        Immediate Bedside Vitals (Tab-Traversable)
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '11px', color: '#64748B' }}>
+                      Auto-evaluates clinical thresholds in real-time
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                        Blood Pressure (mmHg)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 90/60"
+                        value={getVitalValue('Blood Pressure')}
+                        onChange={(e) => setVitalValue('Blood Pressure', e.target.value, 'mmHg', 'vital-signs')}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                        Heart Rate (bpm)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 124"
+                        value={getVitalValue('Heart Rate')}
+                        onChange={(e) => setVitalValue('Heart Rate', e.target.value, 'bpm', 'vital-signs')}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                        SpO2 (%)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 91"
+                        value={getVitalValue('Oxygen Saturation') || getVitalValue('SpO2')}
+                        onChange={(e) => setVitalValue('Oxygen Saturation (SpO2)', e.target.value, '%', 'vital-signs')}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                        Body Temp (°C)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        placeholder="e.g. 38.9"
+                        value={getVitalValue('Body Temperature') || getVitalValue('Temperature')}
+                        onChange={(e) => setVitalValue('Body Temperature', e.target.value, '°C', 'vital-signs')}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                        Resp Rate (/min)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 26"
+                        value={getVitalValue('Respiratory Rate')}
+                        onChange={(e) => setVitalValue('Respiratory Rate', e.target.value, '/min', 'vital-signs')}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Brief HPI Narrative */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    Rapid HPI / Mechanism of Injury / Acute Symptoms
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={draft.presentation.historyOfPresentIllness}
+                    onChange={(e) => setDraft((p) => ({ ...p, presentation: { ...p.presentation, historyOfPresentIllness: e.target.value } }))}
+                    placeholder="Brief narrative of onset, duration, known triggers, or initial paramedic handover details..."
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', lineHeight: 1.5 }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* ── STEP 2 / 3: Clinical Presentation & History ────────── */}
+            {activeStepId === 'presentation' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
                   <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
@@ -869,8 +1650,8 @@ export const CaseIntakeWorkspace: React.FC = () => {
               </div>
             )}
 
-            {/* ── STEP 3: Structured Observations & Labs ────────── */}
-            {draft.currentStep === 3 && (
+            {/* ── STEP 3 / 4: Structured Observations & Labs ────────── */}
+            {activeStepId === 'vitals_labs' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
                   <div>
@@ -915,8 +1696,112 @@ export const CaseIntakeWorkspace: React.FC = () => {
                     }}
                   >
                     <Plus size={13} />
-                    <span>Add Observation</span>
+                    <span>Add Custom Lab</span>
                   </button>
+                </div>
+
+                {/* Pre-populated Standard OPD Vitals Grid (Tab-Traversable) */}
+                <div
+                  style={{
+                    padding: '16px',
+                    backgroundColor: '#F8FAFC',
+                    borderRadius: '8px',
+                    border: '1px solid #E2E8F0',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Activity size={16} color="#0F766E" />
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                        Rapid OPD Vitals Check-in Grid (Tab-Traversable)
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '11px', color: '#64748B' }}>
+                      Press <kbd style={{ padding: '1px 5px', background: '#E2E8F0', borderRadius: '3px', fontFamily: 'monospace' }}>Tab</kbd> to move between fields
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                        Blood Pressure (mmHg)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 120/80"
+                        value={getVitalValue('Blood Pressure')}
+                        onChange={(e) => setVitalValue('Blood Pressure', e.target.value, 'mmHg', 'vital-signs')}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                        Heart Rate (bpm)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 72"
+                        value={getVitalValue('Heart Rate')}
+                        onChange={(e) => setVitalValue('Heart Rate', e.target.value, 'bpm', 'vital-signs')}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                        SpO2 (%)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 98"
+                        value={getVitalValue('Oxygen Saturation') || getVitalValue('SpO2')}
+                        onChange={(e) => setVitalValue('Oxygen Saturation (SpO2)', e.target.value, '%', 'vital-signs')}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                        Body Temp (°C)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        placeholder="e.g. 36.8"
+                        value={getVitalValue('Body Temperature') || getVitalValue('Temperature')}
+                        onChange={(e) => setVitalValue('Body Temperature', e.target.value, '°C', 'vital-signs')}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                        Resp Rate (/min)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 16"
+                        value={getVitalValue('Respiratory Rate')}
+                        onChange={(e) => setVitalValue('Respiratory Rate', e.target.value, '/min', 'vital-signs')}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                        BMI (kg/m²)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        placeholder="e.g. 23.4"
+                        value={getVitalValue('BMI') || getVitalValue('Body Mass Index')}
+                        onChange={(e) => setVitalValue('Body Mass Index (BMI)', e.target.value, 'kg/m²', 'vital-signs')}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {draft.observations.length === 0 ? (
@@ -1165,8 +2050,8 @@ export const CaseIntakeWorkspace: React.FC = () => {
               </div>
             )}
 
-            {/* ── STEP 4: Medications & Allergies ──────────────── */}
-            {draft.currentStep === 4 && (
+            {/* ── STEP 4 / 5: Medications & Allergies ──────────────── */}
+            {activeStepId === 'meds_allergies' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 {/* Allergies Block */}
                 <div>
@@ -1336,8 +2221,8 @@ export const CaseIntakeWorkspace: React.FC = () => {
               </div>
             )}
 
-            {/* ── STEP 5: Documents & PDFs Ingestion ────────────── */}
-            {draft.currentStep === 5 && (
+            {/* ── STEP 2 (INPATIENT) / 5 (OPD): Documents & PDFs Ingestion ────────────── */}
+            {activeStepId === 'documents' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
                   <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
@@ -1436,8 +2321,8 @@ export const CaseIntakeWorkspace: React.FC = () => {
               </div>
             )}
 
-            {/* ── STEP 6: Review & Activate ────────────────────── */}
-            {draft.currentStep === 6 && (
+            {/* ── STEP 3 (TRIAGE) / 5 (OPD) / 6 (INPATIENT): Review & Activate ────────────────────── */}
+            {activeStepId === 'review' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
                   <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
@@ -1606,8 +2491,8 @@ export const CaseIntakeWorkspace: React.FC = () => {
             }}
           >
             <button
-              disabled={draft.currentStep === 1}
-              onClick={() => goToStep(draft.currentStep - 1)}
+              disabled={currentStepNum === 1}
+              onClick={() => goToStep(currentStepNum - 1)}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -1616,32 +2501,32 @@ export const CaseIntakeWorkspace: React.FC = () => {
                 borderRadius: '6px',
                 border: '1px solid #CBD5E1',
                 backgroundColor: '#FFFFFF',
-                color: draft.currentStep === 1 ? '#CBD5E1' : '#334155',
+                color: currentStepNum === 1 ? '#CBD5E1' : '#334155',
                 fontSize: '13px',
                 fontWeight: 600,
-                cursor: draft.currentStep === 1 ? 'not-allowed' : 'pointer',
+                cursor: currentStepNum === 1 ? 'not-allowed' : 'pointer',
               }}
             >
               <ArrowLeft size={14} />
               <span>Back</span>
             </button>
 
-            {draft.currentStep < 6 ? (
+            {currentStepNum < currentSteps.length ? (
               <button
-                onClick={() => goToStep(draft.currentStep + 1)}
+                onClick={() => goToStep(currentStepNum + 1)}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px',
                   padding: '9px 20px',
                   borderRadius: '6px',
-                  backgroundColor: '#0F766E',
+                  backgroundColor: contextConfig.color,
                   color: '#FFFFFF',
                   border: 'none',
                   fontSize: '13px',
                   fontWeight: 600,
                   cursor: 'pointer',
-                  boxShadow: '0 2px 4px rgba(15, 118, 110, 0.25)',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
                 }}
               >
                 <span>Next Step</span>
@@ -1672,12 +2557,39 @@ export const CaseIntakeWorkspace: React.FC = () => {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', borderBottom: '1px solid #F1F5F9', paddingBottom: '10px' }}>
-              <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#0F766E', textTransform: 'uppercase' }}>
-                LIVE CASE PREVIEW
-              </span>
-              <span style={{ fontSize: '11px', color: '#64748B' }}>
-                Auto-saving draft
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#0F766E', textTransform: 'uppercase' }}>
+                  LIVE PREVIEW
+                </span>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    padding: '1px 6px',
+                    borderRadius: '4px',
+                    backgroundColor: contextConfig.bgColor,
+                    color: contextConfig.color,
+                    border: `1px solid ${contextConfig.borderColor}`,
+                  }}
+                >
+                  {contextConfig.shortLabel}
+                </span>
+              </div>
+              <button
+                onClick={() => setCareContextChosen(false)}
+                style={{
+                  fontSize: '11px',
+                  color: '#64748B',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  padding: 0,
+                }}
+                title="Switch care mode"
+              >
+                Change Mode
+              </button>
             </div>
 
             {/* Patient Card Preview */}

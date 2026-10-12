@@ -96,11 +96,22 @@ export const RulesTab: React.FC = () => {
     if (/osler|roth|glomerulo|rheumatoid factor/.test(findingText)) duke.push('duke-minor-4');
     if (duke.length) detected['rule-duke-endocarditis'] = duke;
 
-    // qSOFA (Sepsis)
+    // qSOFA (Sepsis-3: RR >= 22, SBP <= 100, Altered Mentation GCS < 15)
     const qsofa: string[] = [];
-    if (/respiratory rate|tachypnea|rr \d|resp rate/.test(findingText)) qsofa.push('qsofa-rr');
-    if (/hypotension|low bp|sbp|systolic/.test(findingText)) qsofa.push('qsofa-sbp');
-    if (/confusion|altered mental|encephalopathy/.test(findingText)) qsofa.push('qsofa-ams');
+    const hasHighRr =
+      /(?:respiratory rate|rr)\s*[:=]?\s*(2[2-9]|[3-9]\d)/i.test(findingText) ||
+      /\b(?:severe tachypnea|marked tachypnea|respiratory rate >= 22)\b/i.test(findingText);
+    if (hasHighRr) qsofa.push('qsofa-rr');
+
+    const hasLowSbp =
+      /(?:sbp|systolic)\s*[:=]?\s*(?:[0-9]{1,2}|100)\b/i.test(findingText) ||
+      /\b(?:hypotension|hypotensive|systolic <= 100|septic shock)\b/i.test(findingText);
+    if (hasLowSbp) qsofa.push('qsofa-sbp');
+
+    const hasAms =
+      /\b(?:confusion|altered mental|encephalopathy|disoriented|lethargic|obtunded|gcs\s*(?:<|<=|:\s*(?:1[0-4]|[0-9])))\b/i.test(findingText);
+    if (hasAms) qsofa.push('qsofa-gcs');
+
     if (qsofa.length) detected['rule-qsofa'] = qsofa;
 
     return detected;
