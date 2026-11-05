@@ -21,7 +21,7 @@ export interface IntakePatientInput {
   isNewPatient: boolean;
   existingPatientId?: string;
   givenName: string;
-  familyName: string;
+  familyName?: string;
   dateOfBirth: string;
   administrativeSex: AdministrativeSex;
   externalPatientId: string; // MRN
@@ -32,6 +32,7 @@ export interface IntakeEncounterInput {
   encounterClass: 'IMP' | 'AMB' | 'EMER';
   department: string;
   priority: CasePriority;
+  esiLevel?: 1 | 2 | 3 | 4 | 5; // Discrete 5-level Emergency Severity Index algorithm
 }
 
 export interface IntakePresentationInput {
@@ -43,6 +44,8 @@ export interface IntakePresentationInput {
 
 export interface IntakeObservationInput {
   id: string;
+  caseId?: string;
+  observationId?: string;
   category: 'vital-signs' | 'laboratory' | 'exam' | 'imaging';
   code: string;
   display: string;
@@ -54,6 +57,9 @@ export interface IntakeObservationInput {
   source: string;
   provenanceType: ProvenanceType;
   actorName: string;
+  sourceRecordId?: string;
+  createdAt?: string;
+  analysisRunId?: string;
   sourceDocumentId?: string;
   sourcePage?: number;
   sourceSnippet?: string;

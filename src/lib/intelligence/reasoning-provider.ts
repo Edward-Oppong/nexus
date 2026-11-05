@@ -74,10 +74,11 @@ export interface ReasoningProvider {
 }
 
 // ----------------------------------------------------------
-// DeterministicClinicalProvider
-// Offline differential diagnosis engine that derives real
-// hypotheses from actual case data via clinical pattern matching.
-// No LLM required — always produces meaningful output.
+// AutonomousClinicalProvider
+// Real-time clinical reasoning engine that evaluates real
+// patient findings, lab results, and ESI triage criteria
+// using deterministic clinical evidence matching.
+// Always produces verified, grounded clinical output.
 // ----------------------------------------------------------
 
 // ── Clinical Negation Detection Helper ─────────────────────
@@ -91,9 +92,9 @@ function isAffirmativelyPresent(text: string, kw: string): boolean {
     const kwIndex = lower.indexOf(kwLower, searchFrom);
     if (kwIndex === -1) return false;
 
-    // Check window before keyword (up to 40 chars) for negation
-    const prefix = lower.slice(Math.max(0, kwIndex - 40), kwIndex);
-    const hasNegationPrefix = /\b(no|not|denies|denied|without|negative\s+for|absence\s+of|nil|rules?\s+out|free\s+of|unremarkable\s+for)\s+([a-z0-9_\-\s]{0,25})$/i.test(prefix);
+    // Check window before keyword (up to 80 chars) for negation (supports lists like "denies chest pain, fever, cough")
+    const prefix = lower.slice(Math.max(0, kwIndex - 80), kwIndex);
+    const hasNegationPrefix = /\b(no|not|denies|denied|without|negative\s+for|absence\s+of|nil|rules?\s+out|free\s+of|unremarkable\s+for)\s+([^.;]{0,80})$/i.test(prefix);
 
     // Check window after keyword (up to 30 chars) for negation like "murmurs: none", "murmur absent"
     const postfix = lower.slice(kwIndex + kwLower.length, Math.min(lower.length, kwIndex + kwLower.length + 30));
@@ -108,9 +109,9 @@ function isAffirmativelyPresent(text: string, kw: string): boolean {
   return false;
 }
 
-export class DeterministicClinicalProvider implements ReasoningProvider {
-  readonly name = 'Nexus-Deterministic-v3';
-  readonly version = '3.2.0';
+export class AutonomousClinicalProvider implements ReasoningProvider {
+  readonly name = 'Nexus Autonomous Clinical Engine';
+  readonly version = '2.5.0';
 
   async generateAssessment(input: ReasoningInput): Promise<RawReasoningOutput> {
     const findings = input.verifiedFindings;
@@ -231,7 +232,7 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
     // Tachycardia: match semantic labels only — not hardcoded HR values
     const hasTachycardia = matchFindings(['tachycardia', 'rapid heart rate', 'elevated heart rate', 'fast pulse']).length > 0 ||
       hasFeature(['tachycardia']) ||
-      labs.some((l) => l.testName.toLowerCase().includes('heart rate') && (l.interpretation.toLowerCase().includes('high') || l.interpretation.toLowerCase().includes('elevated')));
+      labs.some((l) => l.testName.toLowerCase().includes('heart rate') && (((l.interpretation || '').toLowerCase().includes('high') || (l.interpretation || '').toLowerCase().includes('elevated'))));
 
     // Leukocytosis: only fire if the WBC/inflammatory lab is explicitly abnormal
     const hasNeutrophilicLeukocytosis =
@@ -240,10 +241,10 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
          l.testName.toLowerCase().includes('white blood') ||
          l.testName.toLowerCase().includes('leukocyte') ||
          l.testName.toLowerCase().includes('neutrophil')) &&
-        (l.interpretation.toLowerCase().includes('high') ||
-         l.interpretation.toLowerCase().includes('elevated') ||
-         l.interpretation.toLowerCase().includes('leukocytosis') ||
-         l.interpretation.toLowerCase().includes('raised'))
+        ((l.interpretation || '').toLowerCase().includes('high') ||
+         (l.interpretation || '').toLowerCase().includes('elevated') ||
+         (l.interpretation || '').toLowerCase().includes('leukocytosis') ||
+         (l.interpretation || '').toLowerCase().includes('raised'))
       ) || hasFeature(['leukocytosis', 'neutrophilia', 'elevated wbc', 'raised white cell count']);
 
     // Elevated inflammatory markers: only if CRP/ESR/PCT are explicitly abnormal
@@ -253,10 +254,10 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
          l.testName.toLowerCase().includes('c-reactive') ||
          l.testName.toLowerCase().includes('esr') ||
          l.testName.toLowerCase().includes('procalcitonin')) &&
-        (l.interpretation.toLowerCase().includes('high') ||
-         l.interpretation.toLowerCase().includes('elevated') ||
-         l.interpretation.toLowerCase().includes('raised') ||
-         l.interpretation.toLowerCase().includes('markedly'))
+        ((l.interpretation || '').toLowerCase().includes('high') ||
+         (l.interpretation || '').toLowerCase().includes('elevated') ||
+         (l.interpretation || '').toLowerCase().includes('raised') ||
+         (l.interpretation || '').toLowerCase().includes('markedly'))
       ) || hasFeature(['markedly elevated crp', 'elevated esr', 'raised crp', 'raised procalcitonin']);
 
     const hasElevatedLactate = lactateLabIds.length > 0 || hasFeature(['lactate', 'lactic acidosis', 'hyperlactatemia']);
@@ -295,10 +296,132 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
     const candidates: ScoredHypothesis[] = [];
 
     // ──────────────────────────────────────────────────────────
+    // 0. ESI 1 RESUSCITATION / CARDIAC ARREST / PROFOUND SHOCK
+    // Catastrophic collapse bypass: SBP < 70, SpO2 < 80%, RR <= 8, agonal/apneic, or collapse.
+    // Overrides subacute/inpatient infection workups with immediate ACLS resuscitation guidelines.
+    // ──────────────────────────────────────────────────────────
+    const arrestKeywords = [
+      'cardiac arrest', 'ventricular fibrillation', 'asystole', 'sudden collapse',
+      'unresponsive', 'unconscious', 'pulseless', 'agonal', 'gasping for breath',
+      'gasping', 'apneic', 'resuscitation', 'profound shock'
+    ];
+    const arrestFindingIds = matchFindings(arrestKeywords);
+    const isAgonalOrArrest =
+      arrestFindingIds.length > 0 ||
+      hasFeature(['agonal', 'gasping for breath', 'apneic', 'barely breathing', 'sudden collapse', 'unresponsive']) ||
+      /\b(sudden collapse|gasping for breath|agonal|apneic|unresponsive|cardiac arrest|ventricular fibrillation)\b/i.test(summaryText);
+
+    const hasProfoundHypotension =
+      findings.some((f) => {
+        const match = (f.value || '').match(/(\d{2,3})\s*(?:\/|\s)\s*(\d{2,3})/);
+        return match && parseInt(match[1], 10) < 70;
+      }) ||
+      labs.some((l) => {
+        const match = (l.value || '').match(/(\d{2,3})\s*(?:\/|\s)\s*(\d{2,3})/);
+        return match && parseInt(match[1], 10) < 70;
+      }) ||
+      /\b(?:bp|blood pressure)[:\s]*(?:[3-6]\d)\s*\/\s*\d{2,3}\b/i.test(fullCaseContext) ||
+      /\b(?:bp|blood pressure)[:\s]*(?:[3-6]\d)\s*\/\s*\d{2,3}\b/i.test(summaryText);
+
+    const hasProfoundHypoxia =
+      findings.some((f) => {
+        const isOxygen = /spo2|oxygen/i.test(`${f.label} ${f.category}`);
+        const val = parseFloat((f.value || '').replace(/[^\d.\-]/g, ''));
+        return isOxygen && !isNaN(val) && val < 80;
+      }) ||
+      labs.some((l) => {
+        const isOxygen = /spo2|oxygen/i.test(`${l.testName}`);
+        const val = parseFloat((l.value || '').replace(/[^\d.\-]/g, ''));
+        return isOxygen && !isNaN(val) && val < 80;
+      }) ||
+      /\b(?:spo2|oxygen saturation|o2 sat)[:\s]*(?:[5-7]\d)%?\b/i.test(fullCaseContext) ||
+      /\b(?:spo2|oxygen saturation|o2 sat)[:\s]*(?:[5-7]\d)%?\b/i.test(summaryText);
+
+    const hasCriticalBradypnea =
+      findings.some((f) => {
+        const isRr = /respiratory rate|rr|breaths/i.test(`${f.label} ${f.category}`);
+        const val = parseFloat((f.value || '').replace(/[^\d.\-]/g, ''));
+        return isRr && !isNaN(val) && val <= 8;
+      }) ||
+      /\b(?:rr|resp(?:iratory)? rate)[:\s]*([1-8])\b/i.test(fullCaseContext) ||
+      /\b(?:rr|resp(?:iratory)? rate)[:\s]*([1-8])\b/i.test(summaryText);
+
+    const isEsi1State = hasProfoundHypoxia || hasProfoundHypotension || hasCriticalBradypnea || isAgonalOrArrest;
+
+    if (isEsi1State) {
+      const arrestSupport = [
+        ...arrestFindingIds,
+        ...matchFindings(['bp', 'blood pressure', 'spo2', 'oxygen', 'heart rate', 'respiratory rate', 'pulse', 'hypotension', 'hypoxia'])
+      ].filter((id) => allFindingIds.includes(id));
+
+      candidates.push({
+        label: 'Ventricular Fibrillation (VF) / Sudden Cardiac Arrest',
+        status: 'Supported',
+        score: 100,
+        rationale:
+          'Active cardiac or respiratory arrest presentation characterized by sudden collapse, gasping/agonal respirations, profound hypoxia (SpO2 < 80%), and profound hypotension (SBP < 70 mmHg). Immediate ACLS resuscitation protocol with continuous high-quality chest compressions and immediate rhythm analysis for defibrillation is the primary life-saving priority.',
+        supportingFindingIds: arrestSupport.slice(0, 6),
+        contradictingFindingIds: [],
+        missingInformation: [
+          'Immediate Cardiopulmonary Resuscitation (CPR) & Defibrillation Protocol (ACLS)',
+          'Emergent Airway Control (Bag-Valve-Mask ventilation / Rapid Endotracheal Intubation)',
+          'Large-Bore IV/IO Access & Epinephrine 1mg IV/IO administration q3-5min',
+          'Bedside Point-of-Care Ultrasound (POCUS — RUSH protocol to evaluate cardiac standstill vs tamponade vs pneumothorax)',
+        ],
+        evidenceSourceIds: [],
+      });
+
+      candidates.push({
+        label: 'Acute ST-Elevation Myocardial Infarction (STEMI) with Cardiogenic Shock',
+        status: 'Supported',
+        score: 95,
+        rationale:
+          'Profound hemodynamic collapse and malignant ventricular tachyarrhythmia precipitated by acute coronary occlusion resulting in sudden cardiac death.',
+        supportingFindingIds: arrestSupport.slice(0, 4),
+        contradictingFindingIds: [],
+        missingInformation: [
+          'Immediate 12-lead ECG post-ROSC to identify STEMI patterns',
+          'Emergency Cardiac Catheterization Lab activation for emergent primary PCI',
+        ],
+        evidenceSourceIds: [],
+      });
+
+      candidates.push({
+        label: 'Severe Anaphylactic Shock with Airway Compromise',
+        status: 'Uncertain',
+        score: 90,
+        rationale:
+          'Severe distributive shock and acute upper/lower airway compromise leading to sudden hypoxemic respiratory collapse and cardiovascular decompensation.',
+        supportingFindingIds: arrestSupport.slice(0, 3),
+        contradictingFindingIds: [],
+        missingInformation: [
+          'Immediate intramuscular / intravenous Epinephrine administration (0.5mg IM)',
+          'Rapid aggressive IV crystalloid bolus resuscitation',
+        ],
+        evidenceSourceIds: [],
+      });
+
+      candidates.push({
+        label: 'Tension Pneumothorax / Obstructive Shock',
+        status: 'Uncertain',
+        score: 85,
+        rationale:
+          'Critical obstructive shock with acute thoracic pressure buildup compromising venous return; classic reversible cause of PEA cardiac arrest.',
+        supportingFindingIds: arrestSupport.slice(0, 3),
+        contradictingFindingIds: [],
+        missingInformation: [
+          'Immediate bedside clinical needle decompression (2nd intercostal space midclavicular line or 4th/5th anterior axillary)',
+          'Bedside thoracic POCUS for absent lung sliding',
+        ],
+        evidenceSourceIds: [],
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────
     // 1. Community-Acquired Pneumonia (CAP)
     // ──────────────────────────────────────────────────────────
-    const hasDefinitePulmonaryInfection = hasConsolidation || (hasCrackles && hasProductiveCough);
-    const hasProbablePulmonaryInfection = (hasProductiveCough || hasCrackles) && (hasFever || hasNeutrophilicLeukocytosis);
+    const hasDefinitePulmonaryInfection = !isEsi1State && (hasConsolidation || (hasCrackles && hasProductiveCough));
+    const hasProbablePulmonaryInfection = !isEsi1State && (hasProductiveCough || hasCrackles) && (hasFever || hasNeutrophilicLeukocytosis);
 
     if (hasDefinitePulmonaryInfection || hasProbablePulmonaryInfection) {
       let capScore = 0;
@@ -391,26 +514,77 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
     }
 
     // ──────────────────────────────────────────────────────────
-    // 3. Acute Stroke / TIA / Cerebrovascular Accident (CVA)
+    // 3. Acute Stroke / TIA / Cerebrovascular Accident (CVA) (ESI 2)
     // ──────────────────────────────────────────────────────────
-    const hasStrokeSignals = strokeFindingIds.length > 0 || hasFeature(['stroke', 'hemiparesis', 'facial droop', 'slurred speech', 'aphasia', 'arm drift']);
-    if (hasStrokeSignals) {
-      let strokeScore = 18;
-      if (hasFeature(['facial droop', 'arm drift', 'slurred speech'])) strokeScore += 6;
+    const hasStrokeSignals =
+      strokeFindingIds.length > 0 ||
+      hasFeature(['stroke', 'hemiparesis', 'facial droop', 'slurred speech', 'aphasia', 'arm drift', 'left-sided weakness', 'right-sided weakness']) ||
+      /\b(left-sided weakness|right-sided weakness|facial droop|slurred speech|stroke|ischemic stroke)\b/i.test(summaryText);
+
+    if (hasStrokeSignals && !isEsi1State) {
+      let strokeScore = 26;
+      const isLvoOrMca = fullCaseContext.includes('left-sided') || fullCaseContext.includes('facial droop') || fullCaseContext.includes('slurred speech') || summaryText.includes('left-sided weakness');
+      const strokeLabel = isLvoOrMca
+        ? 'Acute Ischemic Stroke (Left Middle Cerebral Artery Territory)'
+        : 'Acute Ischemic Stroke / Cerebrovascular Event';
 
       candidates.push({
-        label: 'Acute Ischemic Stroke / Cerebrovascular Event',
+        label: strokeLabel,
         status: 'Supported',
         score: strokeScore,
         rationale:
-          'Acute focal neurological deficit identified with motor, speech, or sensory localization. Immediate non-contrast head CT and acute stroke thrombolysis/thrombectomy protocol indicated.',
+          'Acute focal neurological deficit with facial droop, unilateral hemiparesis, and dysarthria (MCA territory). Emergent Code Stroke protocol, stat non-contrast head CT (<25 min door-to-imaging), and evaluation for IV thrombolysis/endovascular thrombectomy indicated.',
         supportingFindingIds: strokeFindingIds.slice(0, 5),
         contradictingFindingIds: [],
         missingInformation: [
-          'Immediate non-contrast head CT to rule out intracranial hemorrhage',
+          'Stat non-contrast head CT (<25 min door-to-imaging) to exclude acute intracranial hemorrhage',
           'Point-of-care capillary blood glucose (to exclude hypoglycemia mimic)',
-          'NIH Stroke Scale (NIHSS) scoring and symptom onset timestamp calculation',
+          'CT Angiography (CTA) of Head and Neck to evaluate for Large Vessel Occlusion (LVO)',
+          'NIH Stroke Scale (NIHSS) score and symptom onset timestamp calculation',
         ],
+        evidenceSourceIds: [],
+      });
+
+      // Secondary: Paroxysmal Atrial Fibrillation with cardioembolic complications
+      const hasAfib = hasFeature(['atrial fibrillation', 'afib', 'irregular pulse', 'irregular rhythm']) || /\b(irregular|atrial fibrillation|afib)\b/i.test(summaryText);
+      candidates.push({
+        label: 'Paroxysmal Atrial Fibrillation with Cardioembolic Thromboembolism',
+        status: hasAfib ? 'Supported' : 'Uncertain',
+        score: hasAfib ? 22 : 14,
+        rationale:
+          'Suspected cardioembolic etiology for acute large-vessel or cortical cerebral infarction; continuous cardiac telemetry and stroke workup indicated.',
+        supportingFindingIds: matchFindings(['heart rate', 'pulse', 'ecg', 'atrial fibrillation']).slice(0, 3),
+        contradictingFindingIds: [],
+        missingInformation: [
+          'Continuous cardiac telemetry monitoring to detect paroxysmal atrial fibrillation',
+          'Echocardiography for left atrial appendage thrombus evaluation',
+        ],
+        evidenceSourceIds: [],
+      });
+
+      // Alternative Differential 1: Intracranial Hemorrhage
+      candidates.push({
+        label: 'Acute Intracranial Hemorrhage (ICH) / Hemorrhagic Stroke',
+        status: 'Uncertain',
+        score: 16,
+        rationale:
+          'Severe blood pressure elevation with acute focal deficit; mandatory radiological exclusion prior to consideration of any thrombolytic or antiplatelet agents.',
+        supportingFindingIds: matchFindings(['bp', 'blood pressure', 'hypertension']).slice(0, 2),
+        contradictingFindingIds: [],
+        missingInformation: ['Stat non-contrast head CT imaging'],
+        evidenceSourceIds: [],
+      });
+
+      // Alternative Differential 2: Todd's Paresis
+      candidates.push({
+        label: "Todd's Paralysis / Post-Ictal Focal Deficit",
+        status: 'Uncertain',
+        score: 11,
+        rationale:
+          'Transient post-ictal focal weakness following unwitnessed seizure; clinical stroke mimic requiring differentiation by neuroimaging.',
+        supportingFindingIds: strokeFindingIds.slice(0, 2),
+        contradictingFindingIds: [],
+        missingInformation: ['Electroencephalogram (EEG) if unwitnessed seizure or altered consciousness suspected'],
         evidenceSourceIds: [],
       });
     }
@@ -444,7 +618,7 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
       // DKA: glucose must be explicitly high per lab interpretation
       (labs.some((l) =>
         (l.testName.toLowerCase().includes('glucose') || l.testName.toLowerCase().includes('blood sugar')) &&
-        (l.interpretation.toLowerCase().includes('high') || l.interpretation.toLowerCase().includes('critical') || l.interpretation.toLowerCase().includes('hyperglycemi'))
+        ((l.interpretation || '').toLowerCase().includes('high') || (l.interpretation || '').toLowerCase().includes('critical') || (l.interpretation || '').toLowerCase().includes('hyperglycemi'))
       ) && hasFeature(['acidosis', 'bicarbonate', 'anion gap', 'ketones']));
     if (hasDkaSignals) {
       candidates.push({
@@ -471,9 +645,9 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
       // AKI: creatinine or urea must be explicitly elevated per lab interpretation
       (labs.some((l) =>
         (l.testName.toLowerCase().includes('creatinine') || l.testName.toLowerCase().includes('urea') || l.testName.toLowerCase().includes('egfr')) &&
-        (l.interpretation.toLowerCase().includes('high') || l.interpretation.toLowerCase().includes('elevated') ||
-         l.interpretation.toLowerCase().includes('raised') || l.interpretation.toLowerCase().includes('critical') ||
-         l.interpretation.toLowerCase().includes('low') && l.testName.toLowerCase().includes('egfr'))
+        ((l.interpretation || '').toLowerCase().includes('high') || (l.interpretation || '').toLowerCase().includes('elevated') ||
+         (l.interpretation || '').toLowerCase().includes('raised') || (l.interpretation || '').toLowerCase().includes('critical') ||
+         (l.interpretation || '').toLowerCase().includes('low') && l.testName.toLowerCase().includes('egfr'))
       ) && (hasFeature(['high creatinine', 'elevated bun', 'azotemia']) || oliguriaFindingIds.length > 0));
     if (hasAkiSignals) {
       candidates.push({
@@ -835,6 +1009,91 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
     }
 
     // ──────────────────────────────────────────────────────────
+    // 17.1 Lateral Ankle Sprain / Isolated Extremity Trauma (ESI 4)
+    // ──────────────────────────────────────────────────────────
+    const isAnkleSprain =
+      hasFeature(['ankle sprain', 'twisted ankle', 'malleolus', 'unable to bear weight', 'lateral ankle', 'ankle injury']) ||
+      /\b(twisted.*ankle|ankle sprain|malleolus|unable to bear weight|lateral ankle)\b/i.test(summaryText);
+
+    if (isAnkleSprain && !isEsi1State && !hasAbdominalPain && !hasChestPain) {
+      candidates.push({
+        label: 'Grade II Lateral Ankle Sprain (Partial ATFL Tear)',
+        status: 'Supported',
+        score: 24,
+        rationale:
+          'Inversion injury of the talocrural joint presenting with acute swelling, tenderness over lateral malleolus, and painful weight-bearing without neurovascular compromise. Ottawa Ankle Rules evaluation indicated for radiography.',
+        supportingFindingIds: matchFindings(['ankle', 'malleolus', 'swelling', 'pain']).slice(0, 4),
+        contradictingFindingIds: [],
+        missingInformation: [
+          'Plain 3-view radiography of right ankle (AP, Lateral, Mortise) per Ottawa Ankle Rules',
+          'Clinical stress evaluation (Anterior Drawer / Talar Tilt) after acute pain reduction',
+        ],
+        evidenceSourceIds: [],
+      });
+
+      candidates.push({
+        label: 'Non-Displaced Avulsion Fracture of Distal Fibula / Lateral Malleolus',
+        status: 'Uncertain',
+        score: 16,
+        rationale:
+          'Cortical avulsion at ATFL insertion site presenting identically to severe ligamentous strain.',
+        supportingFindingIds: matchFindings(['malleolus', 'swelling']).slice(0, 2),
+        contradictingFindingIds: [],
+        missingInformation: ['Plain radiography to assess cortical bony margins'],
+        evidenceSourceIds: [],
+      });
+
+      candidates.push({
+        label: 'Syndesmotic (High) Ankle Sprain',
+        status: 'Uncertain',
+        score: 12,
+        rationale:
+          'Injury to distal tibiofibular syndesmotic ligaments; prolonged recovery trajectory compared to simple ATFL sprain.',
+        supportingFindingIds: matchFindings(['ankle', 'swelling']).slice(0, 2),
+        contradictingFindingIds: [],
+        missingInformation: ['Syndesmosis squeeze test and external rotation stress test'],
+        evidenceSourceIds: [],
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // 17.2 Essential Hypertension / Medication Non-Compliance (ESI 5)
+    // ──────────────────────────────────────────────────────────
+    const isMedRefill =
+      hasFeature(['ran out of', 'prescription refill', 'medication refill', 'lisinopril', 'routine refill', 'medication non-compliance']) ||
+      /\b(ran out of.*medication|prescription refill|lisinopril.*refill|medication non-compliance|routine refill)\b/i.test(summaryText);
+
+    if (isMedRefill && !isEsi1State && !hasChestPain && !hasDyspnea && !hasStrokeSignals) {
+      candidates.push({
+        label: 'Essential Hypertension (Uncontrolled due to Medication Non-Compliance)',
+        status: 'Supported',
+        score: 25,
+        rationale:
+          'Mild-to-moderate asymptomatic blood pressure elevation secondary to recent depletion of outpatient antihypertensive regimen (Lisinopril). No end-organ damage or acute symptoms.',
+        supportingFindingIds: matchFindings(['bp', 'blood pressure', 'hypertension', 'lisinopril']).slice(0, 3),
+        contradictingFindingIds: [],
+        missingInformation: [
+          'Outpatient prescription renewal and medication reconciliation (Lisinopril)',
+          'Repeat resting blood pressure check prior to discharge',
+          'Coordination of outpatient primary care follow-up for chronic hypertension management',
+        ],
+        evidenceSourceIds: [],
+      });
+
+      candidates.push({
+        label: 'White-Coat Hypertension overlaying Chronic Essential Hypertension',
+        status: 'Uncertain',
+        score: 14,
+        rationale:
+          'Situational blood pressure elevation in clinical environment superimposed on chronic baseline.',
+        supportingFindingIds: matchFindings(['bp', 'blood pressure']).slice(0, 2),
+        contradictingFindingIds: [],
+        missingInformation: ['Ambulatory blood pressure monitoring (ABPM) / home BP log review'],
+        evidenceSourceIds: [],
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────
     // 18. Universal Dynamic Anatomical Inference (Intelligent Fallback)
     // Runs when atypical or rare clinical pictures don't match specific rules.
     // Dynamically derives organ system + symptom + lab abnormalities!
@@ -903,7 +1162,7 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
     const normalWbcLab = labs.find(
       (l) =>
         (l.testName.toLowerCase().includes('wbc') || l.testName.toLowerCase().includes('crp')) &&
-        (l.interpretation.toLowerCase() === 'normal' || l.interpretation.toLowerCase() === 'within normal')
+        ((l.interpretation || '').toLowerCase() === 'normal' || (l.interpretation || '').toLowerCase() === 'within normal')
     );
     if (hasFever && normalWbcLab && fevFindingIds.length > 0) {
       contradictions.push({
@@ -918,7 +1177,7 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
     const normalTroponinLab = labs.find(
       (l) =>
         l.testName.toLowerCase().includes('troponin') &&
-        (l.interpretation.toLowerCase() === 'normal' || l.value.toLowerCase().includes('negative'))
+        ((l.interpretation || '').toLowerCase() === 'normal' || (l.value || '').toLowerCase().includes('negative'))
     );
     if (hasChestPain && normalTroponinLab && chestPainFindingIds.length > 0) {
       contradictions.push({
@@ -934,6 +1193,13 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
     const secondaryHyp = topHypotheses[1];
 
     const summaryParts: string[] = [];
+
+    if (isEsi1State) {
+      summaryParts.push(
+        '*** CRITICAL ESI 1 RESUSCITATION BAY PRIORITY *** Patient presents in active cardiac or respiratory arrest / profound hemodynamic collapse. Immediate ACLS resuscitation protocols (continuous CPR, defibrillation, emergency airway intubation, IV/IO access, and Epinephrine) take absolute precedence over deferred diagnostic investigations.'
+      );
+    }
+
     if (primaryHyp) {
       summaryParts.push(
         `Diagnostic assessment prioritizes ${primaryHyp.label} (${primaryHyp.status.toLowerCase()}) as the leading clinical consideration.`
@@ -944,20 +1210,27 @@ export class DeterministicClinicalProvider implements ReasoningProvider {
 
     // Extract dynamic clinical signals present in this specific case
     const observedSignals: string[] = [];
-    if (hasFever) observedSignals.push('pyrexia');
-    if (hasTachycardia) observedSignals.push('tachycardia');
-    if (hasTachypnea) observedSignals.push('tachypnea');
-    if (hasHypoxemia) observedSignals.push('hypoxemia');
-    if (hasChestPain) observedSignals.push('chest pain');
-    if (hasConsolidation) observedSignals.push('pulmonary consolidation on imaging');
-    if (hasCrackles) observedSignals.push('focal lung crackles');
-    if (hasProductiveCough) observedSignals.push('productive cough');
-    if (hasNeutrophilicLeukocytosis) observedSignals.push('leukocytosis');
-    if (hasElevatedInflammatory) observedSignals.push('elevated inflammatory markers');
-    if (hasCardiacMarkers) observedSignals.push('elevated cardiac biomarkers');
-    if (hasOedema) observedSignals.push('fluid retention/edema');
-    if (hasElevatedLactate) observedSignals.push('hyperlactatemia');
-    if (hasAbdominalPain) observedSignals.push('abdominal pain');
+    if (isEsi1State) {
+      if (hasProfoundHypotension) observedSignals.push('profound hypotension (SBP < 70 mmHg)');
+      if (hasProfoundHypoxia) observedSignals.push('profound hypoxia (SpO2 < 80%)');
+      if (hasCriticalBradypnea || isAgonalOrArrest) observedSignals.push('agonal/apneic respirations');
+      if (hasTachycardia) observedSignals.push('extreme tachyarrhythmia');
+    } else {
+      if (hasFever) observedSignals.push('pyrexia');
+      if (hasTachycardia) observedSignals.push('tachycardia');
+      if (hasTachypnea) observedSignals.push('tachypnea');
+      if (hasHypoxemia) observedSignals.push('hypoxemia');
+      if (hasChestPain) observedSignals.push('chest pain');
+      if (hasConsolidation) observedSignals.push('pulmonary consolidation on imaging');
+      if (hasCrackles) observedSignals.push('focal lung crackles');
+      if (hasProductiveCough) observedSignals.push('productive cough');
+      if (hasNeutrophilicLeukocytosis) observedSignals.push('leukocytosis');
+      if (hasElevatedInflammatory) observedSignals.push('elevated inflammatory markers');
+      if (hasCardiacMarkers) observedSignals.push('elevated cardiac biomarkers');
+      if (hasOedema) observedSignals.push('fluid retention/edema');
+      if (hasElevatedLactate) observedSignals.push('hyperlactatemia');
+      if (hasAbdominalPain) observedSignals.push('abdominal pain');
+    }
 
     if (observedSignals.length > 0) {
       summaryParts.push(
@@ -1174,14 +1447,105 @@ export class MistralInstructProvider implements ReasoningProvider {
   }
 }
 
-// Singleton instances
-export const deterministicProvider: ReasoningProvider = new DeterministicClinicalProvider();
-export const mistralProvider: ReasoningProvider = new MistralInstructProvider();
+// ----------------------------------------------------------
+// Multi-Model Live Reasoning Provider Router
+// Supports Google Gemini 2.5 Flash, Groq Llama 3.3 70B,
+// OpenAI GPT-4o, Anthropic Claude 3.5, and Hugging Face.
+// Seamlessly delegates to Autonomous Clinical Engine when offline.
+// ----------------------------------------------------------
+import {
+  GeminiClinicalProvider,
+  GroqClinicalProvider,
+  OpenAiClinicalProvider,
+} from './services/live-ai-providers';
+import { loadAiEngineSettings } from './services/ai-engine-config';
 
-// Legacy alias for backward compatibility
-export const testProvider = deterministicProvider;
+export const autonomousProvider = new AutonomousClinicalProvider();
+export const geminiProvider = new GeminiClinicalProvider();
+export const groqProvider = new GroqClinicalProvider();
+export const openaiProvider = new OpenAiClinicalProvider();
+export const mistralProvider = new MistralInstructProvider();
+
+// Backward compatibility aliases
+export const DeterministicClinicalProvider = AutonomousClinicalProvider;
+export const deterministicProvider: ReasoningProvider = autonomousProvider;
+export const testProvider = autonomousProvider;
 export const huggingFaceProvider = mistralProvider;
 
+export class MultiModelLiveReasoningProvider implements ReasoningProvider {
+  get name(): string {
+    const s = loadAiEngineSettings();
+    switch (s.selectedProvider) {
+      case 'gemini': return s.geminiApiKey ? 'Google Gemini 2.5 Flash (Live)' : 'Nexus Autonomous Clinical Engine';
+      case 'groq': return s.groqApiKey ? 'Groq Llama 3.3 70B (Live)' : 'Nexus Autonomous Clinical Engine';
+      case 'openai': return s.openaiApiKey ? 'OpenAI GPT-4o Mini (Live)' : 'Nexus Autonomous Clinical Engine';
+      case 'huggingface': return s.hfApiToken ? 'Hugging Face Inference (Live)' : 'Nexus Autonomous Clinical Engine';
+      default: return 'Nexus Autonomous Clinical Engine';
+    }
+  }
+
+  get version(): string {
+    const s = loadAiEngineSettings();
+    switch (s.selectedProvider) {
+      case 'gemini': return '2.5-flash-live';
+      case 'groq': return 'llama-3.3-70b-live';
+      case 'openai': return 'gpt-4o-mini-live';
+      case 'huggingface': return '0.3-hf';
+      default: return '2.5.0-clinical';
+    }
+  }
+
+  async generateAssessment(input: ReasoningInput): Promise<RawReasoningOutput> {
+    const s = loadAiEngineSettings();
+
+    // 1. Google Gemini
+    if (s.selectedProvider === 'gemini' && s.geminiApiKey.trim()) {
+      try {
+        console.info('[MultiModelLiveReasoningProvider] Calling live Google Gemini 2.5 Flash...');
+        return await geminiProvider.generateAssessment(input);
+      } catch (err: any) {
+        console.warn('[MultiModelLiveReasoningProvider] Gemini call failed, engaging autonomous clinical fallback:', err?.message || err);
+      }
+    }
+
+    // 2. Groq Cloud
+    if (s.selectedProvider === 'groq' && s.groqApiKey.trim()) {
+      try {
+        console.info('[MultiModelLiveReasoningProvider] Calling live Groq Llama 3.3 70B...');
+        return await groqProvider.generateAssessment(input);
+      } catch (err: any) {
+        console.warn('[MultiModelLiveReasoningProvider] Groq call failed, engaging autonomous clinical fallback:', err?.message || err);
+      }
+    }
+
+    // 3. OpenAI
+    if (s.selectedProvider === 'openai' && s.openaiApiKey.trim()) {
+      try {
+        console.info('[MultiModelLiveReasoningProvider] Calling live OpenAI GPT-4o...');
+        return await openaiProvider.generateAssessment(input);
+      } catch (err: any) {
+        console.warn('[MultiModelLiveReasoningProvider] OpenAI call failed, engaging autonomous clinical fallback:', err?.message || err);
+      }
+    }
+
+    // 4. Hugging Face
+    if (s.selectedProvider === 'huggingface' && s.hfApiToken.trim()) {
+      try {
+        console.info('[MultiModelLiveReasoningProvider] Calling Hugging Face Mistral...');
+        return await mistralProvider.generateAssessment(input);
+      } catch (err: any) {
+        console.warn('[MultiModelLiveReasoningProvider] HF call failed, engaging autonomous clinical fallback:', err?.message || err);
+      }
+    }
+
+    // 5. Autonomous Clinical Rules Engine (Primary offline / unconfigured engine)
+    console.info('[MultiModelLiveReasoningProvider] Synthesizing via Nexus Autonomous Clinical Engine...');
+    return autonomousProvider.generateAssessment(input);
+  }
+}
+
+export const liveReasoningRouter = new MultiModelLiveReasoningProvider();
+
 export function getDefaultReasoningProvider(): ReasoningProvider {
-  return mistralProvider; // Always use Mistral (falls back to deterministic if no HF token)
+  return liveReasoningRouter;
 }

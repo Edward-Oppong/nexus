@@ -1,7 +1,7 @@
 # Nexus Clinical Workstation
 
 > **An AI-augmented clinical reasoning workstation for structured diagnostic decision support.**
-> **Version 1.5.0 (Live Mistral-7B Reasoning, Contextual Rail, Europe PMC & Clinical Safety Architecture)**
+> **Version 1.7.0 (Production Live Multi-Model AI Engine, Dynamic ESI Triage & PDF Export)**
 
 Nexus is a structured clinical reasoning environment — not an AI chatbot, not a diagnosis engine. It supports clinicians in gathering, organising, and evaluating clinical evidence, while ensuring all AI-generated content is explicitly flagged and requires human review before any clinical decision is made.
 
@@ -266,6 +266,21 @@ In clinical workflows, cases must never be erased from the database:
 - **Audit Logged**: An audit entry is immediately inserted into `public.audit_events` (`action_type: 'CASE_DELETED'`), recording the timestamp, case ID, and authenticated user identity.
 - **Permission & RLS**: Case deletion/closure requires the `case.close` permission and is guarded at the database level by RLS policy `case_close_permission` (Migration 032).
 
+### Adaptive Case Creation Modes (`CaseIntakeWorkspace.tsx`)
+
+The clinical intake wizard adapts data entry pace and field requirements across 3 clinical care contexts:
+
+| Mode | Context & Urgency | Steps | Key Capabilities |
+| :--- | :--- | :--- | :--- |
+| **`TRIAGE`** | **Emergency / Fast-Track** | **3 Steps**<br>1. Patient ID<br>2. Vitals & Acuity<br>3. Escalate & Review | Rapid entry for high-acuity arrivals. Optional family name, **1-click "+ Fast-Fill Unidentified Patient (Trauma Resus)"**, Emergency Severity Index (**ESI 5-level**) scoring, and **"Quick-Save & Escalate"** directly to the ED / trauma board. |
+| **`OPD`** | **Routine Outpatient** | **5 Steps**<br>1. Patient Identity<br>2. Presentation<br>3. Vitals & Labs<br>4. Meds & Allergies<br>5. Review & Activate | Balanced clinic consultation. Structured chief complaint, onset, tab-traversable vitals grid, and active prescription reconciliation. |
+| **`INPATIENT`** | **Inpatient Admission** | **6 Steps**<br>1. Patient Identity<br>2. Documents & OCR<br>3. Presentation<br>4. Observations & Labs<br>5. Meds & Allergies<br>6. Review & Activate | Comprehensive admission charting. Complete PDF document upload with browser OCR, AI document reconstruction preview, multi-panel lab entry, and full allergy reconciliation. |
+
+**Key Ergonomics:**
+- **Persistent Header Segmented Switcher**: Clinicians can toggle `[Triage | OPD | Inpatient]` at any point without unmounting the form or losing entered draft data.
+- **Dynamic Age & Sex Calibration**: Entering a Date of Birth or Sex immediately displays an active calibration badge and adjusts normative intervals in real-time.
+- **De-biased Department Routing**: Automatically routes cases to standardized clinical specialties (`Emergency Medicine`, `Acute Internal Medicine`, `Cardiology`, `Pulmonology`, etc.) rather than hardcoded fictional demo labels.
+
 ---
 
 ## 6. Intelligence Layer
@@ -433,6 +448,17 @@ In compliance with EU MDR 2017/745 and FDA Clinical Decision Support (CDS) guida
 - **Dual-Engine Resilience:** If serverless LLM calls (`Mistral-7B-Instruct-v0.3`) fail or time out, the system automatically falls back to `DeterministicClinicalProvider` (covering 18 acute presentations).
 - **Live Peer-Reviewed Literature (Europe PMC / PubMed):** Live retrieval fetches recent clinical guidelines to prevent missing rare conditions or newly published protocols.
 - **Pre-Flight Data Quality Checks:** Low chart completeness triggers `INSUFFICIENT_DATA` rather than guessing on incomplete data.
+
+### De-Biased Deterministic Safety & Clinical Knowledge Engine
+
+Nexus separates deterministic clinical checks from generative reasoning to ensure unbiased, transparent clinical guardrails:
+
+- **2021 CKD-EPI (Without Race) Formula**: Implements the race-free standard (Inker et al., NEJM 2021) for quantitative renal clearance calculations, removing racial multipliers that historically delayed kidney disease diagnosis and transplant qualification.
+- **Demographic Normative Intervals**: Dynamically stratifies normal and critical ranges by age (Infant, Child, Adult, Geriatric) for Heart Rate, Respiratory Rate, and Blood Pressure, preventing pediatric false tachycardia alarms. Stratifies Hemoglobin and Creatinine by biological sex.
+- **Extensible Allergy Matrix (`RULE: MED-ALLERGY-CROSS`)**: Evaluates Beta-lactam / Penicillin vs. 1st-generation Cephalosporin R1 side-chain cross-reactivity, Sulfonamides, and NSAID/Aspirin AERD risks.
+- **Quantitative Renal Safety (`RULE: RENAL-CLEARANCE-SAFETY`)**: Evaluates real-time eGFR (<30 and <50 mL/min/1.73m²) and flags renally-cleared medications (Aminoglycosides, Vancomycin, Metformin, DOACs, Enoxaparin).
+- **Physiological Instability Detection (`RULE: HEMODYNAMIC-INSTABILITY`)**: Automatically flags Shock Index (>1.0), severe hypotension (SBP < 90 mmHg), hypoxia (SpO2 < 90%), or hyperpyrexia (T >= 39.5°C).
+- **Removal of Single-Disease Bias**: Discarded disease-specific rule constraints (e.g. Endocarditis-only checks) in favor of institutional, generalizable safety logic.
 
 ## 8. Interoperability — FHIR R4
 
@@ -646,6 +672,15 @@ Duplicate imports are safely skipped.
 - [x] Live biomedical literature retrieval via Europe PMC / PubMed REST API integration (`pubmed-service.ts`)
 - [x] Comprehensive False Positive & False Negative defense-in-depth safety architecture documented and enforced across schemas and deterministic rule engines
 - [x] Full build verification: 0 TypeScript errors (`npx tsc --noEmit`)
+
+### Phase 17 — De-Biased Clinical Safety & 3-Mode Adaptive Intake (v1.6.0)
+- [x] 3-Mode Adaptive Clinical Intake Wizard (`CaseIntakeWorkspace.tsx`): Triage (3-step rapid registration with ESI 5-level scoring, 1-click trauma fast-fill), OPD (5-step routine outpatient), and Inpatient (6-step comprehensive charting with PDF OCR ingestion)
+- [x] Lossless Mode Switching: Persistent header segmented switcher enabling immediate care context transitions without clearing entered patient or observation draft state
+- [x] Non-Biased 2021 CKD-EPI Equation: Adopted the race-free standard (Inker et al., NEJM 2021) for quantitative renal clearance calculations, removing documented disparities in nephrology care
+- [x] Dynamic Demographic-Aware Norms: Age-stratified normative intervals for vitals (Infant, Child, Adult) and sex-stratified normal bands for Hemoglobin and Creatinine, eliminating pediatric false tachycardia alerts
+- [x] De-Biased Deterministic Safety Engine (`deterministic-safety.ts`): Replaced single-disease rules with multi-class allergy cross-reactivity (Beta-lactam side chains, Sulfonamides, NSAID/AERD), quantitative renal elimination safety (<30 and <50 mL/min/1.73m²), and shock index decompensation alarms
+- [x] Standardized Specialty Routing: Replaced hardcoded demo hospital labels with standard institutional clinical specialties
+- [x] Full production build verification: 0 TypeScript errors (`npm run build`)
 
 ---
 

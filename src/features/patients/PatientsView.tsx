@@ -234,7 +234,7 @@ export const PatientsView: React.FC = () => {
                         {p.externalPatientId || p.id.substring(0, 8)}
                       </td>
                       <td style={{ padding: '12px 16px' }}>
-                        <div style={{ fontWeight: 700, color: '#0F172A' }}>{p.givenName} {p.familyName}</div>
+                        <div style={{ fontWeight: 700, color: '#0F172A' }}>{[p.givenName, p.familyName].filter(Boolean).join(' ')}</div>
                         <div style={{ fontSize: '11px', color: '#64748B' }}>Longitudinal Person Record</div>
                       </td>
                       <td style={{ padding: '12px 16px', fontSize: '13px', color: '#334155' }}>

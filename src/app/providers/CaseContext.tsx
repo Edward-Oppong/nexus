@@ -149,6 +149,27 @@ interface CaseContextType {
   transitionCaseStatus: (targetStatus: ClinicalCaseStatus) => TransitionCheckResult;
 }
 
+const LOCAL_CASES_KEY = 'nexus_saved_cases_v2';
+
+function loadPersistedCases(): Record<string, FullSyntheticCase> {
+  try {
+    const raw = localStorage.getItem(LOCAL_CASES_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function savePersistedCase(fullCase: FullSyntheticCase): void {
+  try {
+    const store = loadPersistedCases();
+    store[fullCase.overview.id] = fullCase;
+    localStorage.setItem(LOCAL_CASES_KEY, JSON.stringify(store));
+  } catch (e) {
+    console.warn('Failed to save case to localStorage:', e);
+  }
+}
+
 const CaseContext = createContext<CaseContextType | undefined>(undefined);
 
 export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -221,6 +242,35 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Org ID is derived from the authenticated user's active organization.
   // Falls back to the demo org ID until auth has loaded.
   const activeOrganizationId = activeOrganization?.id ?? DEMO_ORGANIZATIONS[0].id;
+
+  // Hydrate cases list from localStorage (persisted cases)
+  React.useEffect(() => {
+    const persisted = loadPersistedCases();
+    const persistedCases = Object.values(persisted);
+    if (persistedCases.length > 0) {
+      persistedCases.forEach((c) => {
+        MOCK_FULL_CASES_REGISTRY[c.overview.id] = c;
+      });
+
+      const deletedIds: string[] = (() => {
+        try {
+          return JSON.parse(localStorage.getItem('nexus_deleted_cases') || '[]');
+        } catch {
+          return [];
+        }
+      })();
+
+      const validOverviews = persistedCases
+        .filter((c) => !deletedIds.includes(c.overview.id))
+        .map((c) => c.overview);
+
+      setCasesList((prev) => {
+        const existingIds = new Set(prev.map((p) => p.id));
+        const toAdd = validOverviews.filter((v) => !existingIds.has(v.id));
+        return [...toAdd, ...prev];
+      });
+    }
+  }, []);
 
   React.useEffect(() => {
     if (isSupabaseConfigured && profile) {
@@ -453,21 +503,22 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setActiveCaseSubTab(targetTab ?? 'summary');
 
     let resolvedCaseId = caseId;
+    let fullCase: FullSyntheticCase | null = null;
     try {
-      const fullCase = await getCaseDetail(caseId);
-      if (fullCase) {
-        setActiveCase(fullCase);
-        resolvedCaseId = fullCase.overview.id;
-        setNexusAssessment(fullCase.nexusAssessment ?? null);
-      }
+      fullCase = await getCaseDetail(caseId);
     } catch (err) {
-      console.warn('[openCaseById] Fallback to registry for case:', caseId, err);
-      const fullCase = MOCK_FULL_CASES_REGISTRY[caseId];
-      if (fullCase) {
-        setActiveCase(fullCase);
-        resolvedCaseId = fullCase.overview.id;
-        setNexusAssessment(fullCase.nexusAssessment ?? null);
-      }
+      console.warn('[openCaseById] Supabase getCaseDetail notice:', err);
+    }
+
+    if (!fullCase) {
+      fullCase = MOCK_FULL_CASES_REGISTRY[caseId] || loadPersistedCases()[caseId] || null;
+    }
+
+    if (fullCase) {
+      setActiveCase(fullCase);
+      resolvedCaseId = fullCase.overview.id;
+      setNexusAssessment(fullCase.nexusAssessment ?? null);
+      MOCK_FULL_CASES_REGISTRY[resolvedCaseId] = fullCase;
     }
 
     // Hydrate workflow records (decisions, safety concerns, tasks) from Supabase if configured
@@ -586,13 +637,14 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Ignore
     }
 
-    // Persist the new case into context state
+    // Persist the new case into context state, local storage, and memory registry
     setActiveCase(newFullCase);
+    MOCK_FULL_CASES_REGISTRY[result.caseId] = newFullCase;
+    savePersistedCase(newFullCase);
+
     setCasesList((prev) => [
-      {
-        ...newFullCase.overview,
-      },
-      ...prev,
+      newFullCase.overview,
+      ...prev.filter((c) => c.id !== newFullCase.overview.id),
     ]);
 
     // If Nexus analysis was requested immediately, run it
@@ -607,10 +659,23 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         if (analysisResult.assessment) {
           setNexusAssessment(analysisResult.assessment);
-          setActiveCase((prev) => ({
-            ...prev,
-            nexusAssessment: analysisResult.assessment ?? undefined,
-          }));
+          const analyzedCase: FullSyntheticCase = {
+            ...newFullCase,
+            nexusAssessment: analysisResult.assessment,
+            overview: {
+              ...newFullCase.overview,
+              state: 'REVIEW_REQUIRED',
+              lastUpdate: 'Just now',
+              hypothesesCount: newFullCase.hypotheses.length,
+            },
+          };
+          setActiveCase(analyzedCase);
+          MOCK_FULL_CASES_REGISTRY[result.caseId] = analyzedCase;
+          savePersistedCase(analyzedCase);
+          setCasesList((prev) => [
+            analyzedCase.overview,
+            ...prev.filter((c) => c.id !== analyzedCase.overview.id),
+          ]);
         }
       } finally {
         setIsRunningAnalysis(false);
@@ -635,6 +700,16 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Remove all tasks associated with this deleted case
       setTasks((prev) => prev.filter((t) => t.caseId !== caseId));
+
+      // Remove from persisted storage and memory registry
+      try {
+        const persisted = loadPersistedCases();
+        if (persisted[caseId]) {
+          delete persisted[caseId];
+          localStorage.setItem(LOCAL_CASES_KEY, JSON.stringify(persisted));
+        }
+        delete MOCK_FULL_CASES_REGISTRY[caseId];
+      } catch {}
 
       // Remove any review queue, safety, and decision items for this case
       setReviewQueue((prev) => prev.filter((q) => q.caseId !== caseId));
@@ -1043,6 +1118,12 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
+      const updatedOverview = {
+        ...activeCase.overview,
+        state: 'REVIEW_REQUIRED' as const,
+        lastUpdate: 'Just now',
+      };
+
       setActiveCase((prev) => {
         const auditEvent: TimelineEvent = {
           id: `evt-${Date.now()}`,
@@ -1052,13 +1133,8 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
           eventType: 'GENERATED',
           title: 'Nexus Clinical Assessment Generated',
           description: `Analysis completed with model ${newAssessment.modelName}. Safety status: ${newAssessment.safetyBoundary}. Adjudication required before clinical reliance.`,
-          isNexusSimulated: true,
-        };
-
-        const updatedOverview = {
-          ...prev.overview,
-          state: 'REVIEW_REQUIRED' as const,
-          lastUpdate: 'Just now',
+          isNexusSimulated: false,
+          modelIdentifier: newAssessment.modelName,
         };
 
         // Build candidate hypotheses from nexus findings so ReasoningTab shows them immediately
@@ -1087,14 +1163,22 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Keep clinician-entered/adjudicated manual hypotheses, replace prior AI-generated hypotheses with fresh analysis
         const manualHypotheses = prev.hypotheses.filter((h) => !h.id.startsWith('nf-'));
 
-        return {
+        const updatedCase: FullSyntheticCase = {
           ...prev,
           overview: updatedOverview,
           nexusAssessment: newAssessment,
           hypotheses: [...analysisHypotheses, ...manualHypotheses],
           timeline: [auditEvent, ...prev.timeline],
         };
+        savePersistedCase(updatedCase);
+        MOCK_FULL_CASES_REGISTRY[updatedCase.overview.id] = updatedCase;
+        return updatedCase;
       });
+
+      setCasesList((prevList) => [
+        updatedOverview,
+        ...prevList.filter((c) => c.id !== updatedOverview.id),
+      ]);
     } finally {
       setIsRunningAnalysis(false);
       setAnalysisStage(null);

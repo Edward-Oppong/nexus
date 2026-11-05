@@ -20,11 +20,13 @@ import {
   TrendingUp,
   TrendingDown,
   Network,
+  Printer,
 } from 'lucide-react';
 import { CandidateHypothesis } from '../../../domain/hypothesis';
 import { NexusAssessmentPanel } from '../../../components/intelligence/NexusAssessmentPanel';
 import { computeHypothesisExplainability } from '../../../lib/intelligence/governance/explainability-engine';
 import { KnowledgeGraphDrawer } from '../../../components/clinical/KnowledgeGraphDrawer';
+import { exportCaseToPdf } from '../../cases/services/pdf-export-service';
 
 export const ReasoningTab: React.FC = () => {
   const { activeCase, setActiveCaseSubTab, requestInvestigation, setActiveView } = useCase();
@@ -63,7 +65,7 @@ export const ReasoningTab: React.FC = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px 10px', marginBottom: '4px' }}>
             <span className="badge badge-nexus" style={{ whiteSpace: 'nowrap' }}>
-              ⬡ Nexus Reasoning Engine v2.1 (Simulated)
+              ⬡ Nexus Clinical Intelligence Engine v2.5 (Production Live)
             </span>
             <span style={{ fontSize: '11px', color: '#64748B' }}>
               Multi-hypothesis differential decomposition & human review
@@ -74,13 +76,32 @@ export const ReasoningTab: React.FC = () => {
           </h2>
         </div>
 
-        <button
-          onClick={() => setActiveCaseSubTab('review')}
-          className="btn btn-sm btn-primary"
-          style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
-        >
-          Begin Clinician Review <ArrowRight size={13} />
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <button
+            onClick={() => exportCaseToPdf({ fullCase: activeCase, assessment: activeCase.nexusAssessment })}
+            className="btn btn-sm"
+            style={{
+              border: '1px solid #CBD5E1',
+              background: '#FFFFFF',
+              color: '#0F766E',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontWeight: 600,
+            }}
+            title="Export complete case inputs and AI diagnostic assessment to PDF"
+          >
+            <Printer size={13} /> Export PDF Report
+          </button>
+
+          <button
+            onClick={() => setActiveCaseSubTab('review')}
+            className="btn btn-sm btn-primary"
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            Begin Clinician Review <ArrowRight size={13} />
+          </button>
+        </div>
       </div>
 
       {/* Phase 6F: Nexus Assessment & Adjudication Panel */}

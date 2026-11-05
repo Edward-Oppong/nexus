@@ -13,7 +13,7 @@ export interface CreatePatientParams {
   organizationId: string;
   externalPatientId?: string;
   givenName: string;
-  familyName: string;
+  familyName?: string;
   dateOfBirth?: string;
   sex?: 'MALE' | 'FEMALE' | 'OTHER' | 'UNKNOWN';
   phone?: string;
@@ -27,10 +27,10 @@ export interface CreatePatientResult {
 
 export async function createPatient(params: CreatePatientParams): Promise<CreatePatientResult> {
   const cleanGiven = params.givenName.trim();
-  const cleanFamily = params.familyName.trim();
+  const cleanFamily = (params.familyName || '').trim();
 
-  if (!cleanGiven || !cleanFamily) {
-    return { patient: null, error: 'Patient given and family names are required.' };
+  if (!cleanGiven) {
+    return { patient: null, error: 'Patient given name or identifier is required.' };
   }
 
   // 1. In-memory check for demo environment
@@ -38,7 +38,7 @@ export async function createPatient(params: CreatePatientParams): Promise<Create
     const existing = SYNTHETIC_DEMO_PATIENTS.find(
       (p) =>
         p.givenName.toLowerCase() === cleanGiven.toLowerCase() &&
-        p.familyName.toLowerCase() === cleanFamily.toLowerCase() &&
+        (!cleanFamily || p.familyName.toLowerCase() === cleanFamily.toLowerCase()) &&
         (!params.dateOfBirth || p.dateOfBirth === params.dateOfBirth)
     );
 

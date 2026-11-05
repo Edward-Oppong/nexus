@@ -137,6 +137,15 @@ export async function runCaseAnalysis(
       medications: medProxy,
       allergies: allergyProxy,
       observations: obsProxy,
+      patientDemographics: {
+        ageYears: fullCase.overview?.patient?.age,
+        administrativeSex:
+          fullCase.overview?.patient?.gender === 'Female'
+            ? 'FEMALE'
+            : fullCase.overview?.patient?.gender === 'Male'
+            ? 'MALE'
+            : 'OTHER',
+      },
     });
 
     // ── Phase 4: Generative reasoning provider call ─────────────────────
@@ -275,6 +284,11 @@ export function runDraftSafetyPreview(draft: CaseIntakeDraft): {
     medications: draft.medications,
     allergies: draft.allergies,
     observations: draft.observations,
+    patientDemographics: {
+      dateOfBirth: draft.patient.dateOfBirth,
+      administrativeSex: draft.patient.administrativeSex,
+    },
+    careContext: draft.encounter.encounterClass === 'EMER' ? 'TRIAGE' : draft.encounter.encounterClass === 'IMP' ? 'INPATIENT' : 'OPD',
   });
 
   const criteriaEval = evaluateOptimalCriteria({

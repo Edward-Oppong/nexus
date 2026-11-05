@@ -28,7 +28,7 @@ export interface TimelineEvent {
   eventType: TimelineEventType;
   title: string;
   description: string;
-  modelIdentifier?: string; // e.g. "Nexus Reasoning v2.1 (Simulated)"
+  modelIdentifier?: string; // e.g. "Google Gemini 2.5 Flash", "Nexus Autonomous Clinical Engine"
   isNexusSimulated: boolean;
   metadata?: Record<string, string>;
 }

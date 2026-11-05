@@ -112,6 +112,27 @@ export function buildClinicalReasoningPrompt(input: ClinicalPromptInput): string
   const labIds = input.investigationResults.map((i) => i.id);
   const allIds = [...findingIds, ...labIds];
 
+  const allText = `${input.clinicalSummary} ${verifiedList} ${labsList}`.toLowerCase();
+  const isEsi1Acuity =
+    /\b(agonal|apneic|sudden collapse|unresponsive|cardiac arrest|asystole|ventricular fibrillation)\b/i.test(allText) ||
+    /\b(?:spo2|oxygen saturation)[:\s]*(?:[5-7]\d)%?\b/i.test(allText) ||
+    /\b(?:bp|blood pressure)[:\s]*(?:[3-6]\d)\s*\/\s*\d{2,3}\b/i.test(allText) ||
+    input.verifiedFindings.some((f) => {
+      const match = (f.value || '').match(/(\d{2,3})\s*(?:\/|\s)\s*(\d{2,3})/);
+      return match && parseInt(match[1], 10) < 70;
+    });
+
+  const esi1Directive = isEsi1Acuity
+    ? `
+*** HIGH-ACUITY RESUSCITATION BAY DIRECTIVE (ESI LEVEL 1) ***
+CRITICAL: The patient presents with catastrophic physiological collapse (e.g. SBP < 70, SpO2 < 80%, agonal respirations, collapse/unresponsive).
+1. SHIFT hypothesis weights immediately toward Ventricular Fibrillation (VF) / Sudden Cardiac Arrest, STEMI with Cardiogenic Shock, Severe Anaphylactic Shock, or Tension Pneumothorax.
+2. BYPASS standard deferred diagnostic imaging (e.g., High-Resolution Chest Radiography, outpatient CT, sputum cultures). An ESI 1 patient CANNOT leave the resuscitation bay.
+3. INJECT immediate resuscitation actions (ACLS/PALS protocols, immediate airway intubation/BVM, CPR/defibrillation, IV/IO access with Epinephrine, bedside POCUS) into missingInformation.
+4. DO NOT diagnose simple Community-Acquired Pneumonia or attribute findings to fever when body temperature is stable and hemodynamics indicate active arrest/shock.
+`
+    : '';
+
   return `<s>[INST]
 You are the Nexus Clinical Diagnostic Engine — a precision differential diagnosis co-pilot for acute hospital physicians. Your task is to analyze the clinical case below and return a structured differential diagnosis assessment.
 
@@ -130,7 +151,7 @@ ${labsList}
 
 INFORMATION GAPS:
 ${gapsList}
-
+${esi1Directive}
 === STRICT OUTPUT RULES ===
 1. GROUNDING: Every hypothesis MUST cite at least one ID from this list: ${JSON.stringify(allIds)}. Only use IDs that actually appear in the case data above. NEVER invent IDs.
 2. NO PROBABILITIES: Do not use percentages or numeric odds. Use qualitative terms: "Supported", "Uncertain", or "Contradicted".

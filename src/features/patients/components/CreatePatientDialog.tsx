@@ -38,8 +38,8 @@ export const CreatePatientDialog: React.FC<CreatePatientDialogProps> = ({
     setErrorMessage(null);
     setDuplicateWarning(null);
 
-    if (!givenName.trim() || !familyName.trim()) {
-      setErrorMessage('Patient given name and family name are required.');
+    if (!givenName.trim()) {
+      setErrorMessage('Patient given name or identifier is required.');
       return;
     }
 
@@ -170,13 +170,13 @@ export const CreatePatientDialog: React.FC<CreatePatientDialogProps> = ({
             </div>
             <div>
               <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#475569', marginBottom: '4px' }}>
-                Family Name *
+                Family Name
               </label>
               <input
                 type="text"
-                required
                 value={familyName}
                 onChange={(e) => setFamilyName(e.target.value)}
+                placeholder="(optional)"
                 style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', boxSizing: 'border-box' }}
               />
             </div>

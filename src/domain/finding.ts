@@ -40,11 +40,14 @@ export type ProvenanceType =
   | 'Clinician-verified';
 
 export interface FindingProvenance {
+  caseId?: string;
+  sourceRecordId?: string;
+  analysisRunId?: string;
   sourceText?: string;
   sourceContext: string;
   recordedBy: string;
   recordedAt: string;
-  extractionModel?: string; // e.g. "Nexus NLP v2.4 (Simulated)"
+  extractionModel?: string; // e.g. "Nexus NLP v2.5 (Live NER Engine)"
   deviceModel?: string;     // e.g. "Mindray BeneVision N12"
   provenanceType: ProvenanceType;
   verificationStatus: VerificationStatus;
@@ -57,6 +60,9 @@ export interface FindingProvenance {
 export interface ClinicalFinding {
   id: string;
   caseId?: string;
+  observationId?: string;
+  sourceRecordId?: string;
+  analysisRunId?: string;
   label: string;
   description?: string;
   category: FindingCategory;

@@ -17,8 +17,10 @@ import {
 import { ReasoningProvider } from './reasoning-provider';
 import { runDataQualityChecks } from './data-quality-service';
 import { retrieveEvidenceForCase } from './evidence-service';
-import { buildReasoningContext } from './context-builder';
 import { validateAssessmentOutput, validateGrounding } from './nexus-assessment-schema';
+import { validateCaseIsolation } from './case-isolation-validator';
+import { buildEvidenceGraph, auditReasoningOutput } from './evidence-auditor';
+import { buildReasoningContext } from './context-builder';
 
 // ----------------------------------------------------------
 // Orchestration options
@@ -50,6 +52,11 @@ export async function runNexusAnalysis(
   // Helper for staged delay so UI transitions are perceptible
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+  // ── Stage 0: Hard Case Isolation & Provenance Validation ────
+  const isolationResult = validateCaseIsolation(activeCase, assessmentId);
+  const isolatedCase = isolationResult.isolatedCase;
+  const evidenceGraph = buildEvidenceGraph(isolatedCase);
+
   // ── Stage 1: Data Quality (deterministic) ──────────────────
   options.onStageProgress?.({
     stageIndex: 1,
@@ -60,9 +67,9 @@ export async function runNexusAnalysis(
   await sleep(350);
 
   const qualityResult = runDataQualityChecks({
-    findings: activeCase.findings,
-    investigations: activeCase.investigations,
-    informationGaps: activeCase.informationGaps,
+    findings: isolatedCase.findings,
+    investigations: isolatedCase.investigations,
+    informationGaps: isolatedCase.informationGaps,
   });
 
   // ── Stage 2: Evidence Retrieval & Dense Ranking ────────────
@@ -74,8 +81,8 @@ export async function runNexusAnalysis(
   });
   await sleep(400);
   const evidenceMap = await retrieveEvidenceForCase(
-    activeCase.overview.id,
-    activeCase.hypotheses.map((h) => ({ id: h.id, title: h.title }))
+    isolatedCase.overview.id,
+    isolatedCase.hypotheses.map((h) => ({ id: h.id, title: h.title }))
   );
 
   // Flatten all evidence for reasoning context
@@ -121,11 +128,11 @@ export async function runNexusAnalysis(
     ],
   };
 
-  const reasoningInput = buildReasoningContext(activeCase, allEvidence, scope);
+  const reasoningInput = buildReasoningContext(isolatedCase, allEvidence, scope);
 
   // ── Safety boundary check ────────────────────────
   if (qualityResult.isReasoningBlocked) {
-    return buildBlockedAssessment(assessmentId, activeCase.overview.id, qualityResult, now, provider);
+    return buildBlockedAssessment(assessmentId, isolatedCase.overview.id, qualityResult, now, provider);
   }
 
   // ── Stage 3: Falconsai Clinical Synthesis ────────────────
@@ -138,11 +145,14 @@ export async function runNexusAnalysis(
 
   const rawOutput = await provider.generateAssessment(reasoningInput);
 
+  // ── Stage 3B: Evidence Auditor (Contamination Purge & Ground Truth Gate) ────
+  const { auditedOutput, report: auditReport } = auditReasoningOutput(rawOutput, evidenceGraph);
+
   // ── Step 6: Schema Validation ────────────────────────────
-  const schemaValidation = validateAssessmentOutput(rawOutput);
+  const schemaValidation = validateAssessmentOutput(auditedOutput);
   if (!schemaValidation.valid) {
     console.error('[Nexus] Schema validation failed:', schemaValidation.errors);
-    return buildBlockedAssessment(assessmentId, activeCase.overview.id, qualityResult, now, provider);
+    return buildBlockedAssessment(assessmentId, isolatedCase.overview.id, qualityResult, now, provider);
   }
 
   // ── Stage 4: 18-Rule Grounding Validation ─────────────────
@@ -154,9 +164,9 @@ export async function runNexusAnalysis(
   });
   await sleep(250);
 
-  const contextFindingIds = new Set(activeCase.findings.map((f) => f.id));
+  const contextFindingIds = new Set(isolatedCase.findings.map((f) => f.id));
   const contextEvidenceIds = new Set(allEvidence.map((e: any) => e.id));
-  const groundingValidation = validateGrounding(rawOutput, contextFindingIds, contextEvidenceIds);
+  const groundingValidation = validateGrounding(auditedOutput, contextFindingIds, contextEvidenceIds);
   // Log warnings — unresolvable evidence IDs get excluded
   if (groundingValidation.warnings.length > 0) {
     console.warn('[Nexus] Grounding warnings:', groundingValidation.warnings);
@@ -170,7 +180,7 @@ export async function runNexusAnalysis(
   let findingSeq = 0;
 
   // Hypothesis findings
-  for (const h of rawOutput.hypotheses) {
+  for (const h of auditedOutput.hypotheses) {
     const supportIds = h.supportingFindingIds.filter((id) => contextFindingIds.has(id));
     const contradictIds = h.contradictingFindingIds.filter((id) => contextFindingIds.has(id));
     const evIds = h.evidenceSourceIds.filter((id) => contextEvidenceIds.has(id));
@@ -188,7 +198,7 @@ export async function runNexusAnalysis(
   }
 
   // Contradiction findings (AI-detected)
-  for (const c of rawOutput.contradictions) {
+  for (const c of auditedOutput.contradictions) {
     const aGrounded = contextFindingIds.has(c.findingAId);
     const bGrounded = contextFindingIds.has(c.findingBId);
     nexusFindings.push({
@@ -207,7 +217,7 @@ export async function runNexusAnalysis(
   }
 
   // Missing information findings (top 3 across all hypotheses)
-  const allMissing = rawOutput.hypotheses.flatMap((h) => h.missingInformation);
+  const allMissing = auditedOutput.hypotheses.flatMap((h) => h.missingInformation);
   const uniqueMissing = [...new Set(allMissing)].slice(0, 3);
   for (const gap of uniqueMissing) {
     nexusFindings.push({
@@ -232,7 +242,7 @@ export async function runNexusAnalysis(
       severity: 'MODERATE' as const,
     })),
     // From reasoning output (grounded)
-    ...rawOutput.contradictions
+    ...auditedOutput.contradictions
       .filter((c) => contextFindingIds.has(c.findingAId) && contextFindingIds.has(c.findingBId))
       .map((c, i) => ({
         id: `ai-contra-${i}`,
@@ -242,7 +252,7 @@ export async function runNexusAnalysis(
         severity: 'LOW' as const,
       })),
     // Ungrounded contradictions (IDs not in context — keep explanation only)
-    ...rawOutput.contradictions
+    ...auditedOutput.contradictions
       .filter((c) => !contextFindingIds.has(c.findingAId) || !contextFindingIds.has(c.findingBId))
       .map((c, i) => ({
         id: `ai-contra-ungrounded-${i}`,
@@ -286,7 +296,7 @@ export async function runNexusAnalysis(
     //          contamination vector that polluted hasFeature() in the provider.
     // Check 2: Clinically relevant to a hypothesis the engine actually raised?
     // Check 3: Not already documented as a completed finding in the findings list?
-    ...rawOutput.hypotheses
+    ...auditedOutput.hypotheses
       .flatMap((h) => h.missingInformation)
       .filter((m, i, arr) => arr.indexOf(m) === i)
       .filter((item) => {
@@ -295,11 +305,11 @@ export async function runNexusAnalysis(
         // ── Check 1: Already performed? (STRUCTURED LOOKUP ONLY) ────────────
         // An investigation is "already done" only if its result is present in the
         // structured investigations array — not just mentioned in free-text HPI.
-        const completedTests = (activeCase.investigations || [])
+        const completedTests = (isolatedCase.investigations || [])
           .filter((inv) => inv.result !== undefined)
           .map((inv) => inv.testName.toLowerCase());
 
-        const completedFindingLabels = (activeCase.findings || []).map((f) =>
+        const completedFindingLabels = (isolatedCase.findings || []).map((f) =>
           f.label.toLowerCase()
         );
 
@@ -344,22 +354,24 @@ export async function runNexusAnalysis(
           if (isAlreadyDone(['urine', 'urinalysis', 'urine mc', 'mcs'])) return false;
         }
 
+        // Echocardiography / TTE / TEE
+        if (/echocardiogra|transesophageal|transthoracic|echo\b/i.test(itemLower)) {
+          if (isAlreadyDone(['echocardiogra', 'transesophageal', 'transthoracic', 'tee', 'tte'])) return false;
+        }
+
         // ── Check 2: Clinical relevance gates ──────────────────────────────
-        // Troponin: only if cardiac hypothesis was raised OR a chest-pain finding
-        // is explicitly present in the structured findings list.
+        // Troponin: only if cardiac ischemia hypothesis was raised OR affirmative
+        // chest pain is present in the evidence graph (explicit denials excluded).
         if (/troponin/i.test(itemLower)) {
-          const hasCardiacHypothesis = rawOutput.hypotheses.some((h) =>
-            /coronary|myocardial|stemi|angina|cardiac|acs/i.test(h.label)
+          const hasCardiacHypothesis = auditedOutput.hypotheses.some((h) =>
+            /coronary|myocardial|stemi|angina|cardiac\s*ischemia|acs/i.test(h.label)
           );
-          const hasChestPainFinding = (activeCase.findings || []).some((f) =>
-            /chest pain|substernal|angina|chest tightness|chest pressure/i.test(f.label)
-          );
-          if (!hasCardiacHypothesis && !hasChestPainFinding) return false;
+          if (!hasCardiacHypothesis && !evidenceGraph.hasChestPain) return false;
         }
 
         // Pan-cultures / broad sepsis workup: only if sepsis with organ dysfunction was raised
         if (/pan-culture|sputum.*culture|blood.*x2|cultures.*x2/i.test(itemLower)) {
-          const hasSepsisOD = rawOutput.hypotheses.some((h) =>
+          const hasSepsisOD = auditedOutput.hypotheses.some((h) =>
             /sepsis.*organ|systemic sepsis|septic shock|bacteremia|endocarditis/i.test(h.label)
           );
           if (!hasSepsisOD) return false;
@@ -367,36 +379,56 @@ export async function runNexusAnalysis(
 
         // Serial lactate: only if a sepsis hypothesis was raised
         if (/serial.*lactate|lactate kinetics/i.test(itemLower)) {
-          const hasSepsis = rawOutput.hypotheses.some((h) => /sepsis|septic/i.test(h.label));
+          const hasSepsis = auditedOutput.hypotheses.some((h) => /sepsis|septic/i.test(h.label));
           if (!hasSepsis) return false;
+        }
+
+        // ── ESI 1 Resuscitation Bypass: Filter out deferred imaging / labs in arrest ──
+        const isEsi1ArrestCase =
+          auditedOutput.hypotheses.some((h) =>
+            /cardiac arrest|ventricular fibrillation|cardiogenic shock|anaphylactic shock|tension pneumothorax/i.test(h.label)
+          ) || auditedOutput.summary.includes('ESI 1 RESUSCITATION');
+
+        if (isEsi1ArrestCase) {
+          // Patient is actively in cardiac or respiratory arrest / profound shock
+          // Drop routine radiology, sputum cultures, or non-bedside delayed investigations
+          if (/sputum|chest radiograph|cxr\b|outpatient|spirometry/i.test(itemLower)) {
+            return false;
+          }
         }
 
         return true;
       })
       .slice(0, 4)
-      .map((m, i) => ({
-        id: `rec-${assessmentId}-inv-${i}`,
-        assessmentId,
-        category: 'INVESTIGATION' as const,
-        content: m,
-        rationale: 'Identified as essential, unperformed diagnostic data required for clinical decision support.',
-        status: 'PROPOSED' as const,
-        createdAt: now,
-      })),
+      .map((m, i) => {
+        const isEmergencyIntervention =
+          /cpr|defibrillat|airway|intubat|epinephrine|bvm|pocus|resuscitat|iv\/io/i.test(m);
+        return {
+          id: `rec-${assessmentId}-inv-${i}`,
+          assessmentId,
+          category: (isEmergencyIntervention ? 'SAFETY' : 'INVESTIGATION') as NexusRecommendation['category'],
+          content: m,
+          rationale: isEmergencyIntervention
+            ? 'CRITICAL ESI 1 RESUSCITATION: Immediate life-saving intervention taking absolute precedence in resuscitation bay.'
+            : 'Identified as essential, unperformed diagnostic data required for clinical decision support.',
+          status: 'PROPOSED' as const,
+          createdAt: now,
+        };
+      }),
   ];
 
   return {
     id: assessmentId,
-    caseId: activeCase.overview.id,
+    caseId: isolatedCase.overview.id,
     status: 'REVIEW_REQUIRED',
-    summary: rawOutput.summary,
+    summary: auditedOutput.summary,
     dataCompleteness: qualityResult.missingCriticalData.length > 0 ? 'LOW' : qualityResult.pendingInvestigations.length > 0 ? 'MODERATE' : 'HIGH',
     evidenceConsistency: qualityResult.conflictingMeasurements.length > 0 ? 'CONFLICTING' : 'MODERATE',
-    limitations: rawOutput.limitations,
+    limitations: auditedOutput.limitations,
     modelName: provider.name,
     modelVersion: provider.version,
-    promptVersion: '6F.2',
-    pipelineVersion: '6F.2',
+    promptVersion: '7A.0-Audited',
+    pipelineVersion: '7A.0-Audited',
     createdAt: now,
     nexusFindings,
     recommendations,

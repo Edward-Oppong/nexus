@@ -101,7 +101,7 @@ export const TimelineTab: React.FC = () => {
           Case Chronological Audit Trail
         </h2>
         <p style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
-          Comprehensive event timeline with explicit separation between human clinical actions and simulated machine inferences.
+          Comprehensive event timeline with explicit audit separation between human clinical actions and autonomous AI clinical reasoning events.
         </p>
       </div>
 

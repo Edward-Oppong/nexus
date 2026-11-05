@@ -14,8 +14,12 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronUp,
+  Zap,
+  Settings,
 } from 'lucide-react';
 import { NexusFinding, ReviewAction } from '../../domain/nexus-assessment';
+import { AiEngineConfigModal } from './AiEngineConfigModal';
+import { getActiveAiEngineInfo } from '../../lib/intelligence/services/ai-engine-config';
 
 export const NexusAssessmentPanel: React.FC = () => {
   const {
@@ -32,6 +36,9 @@ export const NexusAssessmentPanel: React.FC = () => {
   const [rejectingFindingId, setRejectingFindingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState<string>('');
   const [isExpanded, setIsExpanded] = useState<boolean>(true);
+  const [isConfigOpen, setIsConfigOpen] = useState<boolean>(false);
+
+  const activeEngine = getActiveAiEngineInfo();
 
   if (!nexusAssessment) {
     return (
@@ -57,30 +64,55 @@ export const NexusAssessmentPanel: React.FC = () => {
               Multi-layer deterministic checks, guideline retrieval, and grounded clinical synthesis.
             </p>
           </div>
-          <button
-            onClick={() => runNexusAnalysis()}
-            disabled={isRunningAnalysis}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '10px 18px',
-              borderRadius: '6px',
-              border: 'none',
-              background: isRunningAnalysis ? '#475569' : '#0284C7',
-              color: '#FFFFFF',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: isRunningAnalysis ? 'not-allowed' : 'pointer',
-              transition: 'background 0.15s ease',
-              whiteSpace: 'nowrap',
-              flexShrink: 0,
-            }}
-          >
-            <RefreshCw size={14} className={isRunningAnalysis ? 'animate-spin' : ''} />
-            {isRunningAnalysis ? 'Synthesizing...' : 'Run Nexus Analysis'}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => setIsConfigOpen(true)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '9px 14px',
+                borderRadius: '6px',
+                border: '1px solid rgba(56, 189, 248, 0.4)',
+                background: 'rgba(56, 189, 248, 0.1)',
+                color: '#38BDF8',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+              title="Configure real-time LLM providers (Gemini, Groq, OpenAI, Anthropic)"
+            >
+              <Zap size={14} />
+              <span>{activeEngine.displayName}</span>
+              <Settings size={13} style={{ opacity: 0.8 }} />
+            </button>
+
+            <button
+              onClick={() => runNexusAnalysis()}
+              disabled={isRunningAnalysis}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 18px',
+                borderRadius: '6px',
+                border: 'none',
+                background: isRunningAnalysis ? '#475569' : '#0284C7',
+                color: '#FFFFFF',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: isRunningAnalysis ? 'not-allowed' : 'pointer',
+                transition: 'background 0.15s ease',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}
+            >
+              <RefreshCw size={14} className={isRunningAnalysis ? 'animate-spin' : ''} />
+              {isRunningAnalysis ? 'Synthesizing...' : 'Run Nexus Analysis'}
+            </button>
+          </div>
         </div>
+        <AiEngineConfigModal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} />
       </div>
     );
   }
@@ -90,7 +122,7 @@ export const NexusAssessmentPanel: React.FC = () => {
     const stages = [
       { index: 1, label: 'Data Quality & Bounds Check', shortLabel: 'Data QA' },
       { index: 2, label: 'PubMed & Guideline Retrieval', shortLabel: 'Evidence' },
-      { index: 3, label: 'Falconsai Clinical Synthesis', shortLabel: 'Synthesis' },
+      { index: 3, label: `${activeEngine.displayName} Synthesis`, shortLabel: 'Synthesis' },
       { index: 4, label: '18-Rule Grounding Validation', shortLabel: 'Grounding' },
     ];
     const currentStageIdx = analysisStage?.stageIndex ?? 1;
@@ -374,6 +406,29 @@ export const NexusAssessmentPanel: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, marginLeft: 'auto' }}>
+          <button
+            onClick={() => setIsConfigOpen(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              background: 'rgba(56, 189, 248, 0.15)',
+              border: '1px solid rgba(56, 189, 248, 0.3)',
+              color: '#38BDF8',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+            title="Configure real-time LLM providers (Gemini, Groq, OpenAI, Anthropic)"
+          >
+            <Zap size={13} />
+            <span>AI Engine</span>
+            <Settings size={12} style={{ opacity: 0.8 }} />
+          </button>
+
           <button
             onClick={() => runNexusAnalysis()}
             disabled={isRunningAnalysis}
@@ -780,6 +835,12 @@ export const NexusAssessmentPanel: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* Real-time LLM Engine Configuration Modal */}
+      <AiEngineConfigModal
+        isOpen={isConfigOpen}
+        onClose={() => setIsConfigOpen(false)}
+      />
     </div>
   );
 };

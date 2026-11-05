@@ -49,9 +49,352 @@ export function generateDifferentialHypotheses({
   let informationGaps: InformationGap[] = [];
 
   // ─────────────────────────────────────────────────────────────
+  // 0. TOP PRIORITY: ESI 1 RESUSCITATION / CARDIAC ARREST / PROFOUND SHOCK
+  // Architectural bypass for catastrophic physiological collapse.
+  // Bypasses standard delayed imaging/sputum workup; injects immediate ACLS protocols.
+  // ─────────────────────────────────────────────────────────────
+  const hasAgonalOrApnea = /\b(agonal|apneic|apnea|gasping|gasping for breath|barely breathing)\b/i.test(combinedContext);
+  const hasCollapseOrUnresponsive = /\b(sudden collapse|collapse|unresponsive|unconscious|pulseless|asystole|ventricular fibrillation|vf arrest|cardiac arrest)\b/i.test(combinedContext);
+  const hasProfoundHypotension = /\b(?:bp|blood pressure)[:\s]*(?:[3-6]\d)\s*\/\s*\d{2,3}\b/i.test(combinedContext) ||
+    observations.some((o) => {
+      const match = (o.value || '').match(/(\d{2,3})\s*(?:\/|\s)\s*(\d{2,3})/);
+      return match && parseInt(match[1], 10) < 70;
+    });
+  const hasProfoundHypoxia = /\b(?:spo2|oxygen saturation|o2 sat)[:\s]*(?:[5-7]\d)%?\b/i.test(combinedContext) ||
+    observations.some((o) => {
+      const num = parseFloat((o.value || '').replace(/[^\d.\-]/g, ''));
+      return /spo2|oxygen/i.test(`${o.display} ${o.code}`) && !isNaN(num) && num < 80;
+    });
+
+  const isEsi1Resuscitation = hasAgonalOrApnea || (hasCollapseOrUnresponsive && (hasProfoundHypotension || hasProfoundHypoxia)) || (hasProfoundHypotension && hasProfoundHypoxia);
+
+  if (isEsi1Resuscitation) {
+    const shockSupporting = findSupporting(/(bp|blood pressure|spo2|oxygen|respiratory rate|heart rate|pulse|unresponsive|collapse|gasping|agonal)/i);
+
+    hypotheses = [
+      {
+        id: `hyp-${caseId}-1`,
+        caseId,
+        title: 'Ventricular Fibrillation (VF) / Sudden Cardiac Arrest',
+        status: 'Supported',
+        canonicalStatus: 'SUPPORTED',
+        statusDetail: 'Catastrophic hemodynamic collapse with agonal respirations, profound hypoxia, and shock. Requires immediate ACLS resuscitation and defibrillation.',
+        supportingFindingIds: shockSupporting.length ? shockSupporting : allFindingIds,
+        contradictingFindingIds: [],
+        informationGapIds: ['gap-acls-cpr-defib', 'gap-immediate-airway', 'gap-iv-io-epi'],
+        evidenceIds: ['ev-aha-acls-2024'],
+        nexusAssessment: 'CRITICAL ESI 1 RESUSCITATION: Active cardiac arrest / peri-arrest state. Initiate immediate CPR, rhythm check for defibrillation, and advanced airway management.',
+        clinicalReviewStatus: 'Pending Review',
+      },
+      {
+        id: `hyp-${caseId}-2`,
+        caseId,
+        title: 'Acute ST-Elevation Myocardial Infarction (STEMI) with Cardiogenic Shock',
+        status: 'Supported',
+        canonicalStatus: 'SUPPORTED',
+        statusDetail: 'Sudden cardiac death / cardiogenic shock secondary to acute coronary occlusion with malignant ventricular tachyarrhythmia.',
+        supportingFindingIds: findSupporting(/(bp|heart rate|spo2|collapse)/i),
+        contradictingFindingIds: [],
+        informationGapIds: ['gap-stat-ecg-rhythm', 'gap-bedside-pocus'],
+        evidenceIds: ['ev-acc-aha-acs', 'ev-aha-acls-2024'],
+        nexusAssessment: 'Leading primary etiology for sudden non-traumatic adult arrest. Post-ROSC immediate 12-lead ECG and emergency cardiac catheterization pathway activation.',
+        clinicalReviewStatus: 'Pending Review',
+      },
+      {
+        id: `hyp-${caseId}-3`,
+        caseId,
+        title: 'Severe Anaphylactic Shock with Airway Compromise',
+        status: 'Uncertain',
+        canonicalStatus: 'CANDIDATE',
+        statusDetail: 'Distributive shock with upper/lower airway occlusion causing sudden hypoxia, bronchospasm, and profound hypotension.',
+        supportingFindingIds: findSupporting(/(spo2|bp|agonal|gasping)/i),
+        contradictingFindingIds: [],
+        informationGapIds: ['gap-im-epi-airway'],
+        evidenceIds: ['ev-nice-antimicrobial'],
+        nexusAssessment: 'Must be actively excluded in sudden collapse with respiratory collapse: requires immediate epinephrine administration.',
+        clinicalReviewStatus: 'Pending Review',
+      },
+      {
+        id: `hyp-${caseId}-4`,
+        caseId,
+        title: 'Tension Pneumothorax / Obstructive Shock',
+        status: 'Uncertain',
+        canonicalStatus: 'CANDIDATE',
+        statusDetail: 'Acute hemodynamic collapse from tension physiology compromising venous return; reversible cause of PEA arrest requiring immediate needle decompression.',
+        supportingFindingIds: findSupporting(/(bp|spo2|respiratory rate|agonal)/i),
+        contradictingFindingIds: [],
+        informationGapIds: ['gap-bedside-pocus', 'gap-needle-decompression'],
+        evidenceIds: ['ev-aha-acls-2024'],
+        nexusAssessment: 'Reversible 5Hs & 5Ts cause of cardiac arrest. Rapid bedside thoracic ultrasound or immediate clinical needle decompression indicated.',
+        clinicalReviewStatus: 'Pending Review',
+      },
+    ];
+
+    informationGaps = [
+      {
+        id: 'gap-acls-cpr-defib',
+        testName: 'Immediate ACLS Protocol: High-Quality CPR & Rhythm Analysis / Defibrillation',
+        priority: 'HIGH PRIORITY',
+        whyItMatters: 'Mandatory life-saving intervention. Immediate unsynchronized shock if VF / pulseless VT identified.',
+        affectedHypotheses: ['Ventricular Fibrillation (VF) / Sudden Cardiac Arrest', 'Acute ST-Elevation Myocardial Infarction (STEMI) with Cardiogenic Shock'],
+        status: 'Not yet resolved',
+      },
+      {
+        id: 'gap-immediate-airway',
+        testName: 'Emergent Airway Control: Bag-Valve-Mask (BVM) / Rapid Endotracheal Intubation',
+        priority: 'HIGH PRIORITY',
+        whyItMatters: 'Corrects profound hypoxemia (SpO2 78%) and overcomes agonal respiratory insufficiency.',
+        affectedHypotheses: ['Ventricular Fibrillation (VF) / Sudden Cardiac Arrest', 'Severe Anaphylactic Shock with Airway Compromise'],
+        status: 'Not yet resolved',
+      },
+      {
+        id: 'gap-iv-io-epi',
+        testName: 'Large-Bore IV / IO Access & Epinephrine 1mg IV/IO q3-5min',
+        priority: 'HIGH PRIORITY',
+        whyItMatters: 'Provides essential vascular access for vasopressor support and ACLS medication delivery.',
+        affectedHypotheses: ['Ventricular Fibrillation (VF) / Sudden Cardiac Arrest', 'Acute ST-Elevation Myocardial Infarction (STEMI) with Cardiogenic Shock'],
+        status: 'Not yet resolved',
+      },
+      {
+        id: 'gap-bedside-pocus',
+        testName: 'Bedside Point-of-Care Ultrasound (POCUS — RUSH / Cardiac Arrest Protocol)',
+        priority: 'HIGH PRIORITY',
+        whyItMatters: 'Differentiates cardiac standstill, pericardial tamponade, right ventricular strain (PE), and tension pneumothorax without leaving resuscitation bay.',
+        affectedHypotheses: ['Tension Pneumothorax / Obstructive Shock', 'Ventricular Fibrillation (VF) / Sudden Cardiac Arrest'],
+        status: 'Not yet resolved',
+      },
+    ];
+  }
+  // ─────────────────────────────────────────────────────────────
+  // 0.1 ESI 2: ACUTE ISCHEMIC STROKE / HIGH-RISK NEURO
+  // ─────────────────────────────────────────────────────────────
+  else if (
+    /(facial droop|slurred speech|hemiparesis|hemiplegia|left-sided weakness|right-sided weakness|arm drift|acute ischemic stroke|stroke|mca)/i.test(combinedContext)
+  ) {
+    const strokeSupporting = findSupporting(/(facial droop|slurred speech|weakness|hemiparesis|arm drift|speech|neuro|bp|blood pressure|heart rate|afib|atrial fibrillation)/i);
+
+    hypotheses = [
+      {
+        id: `hyp-${caseId}-1`,
+        caseId,
+        title: 'Acute Ischemic Stroke (Left Middle Cerebral Artery Territory)',
+        status: 'Supported',
+        canonicalStatus: 'SUPPORTED',
+        statusDetail: 'Acute focal neurological deficit with facial droop, unilateral hemiparesis, and dysarthria within the acute thrombolysis/thrombectomy treatment window.',
+        supportingFindingIds: strokeSupporting.length ? strokeSupporting : allFindingIds,
+        contradictingFindingIds: [],
+        informationGapIds: ['gap-stat-head-ct', 'gap-poc-glucose', 'gap-cta-head-neck', 'gap-nihss-score'],
+        evidenceIds: ['ev-aha-stroke-2023'],
+        nexusAssessment: 'Code Stroke pathway activation. Door-to-CT imaging target < 20 minutes. Evaluate IV thrombolysis and endovascular thrombectomy criteria.',
+        clinicalReviewStatus: 'Pending Review',
+      },
+      {
+        id: `hyp-${caseId}-2`,
+        caseId,
+        title: 'Paroxysmal Atrial Fibrillation with Cardioembolic Thromboembolism',
+        status: 'Supported',
+        canonicalStatus: 'SUPPORTED',
+        statusDetail: 'Suspected irregular rhythm / cardioembolic source leading to middle cerebral artery occlusion.',
+        supportingFindingIds: findSupporting(/(heart rate|pulse|irregular|atrial fibrillation|afib)/i),
+        contradictingFindingIds: [],
+        informationGapIds: ['gap-12-lead-ecg', 'gap-telemetry-monitoring'],
+        evidenceIds: ['ev-aha-stroke-2023'],
+        nexusAssessment: 'Evaluate rhythm tracing for atrial fibrillation to determine post-acute anticoagulation indication.',
+        clinicalReviewStatus: 'Pending Review',
+      },
+      {
+        id: `hyp-${caseId}-3`,
+        caseId,
+        title: 'Acute Intracranial Hemorrhage (ICH) / Hemorrhagic Stroke',
+        status: 'Uncertain',
+        canonicalStatus: 'CANDIDATE',
+        statusDetail: 'Intracerebral hemorrhage presenting with acute focal neurological deficit and severe hypertension (BP 195/110 mmHg). Mandatory rule-out prior to thrombolysis.',
+        supportingFindingIds: findSupporting(/(bp|blood pressure|weakness|headache)/i),
+        contradictingFindingIds: [],
+        informationGapIds: ['gap-stat-head-ct'],
+        evidenceIds: ['ev-aha-stroke-2023'],
+        nexusAssessment: 'Non-contrast head CT is required immediately to exclude hemorrhage before administering thrombolytics.',
+        clinicalReviewStatus: 'Pending Review',
+      },
+      {
+        id: `hyp-${caseId}-4`,
+        caseId,
+        title: "Todd's Paralysis / Post-Ictal Focal Deficit",
+        status: 'Uncertain',
+        canonicalStatus: 'CANDIDATE',
+        statusDetail: 'Transient post-ictal focal neurological weakness following unwitnessed focal seizure event.',
+        supportingFindingIds: findSupporting(/(weakness|speech)/i),
+        contradictingFindingIds: [],
+        informationGapIds: ['gap-stat-head-ct', 'gap-eeg'],
+        evidenceIds: ['ev-aha-stroke-2023'],
+        nexusAssessment: 'Stroke mimic to be ruled out by negative perfusion imaging or prompt symptom resolution.',
+        clinicalReviewStatus: 'Pending Review',
+      },
+    ];
+
+    informationGaps = [
+      {
+        id: 'gap-stat-head-ct',
+        testName: 'Stat Non-Contrast Head CT (<25 min door-to-imaging)',
+        priority: 'HIGH PRIORITY',
+        whyItMatters: 'Mandatory initial study to definitively differentiate ischemic stroke from intracranial hemorrhage.',
+        affectedHypotheses: ['Acute Ischemic Stroke (Left Middle Cerebral Artery Territory)', 'Acute Intracranial Hemorrhage (ICH) / Hemorrhagic Stroke'],
+        status: 'Not yet resolved',
+      },
+      {
+        id: 'gap-poc-glucose',
+        testName: 'Point-of-Care Capillary Blood Glucose',
+        priority: 'HIGH PRIORITY',
+        whyItMatters: 'Exclude severe hypoglycemia as an acute focal neurological mimic prior to stroke pathway therapies.',
+        affectedHypotheses: ['Acute Ischemic Stroke (Left Middle Cerebral Artery Territory)'],
+        status: 'Not yet resolved',
+      },
+      {
+        id: 'gap-cta-head-neck',
+        testName: 'CT Angiography (CTA) Head and Neck',
+        priority: 'HIGH PRIORITY',
+        whyItMatters: 'Identifies Large Vessel Occlusion (LVO) of the internal carotid or middle cerebral artery for emergency mechanical thrombectomy.',
+        affectedHypotheses: ['Acute Ischemic Stroke (Left Middle Cerebral Artery Territory)'],
+        status: 'Not yet resolved',
+      },
+      {
+        id: 'gap-nihss-score',
+        testName: 'NIH Stroke Scale (NIHSS) Scoring & Timestamp Verification',
+        priority: 'HIGH PRIORITY',
+        whyItMatters: 'Quantifies deficit severity and validates eligibility within the 4.5-hour intravenous thrombolysis window.',
+        affectedHypotheses: ['Acute Ischemic Stroke (Left Middle Cerebral Artery Territory)'],
+        status: 'Not yet resolved',
+      },
+    ];
+  }
+  // ─────────────────────────────────────────────────────────────
+  // 0.2 ESI 4: LESS URGENT (ISOLATED ANKLE SPRAIN / SINGLE RESOURCE)
+  // ─────────────────────────────────────────────────────────────
+  else if (
+    /(twisted.*ankle|ankle sprain|malleolus|lateral ankle|bear weight|ankle injury)/i.test(combinedContext) &&
+    !/(chest|abdominal|stroke|fever|bleed|shock|unresponsive)/i.test(combinedContext)
+  ) {
+    const sprainSupporting = findSupporting(/(ankle|malleolus|swelling|weight|pain)/i);
+
+    hypotheses = [
+      {
+        id: `hyp-${caseId}-1`,
+        caseId,
+        title: 'Grade II Lateral Ankle Sprain (Partial ATFL Tear)',
+        status: 'Supported',
+        canonicalStatus: 'SUPPORTED',
+        statusDetail: 'Inversion injury of the talocrural joint presenting with lateral malleolar swelling, tenderness, and painful weight-bearing.',
+        supportingFindingIds: sprainSupporting.length ? sprainSupporting : allFindingIds,
+        contradictingFindingIds: [],
+        informationGapIds: ['gap-ottawa-ankle-xray'],
+        evidenceIds: ['ev-ottawa-ankle-rules'],
+        nexusAssessment: 'Stable isolated extremity trauma. Evaluate via Ottawa Ankle Rules for plain radiography indication.',
+        clinicalReviewStatus: 'Pending Review',
+      },
+      {
+        id: `hyp-${caseId}-2`,
+        caseId,
+        title: 'Non-Displaced Avulsion Fracture of the Distal Fibula / Lateral Malleolus',
+        status: 'Uncertain',
+        canonicalStatus: 'CANDIDATE',
+        statusDetail: 'Bony avulsion at the fibular attachment of the anterior talofibular ligament.',
+        supportingFindingIds: findSupporting(/(malleolus|swelling|bear weight)/i),
+        contradictingFindingIds: [],
+        informationGapIds: ['gap-ottawa-ankle-xray'],
+        evidenceIds: ['ev-ottawa-ankle-rules'],
+        nexusAssessment: 'Plain film radiography required to rule out cortical avulsion or distal fibular fracture.',
+        clinicalReviewStatus: 'Pending Review',
+      },
+      {
+        id: `hyp-${caseId}-3`,
+        caseId,
+        title: 'Syndesmotic (High) Ankle Sprain',
+        status: 'Uncertain',
+        canonicalStatus: 'CANDIDATE',
+        statusDetail: 'Distal tibiofibular syndesmosis injury typically caused by external rotation of the talus.',
+        supportingFindingIds: findSupporting(/(swelling|pain|weight)/i),
+        contradictingFindingIds: [],
+        informationGapIds: ['gap-squeeze-test'],
+        evidenceIds: ['ev-ottawa-ankle-rules'],
+        nexusAssessment: 'Examine for tenderness along the anterior inferior tibiofibular ligament and perform syndesmosis squeeze test.',
+        clinicalReviewStatus: 'Pending Review',
+      },
+    ];
+
+    informationGaps = [
+      {
+        id: 'gap-ottawa-ankle-xray',
+        testName: 'Plain Radiography of Right Ankle (3 Views: AP, Lateral, Mortise)',
+        priority: 'HIGH PRIORITY',
+        whyItMatters: 'Single resource anticipated per Ottawa Ankle Rules to definitively exclude fracture.',
+        affectedHypotheses: ['Grade II Lateral Ankle Sprain (Partial ATFL Tear)', 'Non-Displaced Avulsion Fracture of the Distal Fibula / Lateral Malleolus'],
+        status: 'Not yet resolved',
+      },
+    ];
+  }
+  // ─────────────────────────────────────────────────────────────
+  // 0.3 ESI 5: NON-URGENT (PRESCRIPTION REFILL / UNCONTROLLED HTN)
+  // ─────────────────────────────────────────────────────────────
+  else if (
+    /(ran out of.*medication|prescription refill|refill.*lisinopril|medication non-compliance|routine refill)/i.test(combinedContext) &&
+    !/(chest|pain|shortness of breath|fever|bleed|trauma|stroke|weakness)/i.test(combinedContext)
+  ) {
+    const refillSupporting = findSupporting(/(bp|blood pressure|hypertension|lisinopril|refill|medication)/i);
+
+    hypotheses = [
+      {
+        id: `hyp-${caseId}-1`,
+        caseId,
+        title: 'Essential Hypertension (Uncontrolled due to Medication Non-Compliance)',
+        status: 'Supported',
+        canonicalStatus: 'SUPPORTED',
+        statusDetail: 'Mild-to-moderate asymptomatic blood pressure elevation secondary to recent depletion of routine outpatient antihypertensive supply (Lisinopril).',
+        supportingFindingIds: refillSupporting.length ? refillSupporting : allFindingIds,
+        contradictingFindingIds: [],
+        informationGapIds: ['gap-rx-renewal', 'gap-bp-recheck'],
+        evidenceIds: ['ev-nice-antimicrobial'],
+        nexusAssessment: 'Non-urgent encounter (ESI 5). Outpatient prescription refill and blood pressure reconciliation indicated; no emergency department resources required.',
+        clinicalReviewStatus: 'Pending Review',
+      },
+      {
+        id: `hyp-${caseId}-2`,
+        caseId,
+        title: 'White-Coat Hypertension overlaying Chronic Essential Hypertension',
+        status: 'Uncertain',
+        canonicalStatus: 'CANDIDATE',
+        statusDetail: 'Transient situational elevation in clinic setting superimposed on known baseline hypertension.',
+        supportingFindingIds: findSupporting(/(bp|blood pressure)/i),
+        contradictingFindingIds: [],
+        informationGapIds: ['gap-ambulatory-bp'],
+        evidenceIds: ['ev-nice-antimicrobial'],
+        nexusAssessment: 'Compare against patient home blood pressure diary upon medication re-initiation.',
+        clinicalReviewStatus: 'Pending Review',
+      },
+    ];
+
+    informationGaps = [
+      {
+        id: 'gap-rx-renewal',
+        testName: 'Prescription Renewal & Medication Reconciliation (Lisinopril)',
+        priority: 'ROUTINE',
+        whyItMatters: 'Restores pharmacological blood pressure control and prevents sustained secondary hypertension.',
+        affectedHypotheses: ['Essential Hypertension (Uncontrolled due to Medication Non-Compliance)'],
+        status: 'Not yet resolved',
+      },
+      {
+        id: 'gap-bp-recheck',
+        testName: 'Repeat Resting Blood Pressure Measurement (Post-Rest)',
+        priority: 'ROUTINE',
+        whyItMatters: 'Confirms absence of hypertensive emergency symptoms and verifies clinical stability prior to discharge.',
+        affectedHypotheses: ['Essential Hypertension (Uncontrolled due to Medication Non-Compliance)'],
+        status: 'Not yet resolved',
+      },
+    ];
+  }
+  // ─────────────────────────────────────────────────────────────
   // 1. CARDIOLOGY / INFECTIVE ENDOCARDITIS PATTERN
   // ─────────────────────────────────────────────────────────────
-  if (
+  else if (
     criteriaEval?.criteriaId.includes('DUKE') ||
     /(endocarditis|vegetation|murmur|bacteremia|strep.*viridans|staph.*aureus|valvul|osler|janeway)/.test(combinedContext)
   ) {

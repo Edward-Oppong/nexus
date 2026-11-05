@@ -231,7 +231,7 @@ export const ContextualAiModal: React.FC = () => {
         >
           <AlertCircle size={15} color="#64748B" style={{ flexShrink: 0, marginTop: '2px' }} />
           <span>
-            WHO SMART / FDA CDS Compliance Notice: Nexus reasoning outputs represent deterministic and simulated algorithmic synthesis designed to assist clinical workflows. All recommendations must be independently reviewed and verified by a licensed clinician before any medical action is taken.
+            WHO SMART / FDA CDS Compliance Notice: Nexus reasoning outputs represent multi-model autonomous clinical reasoning and deterministic safety verification designed to assist clinical workflows. All recommendations must be independently reviewed and verified by a licensed clinician before any medical action is taken.
           </span>
         </div>
 

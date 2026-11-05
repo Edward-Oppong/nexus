@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useCase } from '../../app/providers/CaseContext';
 import { usePersona } from '../../app/providers/PersonaContext';
-import { ArrowLeft, AlertTriangle, FileText, CheckCircle2, ShieldAlert, Wifi, WifiOff, Trash2 } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, FileText, CheckCircle2, ShieldAlert, Wifi, WifiOff, Trash2, Printer } from 'lucide-react';
 import { offlineSyncEngine } from '../../lib/interoperability/advanced/offline-sync-engine';
 import { ACTIVE_COLLABORATIVE_REVIEWERS } from '../../lib/persistence/realtime-collaboration';
+import { exportCaseToPdf } from '../../features/cases/services/pdf-export-service';
 
 export const CaseHeader: React.FC = () => {
   const { activeCase, setActiveView, setActiveCaseSubTab, deleteCase } = useCase();
@@ -191,6 +192,32 @@ export const CaseHeader: React.FC = () => {
               <FileText size={13} /> Record Decision
             </button>
           )}
+
+          <button
+            onClick={() => exportCaseToPdf({ fullCase: activeCase, assessment: activeCase.nexusAssessment })}
+            className="btn btn-sm"
+            title="Export Case Input Data & Results to PDF Report"
+            style={{
+              border: '1px solid #CBD5E1',
+              background: '#F8FAFC',
+              color: '#0F766E',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              fontWeight: 600,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#F0FDFA';
+              e.currentTarget.style.borderColor = '#0F766E';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#F8FAFC';
+              e.currentTarget.style.borderColor = '#CBD5E1';
+            }}
+          >
+            <Printer size={13} /> Export PDF
+          </button>
 
           <button
             onClick={() => setShowDeleteConfirm(true)}

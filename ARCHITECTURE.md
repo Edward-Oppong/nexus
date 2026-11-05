@@ -1,6 +1,6 @@
 # Nexus Clinical Workstation — Authoritative System Architecture
 
-> **Version: 1.5.0 (Live Mistral-7B Reasoning, Contextual Rail, Europe PMC & Clinical Safety Architecture)** | Stack: React 18 + TypeScript 5 + Vite 6 + Supabase | FHIR: R4
+> **Version: 1.7.0 (Production Live Multi-Model AI Engine, Dynamic ESI Triage & PDF Export)** | Stack: React 18 + TypeScript 5 + Vite 6 + Supabase | FHIR: R4
 >
 > This is the architecture we build against. Not a design sketch — a production requirement.
 
@@ -674,6 +674,34 @@ The Intelligence Rail is a contextual clinical workspace, not a chatbot sidebar.
 | Audit Log | AuditLogTab.tsx | `audit.view` | Immutable event ledger viewer |
 | System Disclosure | SystemDisclosureTab.tsx | None (all authenticated) | AI model registry and provenance reference |
 
+### 7.4 Adaptive Clinical Intake Workspace (3 Modes)
+
+The case intake pipeline (`CaseIntakeWorkspace.tsx`) adapts wizard progression, validation constraints, and data-entry pace according to the clinical setting:
+
+```
+[ New Case Intake ]
+         │
+         ├──► TRIAGE (Emergency Fast-Track) — 3 Steps (Identity → Vitals & Acuity → Escalate)
+         │    • Minimal friction: optional family name & fast-fill "Trauma / Unknown" button
+         │    • ESI 5-level algorithm selection & red-flag vital alarms
+         │    • 1-click "Quick-Save & Escalate" straight to resuscitation / ED tracker
+         │
+         ├──► OPD (Routine Outpatient) — 5 Steps (Identity → Presentation → Vitals/Labs → Meds/Allergies → Activate)
+         │    • Structured consultative pace: chief complaint, onset, past history
+         │    • Tab-traversable vitals grid & active medication reconciliation
+         │    • Outpatient follow-up routing
+         │
+         └──► INPATIENT (Admission Charting) — 6 Steps (Identity → Documents → Presentation → Labs → Meds → Activate)
+              • Comprehensive admission documentation with multi-source provenance
+              • PDF ingestion, OCR, and AI document reconstruction preview
+              • Multi-panel laboratory entry with demographic-aware reference intervals
+```
+
+**Ergonomics & Data Integrity:**
+- **Persistent Header Segmented Switcher:** Clinicians can toggle between `[Triage | OPD | Inpatient]` at any point without unmounting the form or losing entered draft data.
+- **Dynamic Age & Sex Calibration:** Typing a Date of Birth or Administrative Sex immediately triggers real-time normative calibration (e.g., pediatric vitals vs. adult intervals).
+- **De-biased Department Routing:** Replaces rigid single-disease strings with standardized institutional specialties (`Emergency Medicine`, `Acute Internal Medicine`, `Cardiology`, `Pulmonology`, etc.).
+
 ---
 
 ## 8. Intelligence and Reasoning Layer
@@ -969,6 +997,33 @@ In clinical decision support (Class IIa/IIb SaMD under EU MDR 2017/745 and FDA C
 - **Dual-Engine Resilience:** If serverless LLM calls (`Mistral-7B`) time out or fail validation, the system falls back to `DeterministicClinicalProvider` (covering 18 acute clinical emergency conditions offline).
 - **Live Biomedical Literature Retrieval (Europe PMC / PubMed):** `pubmed-service.ts` pulls live peer-reviewed guidelines from Europe PMC, preventing omissions caused by static model training cutoff dates.
 - **Pre-Flight Data Quality Checks:** `data-quality-service.ts` scores chart completeness before reasoning initiates; low-completeness cases halt to `INSUFFICIENT_DATA`.
+
+### 9.4 De-Biased Clinical Safety & Demographic Normalization Engine
+
+In Phase 15, Nexus decoupled all deterministic safety guardrails and clinical knowledge from disease-specific hardcoding, static adult-only reference intervals, and race-based formulas:
+
+#### 1. Elimination of Race-Based Renal Equations (2021 CKD-EPI Standard)
+- **Standard Formula:** Adopts the Inker et al. (NEJM 2021) race-free creatinine equation:
+  $$\text{eGFR} = 142 \times \min\left(\frac{S_{\text{cr}}}{\kappa}, 1\right)^\alpha \times \max\left(\frac{S_{\text{cr}}}{\kappa}, 1\right)^{-1.2} \times 0.9938^{\text{Age}} \times [1.012 \text{ if Female}]$$
+  where $\kappa = 0.7$ (female) / $0.9$ (male), and $\alpha = -0.241$ (female) / $-0.302$ (male).
+- **Anti-Bias Impact:** Completely eliminates racial multipliers that systematically overestimated kidney function in Black patients, removing institutional barriers to timely nephrology referral and transplant listing.
+
+#### 2. Demographic-Aware Normative Intervals
+- **Pediatric vs. Adult Vital Sign Bands:** Dynamically switches normative thresholds for Heart Rate, Respiratory Rate, and Blood Pressure based on patient age (Infant $<1$ yr, Child $1\text{--}11$ yrs, Adult $\ge 12$ yrs), eliminating false tachycardia or tachypnea alarms in children.
+- **Sex-Stratified Laboratory Norms:** Automatically adjusts reference intervals for Hemoglobin (Adult Female: $12.0\text{--}15.5$ g/dL vs. Adult Male: $13.5\text{--}17.5$ g/dL) and Serum Creatinine (Female: $0.5\text{--}1.1$ mg/dL vs. Male: $0.7\text{--}1.3$ mg/dL) to prevent misclassifying mild anemia or masked renal insufficiency.
+
+#### 3. Extensible Multi-Class Medication-Allergy Matrix (`RULE: MED-ALLERGY-CROSS`)
+- Evaluates true R1 side-chain structural homology between Penicillins and 1st-generation Cephalosporins (e.g., Cefazolin, Cephalexin) vs. later generations with $<1\text{--}2\%$ cross-reactivity.
+- Evaluates Sulfonamide antimicrobials against documented sulfonamide allergy history.
+- Flags NSAID / Aspirin orders against Aspirin-Exacerbated Respiratory Disease (AERD) or anaphylaxis history.
+
+#### 4. Quantitative Renal Clearance Safety (`RULE: RENAL-CLEARANCE-SAFETY`)
+- Computes real-time 2021 CKD-EPI eGFR when serum creatinine and age are available.
+- Flags `SAFETY_CRITICAL` alerts for severe renal impairment ($\text{eGFR} < 30 \text{ mL/min/1.73m}^2$) alongside renally-cleared medications (Aminoglycosides, Vancomycin, Metformin, DOACs, Enoxaparin).
+- Flags missing baseline renal panels for high-risk nephrotoxic pharmacotherapy.
+
+#### 5. Acute Physiological Instability Detection (`RULE: HEMODYNAMIC-INSTABILITY`)
+- Automated detection of impending hemodynamic shock: Shock Index ($\text{HR} / \text{Systolic BP} > 1.0$), Systolic $\text{BP} < 90$ mmHg, severe hypoxia ($\text{SpO}_2 < 90\%$), or temperature derangement ($T \ge 39.5^\circ\text{C}$ or $T < 35.0^\circ\text{C}$).
 
 ---
 
@@ -1510,6 +1565,7 @@ Recovery:  PROCESSING items older than 5 minutes re-queued by cron.
 | v1.3.0 | 2026-09-22 | Live Hugging Face Serverless Stack Migration. Upgraded specialized intelligence models to 100% verified live serverless inference endpoints on `router.huggingface.co/hf-inference`. **Biomedical NER**: replaced unhosted `ribhu/medbert-clinical-ner` with live `d4data/biomedical-ner-all` (HTTP 200, ~4.0s) extracting Symptoms, Severity, Procedures, Anatomy, and Medications. **Document Classification**: upgraded `ParamDev/clinicalbert-medical-doc-classifier` to `facebook/bart-large-mnli` zero-shot classification (HTTP 200, ~0.6s) across clinical note categories. **Clinical BERT**: migrated `emilyalsentzer/Bio_ClinicalBERT-ft` to base `emilyalsentzer/Bio_ClinicalBERT` (HTTP 200, ~4.0s). **Clinical Summarization**: migrated unhosted `google/medgemma-4b-it` to live `Falconsai/medical_summarization` (HTTP 200, ~4.1s). **MedCPT Alignment**: updated `ncbi/MedCPT-Cross-Encoder` payload to `text-classification` router standard, resolving 400 parameter errors to full HTTP 200 execution alongside `ncbi/MedCPT-Query-Encoder`. Testing Console (`HuggingFaceModelTestingModal.tsx`) and client services synchronized. |
 | v1.4.0 | 2026-09-22 | UI Intelligence Polish: DICOM Removal, Pipeline Stepper, CDS Auto-Detection & Model Provenance. **DICOM Purge**: removed `DicomViewerModal.tsx`, `src/lib/imaging/dicom-client.ts`, `src/domain/dicom.ts`; scrubbed all user-facing copy across 8 landing sections/components (`WorkflowTourSection`, `TechnicalCredibilitySection`, `TechnicalArchitectureModal`, `FeaturesAccordion`, `NexusFeaturesSection`, `EcosystemSection`, `EcosystemVisual`, `WorkstationMockup`, `ProblemSolutionSection`, `ContextPipelineSection`) replacing DICOM references with clinical diagnostic reports and guideline retrieval. **Live Multi-Stage Pipeline Stepper** (`NexusAssessmentPanel.tsx`): when `runNexusAnalysis` is active, replaces the panel with an animated 4-stage progress stepper (Data Quality & Bounds Check → MedCPT Dense Semantic Retrieval → Falconsai Clinical Synthesis → 18-Rule Grounding Validation). Each stage circle pulses with a cyan glow when active, turns green ✓ when complete; an indeterminate shimmer bar and a live detail text strip complete the display. Stage notifications emitted via new `onStageProgress` callback in `OrchestrationOptions`; `AnalysisStageInfo` type exported from `reasoning-orchestrator.ts`; `analysisStage` state exposed through `CaseContext`. **CDS Auto-Detection** (`RulesTab.tsx`): `autoDetectedCriteria` useMemo scans all active case finding labels/descriptions with regex patterns for CURB-65 (confusion, BUN, respiratory rate, hypotension, age ≥ 65), Wells PE (DVT signs, tachycardia, haemoptysis, immobilisation, prior VTE), and Modified Duke Criteria (blood culture positivity, echocardiographic evidence, fever, vascular phenomena, immunologic phenomena). A green banner appears above the criteria checklist showing count of detected criteria and a one-click "Apply N unselected" button. Individual criterion rows sport an "Auto-detected" chip (green pill) and a green border when matched. **Model Provenance Badges**: `HypothesesRailPanel.tsx` displays `MedCPT` and `Falconsai` blue attribution pills beneath each hypothesis card's support/contradict counts. `DocumentReconstructionReview.tsx` displays `NER: d4data/biomedical-ner-all` and `Synthesis: Falconsai/medical_summarization` badge strips in the findings table header. Build: 0 TypeScript errors (`npx tsc --noEmit`, exit code 0). |
 | v1.5.0 | 2026-09-30 | Live Mistral-7B Differential Reasoning Engine, Contextual Rail Overhaul, Europe PMC Integration & False Positive/Negative Safety Architecture. **Mistral-7B Differential Reasoning**: integrated `mistralai/Mistral-7B-Instruct-v0.3` as primary reasoning provider with live JSON schema validation, dual-endpoint router fallback (`router.huggingface.co` + `api-inference.huggingface.co`), and deterministic clinical fallback (18 conditions). **Model Testing Console**: added Tab 6 (`MISTRAL`) to `HuggingFaceModelTestingModal.tsx` for real-time differential inference testing, latency tracking, and structured JSON parsing. **Right Sidebar Intelligence Rail Redesign**: created `NexusAnalysisRailPanel.tsx` mounted across all contextual views; overhauled `AskNexusRailPanel.tsx` with quick prompt chips and dual-mode HF/deterministic synthesis; upgraded `HypothesesRailPanel.tsx` with live assessment provenance tags. **Europe PMC / PubMed Integration**: wired live free biomedical guideline search via `pubmed-service.ts` into `searchEvidenceAsync`. **Clinical Safety Documentation**: codified comprehensive False Positive and False Negative defense-in-depth mitigation architecture complying with EU MDR and FDA CDS human-in-the-loop requirements. Build: 0 TypeScript errors. |
+| v1.6.0 | 2026-10-29 | De-Biased Clinical Safety Architecture & 3-Mode Adaptive Case Intake. **3-Mode Adaptive Intake Workspace** (`CaseIntakeWorkspace.tsx`): implemented TRIAGE (3-step rapid registration with ESI 5-level scoring, one-click escalation, and trauma fast-fill for unidentified patients), OPD (5-step routine clinic consultation), and INPATIENT (6-step comprehensive admission charting with PDF OCR ingestion). Added persistent header segmented switcher for lossless mode transitions. **Non-Biased 2021 CKD-EPI Formula**: replaced static creatinine scoring with the 2021 race-free CKD-EPI standard (Inker et al., NEJM), eliminating racial disparity in renal staging and medication dosing. **Demographic-Aware Normative Intervals**: added age-stratified bands (Infant, Child, Adolescent/Adult, Geriatric) for physiological vitals (HR, RR, BP) and sex-stratified bands for Hemoglobin and Creatinine, eliminating pediatric false tachycardia/tachypnea alerts. **Deterministic Safety Engine De-Biasing** (`deterministic-safety.ts`): removed single-disease hardcoded rules (endocarditis rule); implemented generalizable class-based allergy matrix (Beta-lactam side chains, Sulfonamides, NSAID/AERD), quantitative renal clearance monitoring (<30 and <50 mL/min/1.73m²), and shock index decompensation alarms. **Institutional Routing**: replaced demo hospital strings with standardized clinical specialties. Build: 0 TypeScript errors. |
 
 
 ---

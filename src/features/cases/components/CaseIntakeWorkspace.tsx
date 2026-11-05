@@ -47,6 +47,7 @@ import {
   ChevronRight,
   Bolt,
   ClipboardList,
+  Printer,
 } from 'lucide-react';
 import {
   extractClinicalDataFromFile,
@@ -58,11 +59,13 @@ import {
   inferCaseTriage,
   getTestUnitOptions,
   getCanonicalTestName,
+  calculateAgeInYears,
 } from '../services/clinical-knowledge';
+import { exportCaseToPdf } from '../services/pdf-export-service';
+import { FullSyntheticCase } from '../../../data/cases/mockCasesData';
 
 
 const DRAFT_STORAGE_KEY = 'nexus_case_intake_draft_v3';
-
 
 const INITIAL_DRAFT: CaseIntakeDraft = {
   version: '3.0',
@@ -93,219 +96,6 @@ const INITIAL_DRAFT: CaseIntakeDraft = {
   allergies: [],
   documents: [],
 };
-
-// ── Synthetic Demo Case Templates ────────────────────────────
-const DEMO_TEMPLATES = [
-  {
-    id: 'endocarditis',
-    name: 'Subacute Infective Endocarditis',
-    badge: 'Synthetic Cardiology Encounter',
-    data: {
-      patient: {
-        isNewPatient: true,
-        givenName: 'Arthur',
-        familyName: 'Pendelton',
-        dateOfBirth: '1982-04-12',
-        administrativeSex: 'MALE' as const,
-        externalPatientId: 'MRN-849102',
-        phone: '+1 (555) 349-1029',
-      },
-      encounter: {
-        encounterClass: 'IMP' as const,
-        department: 'Cardiology / Infectious Disease Inpatient Consult',
-        priority: 'HIGH' as const,
-      },
-      presentation: {
-        title: '3-week persistent pyrexia of unknown origin, new regurgitant murmur, and fatigue',
-        historyOfPresentIllness: '42-year-old male with a 3-week history of daily fevers (up to 38.9°C), night sweats, 4kg unintentional weight loss, and progressive exertional dyspnea. Underwent routine dental extraction 4 weeks prior without antibiotic prophylaxis.',
-        pastMedicalHistory: 'Congenital bicuspid aortic valve (mild regurgitation noted on 2022 echo)\nNo prior intravenous drug use\nHypertension (controlled)',
-        physicalExamNotes: 'T 38.8°C, HR 104 regular, BP 118/68, SpO2 97% room air.\nCVS: Grade III/VI holosystolic regurgitant murmur audible at apex radiating to axilla.\nSkin: Erythematous, non-tender macules on left thenar eminence (Janeway lesions). Subungual splinter hemorrhages on 2nd and 3rd right digits.',
-      },
-      observations: [
-        {
-          id: 'obs-demo-1',
-          category: 'vital-signs' as const,
-          code: 'TEMP',
-          display: 'Body Temperature',
-          value: '38.8',
-          unit: '°C',
-          referenceRange: '36.5 - 37.5',
-          interpretation: 'HIGH' as const,
-          observedAt: new Date().toISOString(),
-          source: 'Bedside Triage Monitor',
-          provenanceType: 'DEVICE_MEASURED' as const,
-          actorName: 'Emergency Triage Nurse',
-          verificationStatus: 'VERIFIED' as const,
-        },
-        {
-          id: 'obs-demo-2',
-          category: 'laboratory' as const,
-          code: 'BLD-CULT',
-          display: 'Blood Cultures (x3 sets)',
-          value: '3/3 bottles positive for Streptococcus viridans',
-          unit: '',
-          referenceRange: 'Negative',
-          interpretation: 'CRITICAL' as const,
-          observedAt: new Date().toISOString(),
-          source: 'Central Microbiology LIS #904812',
-          provenanceType: 'IMPORTED' as const,
-          actorName: 'Microbiology Specialist',
-          verificationStatus: 'VERIFIED' as const,
-        },
-        {
-          id: 'obs-demo-3',
-          category: 'laboratory' as const,
-          code: 'CRP',
-          display: 'C-Reactive Protein',
-          value: '112',
-          unit: 'mg/L',
-          referenceRange: '< 5.0',
-          interpretation: 'HIGH' as const,
-          observedAt: new Date().toISOString(),
-          source: 'Automated Chemistry LIS',
-          provenanceType: 'IMPORTED' as const,
-          actorName: 'Core Lab',
-          verificationStatus: 'VERIFIED' as const,
-        },
-        {
-          id: 'obs-demo-4',
-          category: 'imaging' as const,
-          code: 'TEE-ECHO',
-          display: 'Transesophageal Echocardiogram (TEE)',
-          value: '11mm mobile oscillating vegetation on anterior mitral valve leaflet with mild mitral regurgitation',
-          unit: '',
-          referenceRange: 'Normal valve morphology',
-          interpretation: 'CRITICAL' as const,
-          observedAt: new Date().toISOString(),
-          source: 'Radiology PACS Study #18420-TEE',
-          provenanceType: 'CLINICIAN_VERIFIED' as const,
-          actorName: 'Dr. Elena Rostova, Attending Cardiologist',
-          verificationStatus: 'VERIFIED' as const,
-        },
-      ],
-      medications: [
-        {
-          id: 'med-demo-1',
-          name: 'Ceftriaxone IV',
-          dosage: '2g',
-          route: 'Intravenous',
-          frequency: 'q24h',
-          status: 'ORDERED' as const,
-          source: 'Emergency Inpatient CPOE',
-          provenanceType: 'HUMAN_ENTERED' as const,
-        },
-      ],
-      allergies: [
-        {
-          id: 'alg-demo-1',
-          substance: 'Penicillin class antibiotics',
-          reaction: 'Severe urticaria, angioedema, and bronchospasm (anaphylaxis)',
-          severity: 'SEVERE' as const,
-          verificationStatus: 'CONFIRMED' as const,
-          source: 'Outpatient Allergy Documentation (2019)',
-          provenanceType: 'HUMAN_ENTERED' as const,
-        },
-      ],
-      documents: [
-        {
-          id: 'doc-demo-1',
-          title: 'Consultation Note — Adult Cardiology Inpatient Consult',
-          category: 'Consult Note' as const,
-          mimeType: 'application/pdf',
-          fileSize: 428000,
-          uploadedAt: new Date().toISOString(),
-          rawText: 'Patient Arthur Pendelton (MRN-849102) admitted with fever of unknown origin and Grade III/VI murmur. Past history of bicuspid aortic valve and dental work. Blood cultures grow S. viridans. Urgent TEE echo demonstrates 11mm mitral vegetation.',
-          extractedFindings: [
-            {
-              id: 'ext-fnd-1',
-              category: 'exam' as const,
-              label: 'Grade III/VI holosystolic regurgitant murmur',
-              value: 'Audible at apex radiating to axilla',
-              sourceDocumentTitle: 'Consultation Note — Adult Cardiology Inpatient Consult',
-              sourcePage: 1,
-              sourceSnippet: 'Grade III/VI holosystolic regurgitant murmur audible at apex',
-              provenanceType: 'AI_EXTRACTED' as const,
-              verificationStatus: 'REVIEW_REQUIRED' as const,
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    id: 'pe',
-    name: 'Suspected Pulmonary Embolism',
-    badge: 'Synthetic Emergency / Internal Med',
-    data: {
-      patient: {
-        isNewPatient: true,
-        givenName: 'Clara',
-        familyName: 'Oswald',
-        dateOfBirth: '1989-11-23',
-        administrativeSex: 'FEMALE' as const,
-        externalPatientId: 'MRN-419082',
-        phone: '+1 (555) 782-9011',
-      },
-      encounter: {
-        encounterClass: 'EMER' as const,
-        department: 'Emergency Department / Acute Internal Medicine',
-        priority: 'STAT' as const,
-      },
-      presentation: {
-        title: 'Acute onset pleuritic chest pain, tachypnea, and unilateral calf swelling following long flight',
-        historyOfPresentIllness: '34-year-old female presents with sudden sharp right-sided pleuritic chest pain and shortness of breath that began 6 hours ago. Returned from a 14-hour international flight 3 days ago. Mild hemoptysis noted this morning.',
-        pastMedicalHistory: 'Oral contraceptive pill use for 4 years\nNo prior thrombosis history\nNo active malignancy',
-        physicalExamNotes: 'T 37.4°C, HR 118 sinus tachycardia, BP 124/76, RR 24, SpO2 93% room air.\nChest: Lungs clear to auscultation bilaterally.\nExtremities: Right calf circumference 3.2cm greater than left calf, erythema and tenderness on palpation.',
-      },
-      observations: [
-        {
-          id: 'obs-pe-1',
-          category: 'vital-signs' as const,
-          code: 'HR',
-          display: 'Heart Rate',
-          value: '118',
-          unit: 'bpm',
-          referenceRange: '60 - 100',
-          interpretation: 'HIGH' as const,
-          observedAt: new Date().toISOString(),
-          source: 'ED Triage Vitals',
-          provenanceType: 'DEVICE_MEASURED' as const,
-          actorName: 'Triage RN',
-          verificationStatus: 'VERIFIED' as const,
-        },
-        {
-          id: 'obs-pe-2',
-          category: 'laboratory' as const,
-          code: 'D-DIMER',
-          display: 'D-Dimer (Quantitative FEU)',
-          value: '1840',
-          unit: 'ng/mL',
-          referenceRange: '< 500',
-          interpretation: 'CRITICAL' as const,
-          observedAt: new Date().toISOString(),
-          source: 'Emergency Stat Lab',
-          provenanceType: 'IMPORTED' as const,
-          actorName: 'Stat LIS',
-          verificationStatus: 'VERIFIED' as const,
-        },
-      ],
-      medications: [
-        {
-          id: 'med-pe-1',
-          name: 'Ethinyl estradiol / Levonorgestrel',
-          dosage: '0.03/0.15 mg',
-          route: 'Oral',
-          frequency: 'Daily',
-          status: 'ACTIVE' as const,
-          source: 'Outpatient Pharmacy Barcode',
-          provenanceType: 'HUMAN_ENTERED' as const,
-        },
-      ],
-      allergies: [],
-      documents: [],
-    },
-  },
-];
 
 // ── Care Context Types ──────────────────────────────────────
 type CareContext = 'TRIAGE' | 'OPD' | 'INPATIENT';
@@ -442,20 +232,24 @@ export const CaseIntakeWorkspace: React.FC = () => {
   const handleSelectContext = (ctx: CareContext) => {
     setCareContext(ctx);
     setCareContextChosen(true);
-    setDraft((p) => ({
-      ...p,
-      currentStep: 1,
-      encounter: {
-        ...p.encounter,
-        priority: ctx === 'TRIAGE' ? 'URGENT' : ctx === 'INPATIENT' ? 'HIGH' : 'ROUTINE',
-        department:
-          ctx === 'TRIAGE'
-            ? 'Emergency Medicine'
-            : ctx === 'INPATIENT'
-            ? 'Inpatient Medicine'
-            : 'Internal Medicine',
-      },
-    }));
+    setDraft((p) => {
+      const maxSteps = CONTEXT_CONFIGS[ctx].steps.length;
+      return {
+        ...p,
+        currentStep: Math.min(p.currentStep || 1, maxSteps),
+        encounter: {
+          ...p.encounter,
+          encounterClass: ctx === 'TRIAGE' ? 'EMER' : ctx === 'INPATIENT' ? 'IMP' : 'AMB',
+          priority: ctx === 'TRIAGE' ? 'URGENT' : ctx === 'INPATIENT' ? 'HIGH' : 'ROUTINE',
+          department:
+            ctx === 'TRIAGE'
+              ? 'Emergency Medicine'
+              : ctx === 'INPATIENT'
+              ? 'Acute Internal Medicine'
+              : 'Outpatient Clinic',
+        },
+      };
+    });
   };
 
   // Quick vitals helper for OPD & Triage
@@ -483,7 +277,17 @@ export const CaseIntakeWorkspace: React.FC = () => {
         return prev;
       }
 
-      const evalRes = evaluateClinicalObservation(vitalName, value, undefined, undefined, unit);
+      const evalRes = evaluateClinicalObservation(
+        vitalName,
+        value,
+        undefined,
+        undefined,
+        unit,
+        {
+          dateOfBirth: prev.patient.dateOfBirth,
+          administrativeSex: prev.patient.administrativeSex,
+        }
+      );
 
       const updatedObs: IntakeObservationInput = {
         id: idx >= 0 ? prev.observations[idx].id : `vital-${Date.now()}-${vitalName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`,
@@ -615,11 +419,11 @@ export const CaseIntakeWorkspace: React.FC = () => {
 
   // Duplicate patient check on name/DOB change
   useEffect(() => {
-    if (draft.patient.isNewPatient && draft.patient.givenName.trim().length >= 2 && draft.patient.familyName.trim().length >= 2) {
+    if (draft.patient.isNewPatient && draft.patient.givenName.trim().length >= 2) {
       const timer = setTimeout(async () => {
         const res = await checkDuplicatePatient({
           givenName: draft.patient.givenName,
-          familyName: draft.patient.familyName,
+          familyName: draft.patient.familyName || '',
           dateOfBirth: draft.patient.dateOfBirth,
           organizationId: activeOrganization?.id || 'demo-org',
         });
@@ -635,12 +439,17 @@ export const CaseIntakeWorkspace: React.FC = () => {
     }
   }, [draft.patient.givenName, draft.patient.familyName, draft.patient.dateOfBirth, activeOrganization?.id]);
 
-  // Live Deterministic Safety Check Preview
+  // Live Deterministic Safety Check Preview (Non-biased, demographic & acuity aware)
   const safetyPreview = runDeterministicSafetyChecks({
     caseId: 'preview',
     medications: draft.medications,
     allergies: draft.allergies,
     observations: draft.observations,
+    patientDemographics: {
+      dateOfBirth: draft.patient.dateOfBirth,
+      administrativeSex: draft.patient.administrativeSex,
+    },
+    careContext,
   });
 
   // Automated Case Triage & Department Routing
@@ -680,8 +489,8 @@ export const CaseIntakeWorkspace: React.FC = () => {
 
   // Submission handler: Decoupled clinical creation vs. Nexus intelligence
   const handleExecuteCreation = async (runAnalysisImmediately: boolean) => {
-    if (!draft.patient.givenName.trim() || !draft.patient.familyName.trim()) {
-      setStatusMessage({ type: 'error', text: 'Patient given name and family name are required.' });
+    if (!draft.patient.givenName.trim()) {
+      setStatusMessage({ type: 'error', text: 'Patient given name or clinical identifier is required.' });
       goToStep(1);
       return;
     }
@@ -728,7 +537,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
       ...draft,
       patient: {
         ...draft.patient,
-        familyName: draft.patient.familyName.trim() || 'Emergency Patient',
+        familyName: (draft.patient.familyName || '').trim() || 'Emergency Patient',
       },
       presentation: {
         ...draft.presentation,
@@ -1101,23 +910,37 @@ export const CaseIntakeWorkspace: React.FC = () => {
             <h1 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
               New Clinical Case Intake
             </h1>
-            <span
-              style={{
-                fontSize: '11px',
-                fontWeight: 700,
-                padding: '3px 8px',
-                borderRadius: '4px',
-                backgroundColor: contextConfig.bgColor,
-                color: contextConfig.color,
-                border: `1px solid ${contextConfig.borderColor}`,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-              }}
-            >
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: contextConfig.dotColor }} />
-              {contextConfig.label}
-            </span>
+            <div style={{ display: 'inline-flex', alignItems: 'center', backgroundColor: '#F1F5F9', padding: '2px', borderRadius: '6px', gap: '2px' }}>
+              {(['TRIAGE', 'OPD', 'INPATIENT'] as CareContext[]).map((mode) => {
+                const cfg = CONTEXT_CONFIGS[mode];
+                const isActive = careContext === mode;
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => handleSelectContext(mode)}
+                    title={`Switch to ${cfg.label}`}
+                    style={{
+                      border: 'none',
+                      background: isActive ? '#FFFFFF' : 'transparent',
+                      color: isActive ? cfg.color : '#64748B',
+                      fontWeight: isActive ? 700 : 500,
+                      fontSize: '11px',
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      boxShadow: isActive ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: cfg.dotColor }} />
+                    {cfg.shortLabel}
+                  </button>
+                );
+              })}
+            </div>
             <button
               onClick={() => setCareContextChosen(false)}
               style={{
@@ -1129,9 +952,9 @@ export const CaseIntakeWorkspace: React.FC = () => {
                 textDecoration: 'underline',
                 padding: '2px',
               }}
-              title="Switch care context"
+              title="View full care context guide"
             >
-              Change Mode
+              Modes Guide
             </button>
             <span
               style={{
@@ -1303,13 +1126,13 @@ export const CaseIntakeWorkspace: React.FC = () => {
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                      Family Name *
+                      Family Name
                     </label>
                     <input
                       type="text"
                       value={draft.patient.familyName}
                       onChange={(e) => setDraft((p) => ({ ...p, patient: { ...p.patient, familyName: e.target.value } }))}
-                      placeholder="e.g. Pendelton"
+                      placeholder="e.g. Pendelton (optional)"
                       style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
                     />
                   </div>
@@ -1355,6 +1178,81 @@ export const CaseIntakeWorkspace: React.FC = () => {
                     />
                   </div>
                 </div>
+
+                {/* Live Demographic & De-biased Normative Feedback */}
+                {draft.patient.dateOfBirth && (() => {
+                  const age = calculateAgeInYears(draft.patient.dateOfBirth);
+                  if (age === undefined) return null;
+                  const isPediatric = age < 12;
+                  const isInfant = age < 1;
+                  return (
+                    <div
+                      style={{
+                        padding: '8px 12px',
+                        backgroundColor: '#F0FDFA',
+                        border: '1px solid #CCFBF1',
+                        borderRadius: '6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '11px',
+                        color: '#0F766E',
+                      }}
+                    >
+                      <Sparkles size={13} />
+                      <span>
+                        <strong>Calculated Age: {age} {isInfant ? 'months' : 'years'}</strong> · {
+                          isPediatric
+                            ? 'Pediatric physiological vitals (HR/RR/BP) dynamically calibrated to avoid adult threshold bias.'
+                            : 'Adult normative bands & 2021 CKD-EPI non-race renal elimination calibration active.'
+                        } {draft.patient.administrativeSex !== 'UNKNOWN' ? `(Sex-stratified Hb/Cr: ${draft.patient.administrativeSex.toLowerCase()})` : ''}
+                      </span>
+                    </div>
+                  );
+                })()}
+
+                {careContext === 'TRIAGE' && (
+                  <div style={{ display: 'flex', justifyContent: 'flex-start', margin: '-4px 0 4px' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const randId = Math.floor(1000 + Math.random() * 9000);
+                        setDraft((p) => ({
+                          ...p,
+                          patient: {
+                            ...p.patient,
+                            givenName: 'Trauma / Unknown',
+                            familyName: `Patient #${randId}`,
+                            externalPatientId: `ED-EMER-${randId}`,
+                            administrativeSex: 'UNKNOWN',
+                          },
+                          encounter: {
+                            ...p.encounter,
+                            priority: 'URGENT',
+                            department: 'Emergency Medicine',
+                            esiLevel: 1,
+                          },
+                        }));
+                      }}
+                      style={{
+                        padding: '5px 12px',
+                        backgroundColor: '#FEF2F2',
+                        border: '1px dashed #DC2626',
+                        borderRadius: '5px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        color: '#DC2626',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <Zap size={13} />
+                      <span>+ Fast-Fill Unidentified Emergency Patient (Trauma Resus)</span>
+                    </button>
+                  </div>
+                )}
 
                 {careContext === 'TRIAGE' && (
                   <div
@@ -1437,36 +1335,135 @@ export const CaseIntakeWorkspace: React.FC = () => {
                 </div>
 
                 {/* Acuity Level / Priority Selector */}
+                {/* Emergency Severity Index (ESI) 5-Level Algorithm Selector */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '8px' }}>
-                    Triage Acuity Priority *
-                  </label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', margin: 0 }}>
+                      Emergency Severity Index (ESI 5-Level Triage) *
+                    </label>
+                    <span style={{ fontSize: '11px', color: '#64748B' }}>
+                      Deterministic 5-tier algorithm (AHRQ / ACEP Guidelines)
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
                     {[
-                      { label: 'CRITICAL / RESUS (ESI 1)', val: 'URGENT', desc: 'Immediate resuscitation / airway threat', bg: '#FEF2F2', border: '#FECACA', color: '#DC2626' },
-                      { label: 'EMERGENT (ESI 2-3)', val: 'HIGH', desc: 'High potential for deterioration', bg: '#FFFBEB', border: '#FDE68A', color: '#B45309' },
-                      { label: 'URGENT / STABLE (ESI 4-5)', val: 'ROUTINE', desc: 'Non-life-threatening urgent evaluation', bg: '#F0FDF4', border: '#BBF7D0', color: '#166534' },
-                    ].map((pri) => (
-                      <button
-                        key={pri.val}
-                        type="button"
-                        onClick={() => setDraft((p) => ({ ...p, encounter: { ...p.encounter, priority: pri.val as any } }))}
-                        style={{
-                          padding: '12px',
-                          borderRadius: '8px',
-                          border: draft.encounter.priority === pri.val ? `2px solid ${pri.color}` : `1px solid ${pri.border}`,
-                          backgroundColor: draft.encounter.priority === pri.val ? pri.bg : '#FFFFFF',
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '4px',
-                        }}
-                      >
-                        <span style={{ fontSize: '12px', fontWeight: 700, color: pri.color }}>{pri.label}</span>
-                        <span style={{ fontSize: '11px', color: '#64748B' }}>{pri.desc}</span>
-                      </button>
-                    ))}
+                      {
+                        level: 1 as const,
+                        tier: 'ESI 1',
+                        label: 'Resuscitation',
+                        desc: 'Requires immediate life-saving intervention / airway compromise',
+                        bg: '#FEF2F2',
+                        border: '#FECACA',
+                        activeBorder: '#DC2626',
+                        color: '#991B1B',
+                        badgeBg: '#DC2626',
+                        priority: 'URGENT' as const,
+                      },
+                      {
+                        level: 2 as const,
+                        tier: 'ESI 2',
+                        label: 'Emergent',
+                        desc: 'High risk, acute altered mental state, severe pain/distress (≥7/10)',
+                        bg: '#FFF7ED',
+                        border: '#FFEDD5',
+                        activeBorder: '#EA580C',
+                        color: '#9A3412',
+                        badgeBg: '#EA580C',
+                        priority: 'URGENT' as const,
+                      },
+                      {
+                        level: 3 as const,
+                        tier: 'ESI 3',
+                        label: 'Urgent',
+                        desc: 'Multiple resources anticipated (≥2) + stable baseline vitals',
+                        bg: '#FFFBEB',
+                        border: '#FEF3C7',
+                        activeBorder: '#D97706',
+                        color: '#92400E',
+                        badgeBg: '#D97706',
+                        priority: 'HIGH' as const,
+                      },
+                      {
+                        level: 4 as const,
+                        tier: 'ESI 4',
+                        label: 'Less Urgent',
+                        desc: 'Single resource anticipated (e.g. simple X-ray or suture only)',
+                        bg: '#F0FDF4',
+                        border: '#DCFCE7',
+                        activeBorder: '#16A34A',
+                        color: '#166534',
+                        badgeBg: '#16A34A',
+                        priority: 'ROUTINE' as const,
+                      },
+                      {
+                        level: 5 as const,
+                        tier: 'ESI 5',
+                        label: 'Non-Urgent',
+                        desc: 'No diagnostic/therapeutic resources anticipated (e.g. prescription refill)',
+                        bg: '#F8FAFC',
+                        border: '#E2E8F0',
+                        activeBorder: '#64748B',
+                        color: '#334155',
+                        badgeBg: '#64748B',
+                        priority: 'ROUTINE' as const,
+                      },
+                    ].map((esi) => {
+                      const isSelected = draft.encounter.esiLevel === esi.level;
+                      return (
+                        <button
+                          key={esi.level}
+                          type="button"
+                          onClick={() =>
+                            setDraft((p) => ({
+                              ...p,
+                              encounter: {
+                                ...p.encounter,
+                                esiLevel: esi.level,
+                                priority: esi.priority,
+                              },
+                            }))
+                          }
+                          style={{
+                            padding: '10px 8px',
+                            borderRadius: '8px',
+                            border: isSelected ? `2px solid ${esi.activeBorder}` : `1px solid ${esi.border}`,
+                            backgroundColor: isSelected ? esi.bg : '#FFFFFF',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '4px',
+                            transition: 'all 0.15s ease',
+                            boxShadow: isSelected ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                            <span
+                              style={{
+                                fontSize: '10px',
+                                fontWeight: 800,
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                backgroundColor: isSelected ? esi.badgeBg : '#E2E8F0',
+                                color: isSelected ? '#FFFFFF' : '#475569',
+                              }}
+                            >
+                              {esi.tier}
+                            </span>
+                            {isSelected && (
+                              <CheckCircle2 size={12} color={esi.activeBorder} />
+                            )}
+                          </div>
+                          <span style={{ fontSize: '11px', fontWeight: 700, color: esi.color, marginTop: '2px' }}>
+                            {esi.label}
+                          </span>
+                          <span style={{ fontSize: '10px', color: '#64748B', lineHeight: '1.25' }}>
+                            {esi.desc}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -1820,7 +1817,11 @@ export const CaseIntakeWorkspace: React.FC = () => {
                       <div></div>
                     </div>
                     {draft.observations.map((obs, idx) => {
-                      const evalResult = evaluateClinicalObservation(obs.display, obs.value, obs.referenceRange, obs.interpretation);
+                      const demoContext = {
+                        dateOfBirth: draft.patient.dateOfBirth,
+                        administrativeSex: draft.patient.administrativeSex,
+                      };
+                      const evalResult = evaluateClinicalObservation(obs.display, obs.value, obs.referenceRange, obs.interpretation, obs.unit || undefined, demoContext);
                       const displayRefRange = obs.referenceRange || evalResult.referenceRange;
                       const displayInterp = obs.interpretation || evalResult.interpretation || 'NORMAL';
 
@@ -1845,7 +1846,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                               value={obs.display}
                               onChange={(e) => {
                                 const val = e.target.value;
-                                const evaluated = evaluateClinicalObservation(val, obs.value, obs.referenceRange, obs.interpretation, obs.unit || undefined);
+                                const evaluated = evaluateClinicalObservation(val, obs.value, obs.referenceRange, obs.interpretation, obs.unit || undefined, demoContext);
                                 setDraft((p) => ({
                                   ...p,
                                   observations: p.observations.map((o, i) =>
@@ -1871,7 +1872,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                               value={obs.value}
                               onChange={(e) => {
                                 const val = e.target.value;
-                                const evaluated = evaluateClinicalObservation(obs.display, val, obs.referenceRange, obs.interpretation, obs.unit || undefined);
+                                const evaluated = evaluateClinicalObservation(obs.display, val, obs.referenceRange, obs.interpretation, obs.unit || undefined, demoContext);
                                 setDraft((p) => ({
                                   ...p,
                                   observations: p.observations.map((o, i) =>
@@ -1897,7 +1898,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                                   value={obs.unit || unitOpts[0]}
                                   onChange={(e) => {
                                     const newUnit = e.target.value;
-                                    const evaluated = evaluateClinicalObservation(obs.display, obs.value, undefined, obs.interpretation, newUnit);
+                                    const evaluated = evaluateClinicalObservation(obs.display, obs.value, undefined, obs.interpretation, newUnit, demoContext);
                                     setDraft((p) => ({
                                       ...p,
                                       observations: p.observations.map((o, i) =>
@@ -2615,6 +2616,58 @@ export const CaseIntakeWorkspace: React.FC = () => {
               </div>
             </div>
 
+            {/* Live ESI Triage Stratification */}
+            {(() => {
+              const triageInfo = inferCaseTriage(draft.presentation, draft.observations, undefined, {
+                dateOfBirth: draft.patient.dateOfBirth,
+                administrativeSex: draft.patient.administrativeSex,
+              });
+              const esi = triageInfo.esiEvaluation;
+              if (!esi) return null;
+              return (
+                <div
+                  style={{
+                    marginBottom: '16px',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    backgroundColor: esi.level === 1 ? '#FEF2F2' : esi.level === 2 ? '#FFF7ED' : '#F8FAFC',
+                    border: `1px solid ${esi.badgeColor}50`,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase' }}>
+                      ESI Triage Level
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 800,
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        backgroundColor: esi.badgeColor,
+                        color: '#FFFFFF',
+                      }}
+                    >
+                      {esi.levelName}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '11px', color: '#334155', margin: '0 0 6px 0', lineHeight: 1.4 }}>
+                    {esi.rationale}
+                  </p>
+                  {esi.isLifeSavingRequired && (
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#DC2626', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+                      <AlertTriangle size={12} /> IMMEDIATE RESUSCITATION INTERVENTION
+                    </div>
+                  )}
+                  {esi.dangerZoneTriggered && (
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#EA580C', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+                      <AlertTriangle size={12} /> DANGER ZONE VITALS BREACH (UPGRADED TO ESI 2)
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
             {/* Data Stream Counters */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
               <div style={{ padding: '10px', backgroundColor: '#F8FAFC', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
@@ -2670,6 +2723,123 @@ export const CaseIntakeWorkspace: React.FC = () => {
                 </>
               )}
             </div>
+
+            {/* Quick PDF Export of Current Intake & Live Preview */}
+            <button
+              type="button"
+              onClick={() => {
+                const proxyCase: FullSyntheticCase = {
+                  overview: {
+                    id: draft.patient.externalPatientId || 'INTAKE-PREVIEW',
+                    patient: {
+                      id: 'preview-pat',
+                      syntheticIdentifier: `${draft.patient.givenName || 'Unnamed'} ${draft.patient.familyName || 'Patient'}`.trim(),
+                      age: draft.patient.dateOfBirth ? Math.max(1, new Date().getFullYear() - new Date(draft.patient.dateOfBirth).getFullYear()) : 45,
+                      gender: draft.patient.administrativeSex === 'MALE' ? 'Male' : draft.patient.administrativeSex === 'FEMALE' ? 'Female' : 'Other',
+                      encounterNumber: '#INTAKE',
+                      encounterType: draft.encounter.encounterClass === 'EMER' ? 'Emergency evaluation' : 'Inpatient admission',
+                      encounterDate: 'Today',
+                      allergiesCount: draft.allergies.length,
+                      activeMedicationsCount: draft.medications.length,
+                      allergies: draft.allergies.map((a) => ({ allergen: a.substance, severity: a.severity === 'SEVERE' ? 'Severe' : a.severity === 'MODERATE' ? 'Moderate' : 'Mild', reaction: a.reaction })),
+                      medications: draft.medications.map((m) => ({ name: m.name, dosage: m.dosage, frequency: m.frequency, route: m.route })),
+                    },
+                    state: 'REVIEW_REQUIRED',
+                    priority: draft.encounter.priority === 'URGENT' ? 'urgent' : 'normal',
+                    assignedClinician: 'Triage Clinician',
+                    assignedTeam: ['Intake Team'],
+                    lastUpdate: 'Just now',
+                    safetyIssueCount: safetyPreview.concerns.length,
+                    gapsCount: 0,
+                    hypothesesCount: 0,
+                  },
+                  chiefComplaint: draft.presentation.title,
+                  historyOfPresentIllness: draft.presentation.historyOfPresentIllness,
+                  pastMedicalHistory: draft.presentation.pastMedicalHistory ? [draft.presentation.pastMedicalHistory] : [],
+                  vitalSigns: [],
+                  findings: draft.observations.map((o, idx) => ({
+                    id: `fnd-prev-${idx}`,
+                    caseId: 'preview',
+                    label: o.display,
+                    description: `${o.value} ${o.unit || ''}`.trim(),
+                    category: o.category === 'vital-signs' ? 'vital' : 'observation',
+                    sourceDisplay: 'Intake Bedside',
+                    statusDisplay: o.interpretation || 'Recorded',
+                    status: 'VERIFIED',
+                    createdAt: new Date().toISOString(),
+                    provenance: {
+                      sourceText: o.value,
+                      sourceContext: 'Bedside intake',
+                      recordedBy: o.actorName || 'Clinician',
+                      recordedAt: new Date().toISOString(),
+                      provenanceType: 'HUMAN_ENTERED',
+                      verificationStatus: 'Verified',
+                    },
+                  })),
+                  hypotheses: [],
+                  uncertainty: {
+                    overallState: 'REQUIRES REVIEW',
+                    dataCompleteness: 'Moderate',
+                    dataCompletenessReason: 'Intake draft',
+                    evidenceConsistency: 'High',
+                    evidenceConsistencyReason: 'Bedside observations',
+                    modelApplicability: 'High',
+                    modelApplicabilityReason: 'Direct intake',
+                    primaryReason: 'Intake preview',
+                  },
+                  informationGaps: [],
+                  investigations: [],
+                  timeline: [],
+                  safetyIssues: safetyPreview.concerns.map((c) => ({
+                    id: c.id,
+                    title: c.category,
+                    severity: c.severity === 'SAFETY_CRITICAL' ? 'High' : 'Moderate',
+                    affectedHypotheses: [],
+                    reason: c.category,
+                    details: c.description,
+                    recommendedStep: c.recommendedAction || 'Review',
+                    status: 'Active - Review Required',
+                    detectedAt: 'Just now',
+                  })),
+                  clinicalDecision: {
+                    caseId: 'preview',
+                    isRecorded: false,
+                    decisionMakerName: '',
+                    decisionMakerRole: '',
+                    recordedAt: '',
+                    assessment: '',
+                    primaryDecision: '',
+                    rationale: '',
+                    supportingFindings: [],
+                    supportingInvestigations: [],
+                    supportingEvidence: [],
+                    followUpPlan: '',
+                    legalDisclaimerAcknowledged: false,
+                  },
+                };
+                exportCaseToPdf({ fullCase: proxyCase });
+              }}
+              style={{
+                marginTop: '12px',
+                width: '100%',
+                padding: '9px 12px',
+                borderRadius: '6px',
+                border: '1px solid #CBD5E1',
+                backgroundColor: '#FFFFFF',
+                color: '#0F766E',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+              }}
+              title="Export intake data, vitals, and live ESI triage evaluation to PDF report"
+            >
+              <Printer size={14} />
+              <span>Export Intake Dossier (PDF)</span>
+            </button>
           </div>
         </aside>
       </div>

@@ -33,12 +33,17 @@ export async function checkDuplicatePatient(params: {
 }): Promise<{ duplicateFound: boolean; matchedPatientId?: string; matchedPatientName?: string }> {
   try {
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase
+      let query = supabase
         .from('patients')
         .select('id, given_name, family_name, date_of_birth, external_patient_id')
         .eq('organization_id', params.organizationId)
-        .ilike('given_name', params.givenName.trim())
-        .ilike('family_name', params.familyName.trim());
+        .ilike('given_name', params.givenName.trim());
+
+      if (params.familyName && params.familyName.trim()) {
+        query = query.ilike('family_name', params.familyName.trim());
+      }
+
+      const { data, error } = await query;
 
       if (!error && data && data.length > 0) {
         const match = data[0];
@@ -75,7 +80,7 @@ export async function createPatientCase(
           organization_id: context.organizationId,
           external_patient_id: draft.patient.externalPatientId || `MRN-${Math.floor(100000 + Math.random() * 900000)}`,
           given_name: draft.patient.givenName,
-          family_name: draft.patient.familyName,
+          family_name: draft.patient.familyName || '',
           date_of_birth: draft.patient.dateOfBirth,
           sex: draft.patient.administrativeSex,
           phone: draft.patient.phone,
@@ -122,6 +127,11 @@ export async function createPatientCase(
       medications: draft.medications,
       allergies: draft.allergies,
       observations: draft.observations,
+      patientDemographics: {
+        dateOfBirth: draft.patient.dateOfBirth,
+        administrativeSex: draft.patient.administrativeSex,
+      },
+      careContext: draft.encounter.encounterClass === 'EMER' ? 'TRIAGE' : draft.encounter.encounterClass === 'IMP' ? 'INPATIENT' : 'OPD',
     });
 
     // ── 3. Run Clinical Criteria Engine (Auto-selects optimal guideline e.g. CAP vs Duke) ───
@@ -262,7 +272,7 @@ export async function createPatientCase(
         actorName: context.userDisplayName,
         eventType: 'CREATED',
         title: `Case opened: ${caseNumber}`,
-        description: `New patient case initialized for ${draft.patient.givenName} ${draft.patient.familyName}. Problem: "${draft.presentation.title}"`,
+        description: `New patient case initialized for ${[draft.patient.givenName, draft.patient.familyName].filter(Boolean).join(' ')}. Problem: "${draft.presentation.title}"`,
         isNexusSimulated: false,
       },
       {
@@ -350,7 +360,7 @@ export async function createPatientCase(
     // ── 6. Assemble Full Case Object ───────────────────────────────────
     const syntheticPatient: SyntheticPatient = {
       id: patientId,
-      syntheticIdentifier: `${draft.patient.givenName} ${draft.patient.familyName}`,
+      syntheticIdentifier: `${draft.patient.givenName} ${draft.patient.familyName || ''}`.trim(),
       age: draft.patient.dateOfBirth ? Math.max(1, new Date().getFullYear() - new Date(draft.patient.dateOfBirth).getFullYear()) : 45,
       gender: draft.patient.administrativeSex === 'MALE' ? 'Male' : draft.patient.administrativeSex === 'FEMALE' ? 'Female' : 'Other',
       encounterNumber: `#${caseNumber.replace('CASE-', '')}`,
@@ -431,7 +441,7 @@ export async function createPatientCase(
         isRecorded: false,
         decisionMakerName: context.userDisplayName,
         decisionMakerRole: 'Attending Clinician',
-        assessment: `Intake assessment for ${draft.patient.givenName} ${draft.patient.familyName}. Chief Complaint: ${draft.presentation.title}.`,
+        assessment: `Intake assessment for ${[draft.patient.givenName, draft.patient.familyName].filter(Boolean).join(' ')}. Chief Complaint: ${draft.presentation.title}.`,
         primaryDecision: 'Pending formal clinical adjudication following comprehensive intake review.',
         rationale: 'Case initialized and pending clinician sign-off.',
         supportingFindings: clinicalFindings.slice(0, 3).map((f) => `${f.id} (${f.label})`),
