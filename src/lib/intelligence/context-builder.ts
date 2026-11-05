@@ -30,6 +30,7 @@ export function buildReasoningContext(
     informationGaps,
     investigations,
     safetyIssues,
+    vitalSigns,
   } = activeCase;
 
   // Include ALL findings — verified ones are primary, unverified are flagged
@@ -103,9 +104,21 @@ export function buildReasoningContext(
     priority: g.priority,
   }));
 
+  // Extract medications from patient overview
+  const medicationsContext = (overview.patient?.medications || []).map((m: any) => ({
+    name: m.name || m.medicationName || String(m),
+    dosage: m.dosage || m.dose || '',
+    frequency: m.frequency || m.sig || '',
+    route: m.route || '',
+  }));
+
   // Extract patient demographics from overview
-  const patientAge = (overview as any).patientAge ?? (overview as any).age;
-  const patientGender = (overview as any).patientGender ?? (overview as any).gender;
+  const patientAge = overview.patient?.age ?? (overview as any).patientAge ?? (overview as any).age;
+  const patientGender = overview.patient?.gender ?? (overview as any).patientGender ?? (overview as any).gender;
+  const patientAllergies = (overview.patient?.allergies || []).map((a: any) =>
+    typeof a === 'string' ? a : `${a.allergen}${a.severity ? ` (${a.severity})` : ''}${a.reaction ? ` — ${a.reaction}` : ''}`
+  );
+  const patientHistory = (activeCase as any).pastMedicalHistory ?? [];
 
   // Build rich clinical summary
   const findingSummaryParts: string[] = [];
@@ -126,6 +139,7 @@ export function buildReasoningContext(
       : '') +
     (patientAge ? `Patient age: ${patientAge}. ` : '') +
     (patientGender ? `Gender: ${patientGender}. ` : '') +
+    (patientAllergies.length > 0 ? `Allergies: ${patientAllergies.slice(0, 3).join(', ')}. ` : '') +
     (findingSummaryParts.length > 0 ? findingSummaryParts.join(', ') + '. ' : '') +
     (safetyContext.length > 0 ? `${safetyContext.length} active safety concern(s).` : '');
 
@@ -139,5 +153,12 @@ export function buildReasoningContext(
     safetyContext,
     informationGaps: informationGapsContext,
     scope,
+    medications: medicationsContext,
+    patientDemographics: {
+      age: typeof patientAge === 'number' ? patientAge : parseInt(String(patientAge), 10) || undefined,
+      gender: patientGender ? String(patientGender) : undefined,
+      allergies: patientAllergies,
+      pastHistory: Array.isArray(patientHistory) ? patientHistory : [],
+    },
   };
 }

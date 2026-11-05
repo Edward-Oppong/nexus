@@ -62,6 +62,13 @@ export interface ReasoningInput {
     allowedOutputs: string[];
     prohibitedOutputs: string[];
   };
+  medications?: Array<{ name: string; dosage?: string; frequency?: string; route?: string }>;
+  patientDemographics?: {
+    age?: number;
+    gender?: string;
+    allergies?: string[];
+    pastHistory?: string[];
+  };
 }
 
 // ----------------------------------------------------------

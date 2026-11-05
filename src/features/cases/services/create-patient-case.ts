@@ -10,6 +10,7 @@ import { CaseIntakeDraft } from '../types/intake';
 import { FullSyntheticCase } from '../../../data/cases/mockCasesData';
 import { CaseOverview, SyntheticPatient } from '../../../domain/case';
 import { ClinicalFinding, FindingCategory } from '../../../domain/finding';
+import { InvestigationOrder } from '../../../domain/investigation';
 import { TimelineEvent } from '../../../domain/timeline';
 import { runDeterministicSafetyChecks } from './deterministic-safety';
 import { evaluateCriteria, evaluateOptimalCriteria } from './criteria-engine';
@@ -423,7 +424,34 @@ export async function createPatientCase(
       hypotheses: diffResult.hypotheses,
       uncertainty: diffResult.uncertainty,
       informationGaps: diffResult.informationGaps,
-      investigations: [],
+      investigations: diffResult.informationGaps.map((gap, idx) => {
+        const name = gap.testName.toLowerCase();
+        const category: InvestigationOrder['category'] =
+          /ct\b|x-ray|mri\b|ultrasound|radiograph|imaging|scan\b|cxr\b|echo/.test(name)
+            ? 'Imaging'
+            : /culture|pcr\b|sensitivity|microbio|gram\s*stain/.test(name)
+            ? 'Microbiology'
+            : /ecg|ekg|holter|echocardiogra|cardiac\s*monitor/.test(name)
+            ? 'Cardiovascular'
+            : 'Laboratory';
+        const priority: InvestigationOrder['priority'] =
+          gap.priority === 'HIGH PRIORITY' || gap.priority === 'High'
+            ? 'Stat'
+            : gap.priority === 'MODERATE PRIORITY' || gap.priority === 'Moderate'
+            ? 'Urgent'
+            : 'Routine';
+        return {
+          id: `inv-${caseId.slice(0, 8)}-${String(idx + 1).padStart(2, '0')}`,
+          caseId,
+          testName: gap.testName,
+          category,
+          priority,
+          requestedBy: context.userDisplayName,
+          requestedAt: now,
+          clinicalIndication: gap.whyItMatters,
+          status: 'REQUESTED' as const,
+        };
+      }),
       timeline,
       safetyIssues: concerns.map((c) => ({
         id: c.id,

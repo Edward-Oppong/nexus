@@ -34,6 +34,7 @@ export interface ClinicalPromptInput {
     allergies?: string[];
     pastHistory?: string[];
   };
+  medications?: Array<{ name: string; dosage?: string; frequency?: string; route?: string }>;
   existingHypotheses?: Array<{ id: string; title: string; status: string }>;
 }
 
@@ -103,6 +104,13 @@ export function buildClinicalReasoningPrompt(input: ClinicalPromptInput): string
         .join(' | ')
     : '';
 
+  const medicationsList =
+    input.medications && input.medications.length > 0
+      ? input.medications
+          .map((m) => `  - ${m.name}${m.dosage ? ` ${m.dosage}` : ''}${m.route ? ` ${m.route}` : ''}${m.frequency ? ` ${m.frequency}` : ''}`)
+          .join('\n')
+      : '  None documented';
+
   const hypothesesHint =
     input.existingHypotheses && input.existingHypotheses.length > 0
       ? `\nPrior hypotheses on file:\n${input.existingHypotheses.map((h) => `  - ${h.title} [${h.status}]`).join('\n')}`
@@ -137,7 +145,7 @@ CRITICAL: The patient presents with catastrophic physiological collapse (e.g. SB
 You are the Nexus Clinical Diagnostic Engine — a precision differential diagnosis co-pilot for acute hospital physicians. Your task is to analyze the clinical case below and return a structured differential diagnosis assessment.
 
 === CLINICAL CASE ===
-${demographics ? demographics + '\n' : ''}Presentation: ${input.clinicalSummary}
+${demographics ? demographics + '\n' : ''}${input.medications && input.medications.length > 0 ? `ACTIVE MEDICATIONS:\n${medicationsList}\n` : ''}Presentation: ${input.clinicalSummary}
 ${hypothesesHint}
 
 VERIFIED CLINICAL FINDINGS:

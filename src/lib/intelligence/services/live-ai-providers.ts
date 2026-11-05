@@ -101,6 +101,8 @@ export class GeminiClinicalProvider implements ReasoningProvider {
       retrievedEvidence: input.retrievedEvidence,
       informationGaps: input.informationGaps,
       existingHypotheses: input.existingHypotheses,
+      medications: input.medications,
+      patientDemographics: input.patientDemographics,
     });
 
     const systemInstruction = `You are the Nexus Clinical Reasoning Engine. You operate under EU MDR Annex I and FDA CDS standards.
@@ -199,6 +201,8 @@ export class GroqClinicalProvider implements ReasoningProvider {
       retrievedEvidence: input.retrievedEvidence,
       informationGaps: input.informationGaps,
       existingHypotheses: input.existingHypotheses,
+      medications: input.medications,
+      patientDemographics: input.patientDemographics,
     });
 
     const createPayload = (targetModel: string) => ({
@@ -273,6 +277,8 @@ export class OpenAiClinicalProvider implements ReasoningProvider {
       retrievedEvidence: input.retrievedEvidence,
       informationGaps: input.informationGaps,
       existingHypotheses: input.existingHypotheses,
+      medications: input.medications,
+      patientDemographics: input.patientDemographics,
     });
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
