@@ -91,7 +91,7 @@ export class GeminiClinicalProvider implements ReasoningProvider {
 
     const preferredModel = settings.geminiModel && settings.geminiModel !== 'gemini-2.5-flash'
       ? settings.geminiModel
-      : 'gemini-3.8-flash';
+      : 'gemini-3.5-flash';
 
     const prompt = buildClinicalReasoningPrompt({
       caseId: input.caseId,
@@ -147,9 +147,9 @@ Do NOT include markdown formatting or backticks. Return valid JSON only.`;
       body: JSON.stringify(requestPayload),
     });
 
-    // Automatic fallback to gemini-flash-latest if preferredModel is not found
-    if (response.status === 404) {
-      url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
+    // Automatic retry with gemini-3.5-flash if preferred model is 404/503
+    if ((response.status === 404 || response.status === 503) && preferredModel !== 'gemini-3.5-flash') {
+      url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
       response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

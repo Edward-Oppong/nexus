@@ -24,6 +24,13 @@ interface GenerateHypothesesResult {
   uncertainty: QualitativeUncertainty;
 }
 
+export function stripNegatedClinicalTerms(text: string): string {
+  return text.replace(
+    /\b(?:no|denies|denied|without|negative for|rules? out|free of)\s+(?:chest pain|angina|shortness of breath|dyspnea|fever|headache|pain|cough|nausea|vomiting|bleed(?:ing)?|vision changes?)\b/gi,
+    ' '
+  );
+}
+
 export function generateDifferentialHypotheses({
   caseId,
   presentation,
@@ -34,6 +41,7 @@ export function generateDifferentialHypotheses({
   const fullText = `${presentation.title || ''} ${presentation.historyOfPresentIllness || ''} ${presentation.pastMedicalHistory || ''} ${presentation.physicalExamNotes || ''}`.toLowerCase();
   const obsText = observations.map((o) => `${o.display} ${o.value} ${o.interpretation || ''}`).join(' ').toLowerCase();
   const combinedContext = `${fullText} ${obsText}`;
+  const positiveContext = stripNegatedClinicalTerms(combinedContext);
 
   // Helper to collect finding IDs matching keywords
   const findSupporting = (keywords: RegExp): string[] => {
@@ -336,8 +344,8 @@ export function generateDifferentialHypotheses({
   // 0.3 ESI 5: NON-URGENT (PRESCRIPTION REFILL / UNCONTROLLED HTN)
   // ─────────────────────────────────────────────────────────────
   else if (
-    /(ran out of.*medication|prescription refill|refill.*lisinopril|medication non-compliance|routine refill)/i.test(combinedContext) &&
-    !/(chest|pain|shortness of breath|fever|bleed|trauma|stroke|weakness)/i.test(combinedContext)
+    /(ran out of.*medication|prescription refill|refill.*lisinopril|medication non-compliance|routine refill|medication renewal)/i.test(combinedContext) &&
+    !/(acute pain|severe pain|chest pain|shortness of breath|fever|bleed|trauma|stroke|weakness)/i.test(positiveContext)
   ) {
     const refillSupporting = findSupporting(/(bp|blood pressure|hypertension|lisinopril|refill|medication)/i);
 
@@ -597,7 +605,7 @@ export function generateDifferentialHypotheses({
   // 3. CARDIOVASCULAR / ACUTE CORONARY SYNDROME PATTERN
   // ─────────────────────────────────────────────────────────────
   else if (
-    /(troponin|angina|chest pain|ecg|stemi|nstemi|ischemi|infarct|substernal|coronary|nitroglycerin)/.test(combinedContext)
+    /(troponin|angina|\bchest pain\b|ecg|stemi|nstemi|ischemi|infarct|substernal|coronary|nitroglycerin)/.test(positiveContext)
   ) {
     const acsSupporting = findSupporting(/(chest pain|troponin|ecg|blood pressure|heart rate|diaphoresis|radiation)/i);
 

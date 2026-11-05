@@ -34,29 +34,40 @@ export const DEFAULT_AI_SETTINGS: AiEngineSettings = {
   openaiApiKey: '',
   anthropicApiKey: '',
   hfApiToken: '',
-  geminiModel: 'gemini-3.8-flash',
+  geminiModel: 'gemini-3.5-flash',
   groqModel: 'qwen/qwen3.8-27b',
   openaiModel: 'gpt-4o-mini',
   anthropicModel: 'claude-3-5-haiku-20241022',
 };
 
+function getEnvVar(key: string): string {
+  if (typeof import.meta !== 'undefined' && import.meta?.env && import.meta.env[key]) {
+    return String(import.meta.env[key]);
+  }
+  const proc = (globalThis as any)?.process;
+  if (proc?.env && proc.env[key]) {
+    return String(proc.env[key]);
+  }
+  return '';
+}
+
 export function loadAiEngineSettings(): AiEngineSettings {
   let settings = { ...DEFAULT_AI_SETTINGS };
 
-  // 1. Seed from environment variables
-  const envGemini = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_GOOGLE_API_KEY;
+  // 1. Seed from environment variables (safe across Vite and Node environments)
+  const envGemini = getEnvVar('VITE_GEMINI_API_KEY') || getEnvVar('VITE_GOOGLE_API_KEY');
   if (envGemini) settings.geminiApiKey = String(envGemini).trim();
 
-  const envGroq = import.meta.env.VITE_GROQ_API_KEY;
+  const envGroq = getEnvVar('VITE_GROQ_API_KEY');
   if (envGroq) settings.groqApiKey = String(envGroq).trim();
 
-  const envOpenAI = import.meta.env.VITE_OPENAI_API_KEY;
+  const envOpenAI = getEnvVar('VITE_OPENAI_API_KEY');
   if (envOpenAI) settings.openaiApiKey = String(envOpenAI).trim();
 
-  const envAnthropic = import.meta.env.VITE_ANTHROPIC_API_KEY;
+  const envAnthropic = getEnvVar('VITE_ANTHROPIC_API_KEY');
   if (envAnthropic) settings.anthropicApiKey = String(envAnthropic).trim();
 
-  const envHf = import.meta.env.VITE_HF_API_TOKEN || import.meta.env.VITE_HUGGINGFACE_API_KEY;
+  const envHf = getEnvVar('VITE_HF_API_TOKEN') || getEnvVar('VITE_HUGGINGFACE_API_KEY');
   if (envHf) settings.hfApiToken = String(envHf).trim();
 
   // 2. Overlay from localStorage

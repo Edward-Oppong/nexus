@@ -1301,8 +1301,9 @@ export class MistralInstructProvider implements ReasoningProvider {
 
   async generateAssessment(input: ReasoningInput): Promise<RawReasoningOutput> {
     if (!huggingFaceClient.isConfigured()) {
-      console.info('[MistralInstructProvider] No HF token — using deterministic fallback.');
-      return deterministicProvider.generateAssessment(input);
+      throw new Error(
+        'Hugging Face is selected as the reasoning provider, but no Hugging Face API token is configured. Please provide VITE_HF_API_TOKEN in .env or via the AI Engine settings.'
+      );
     }
 
     try {
@@ -1355,28 +1356,24 @@ export class MistralInstructProvider implements ReasoningProvider {
       }
 
       if (!rawText) {
-        console.warn('[MistralInstructProvider] Empty response — falling back to deterministic.');
-        return deterministicProvider.generateAssessment(input);
+        throw new Error('[MistralInstructProvider] Empty response received from model.');
       }
 
       // Extract JSON block from response
       const jsonMatch = rawText.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        console.warn('[MistralInstructProvider] No JSON block found in response — falling back.');
-        return deterministicProvider.generateAssessment(input);
+        throw new Error('[MistralInstructProvider] No structured JSON block found in model response.');
       }
 
       let parsed: any;
       try {
         parsed = JSON.parse(jsonMatch[0]);
       } catch (parseErr) {
-        console.warn('[MistralInstructProvider] JSON parse failed — falling back.', parseErr);
-        return deterministicProvider.generateAssessment(input);
+        throw new Error('[MistralInstructProvider] Failed to parse model JSON output.');
       }
 
       if (!parsed.summary || !Array.isArray(parsed.hypotheses)) {
-        console.warn('[MistralInstructProvider] Schema mismatch — falling back.');
-        return deterministicProvider.generateAssessment(input);
+        throw new Error('[MistralInstructProvider] Model output did not adhere to required clinical schema (missing summary or hypotheses array).');
       }
 
       // Ground: filter IDs to only those that actually exist in the case context
@@ -1413,16 +1410,8 @@ export class MistralInstructProvider implements ReasoningProvider {
         ? parsed.limitations.map(String)
         : ['Advisory output for licensed physician review; not an autonomous medical device.'];
 
-      // If AI returned no grounded hypotheses, supplement with deterministic
       if (groundedHypotheses.length === 0) {
-        console.warn('[MistralInstructProvider] No grounded hypotheses in AI output — merging deterministic.');
-        const det = await deterministicProvider.generateAssessment(input);
-        return {
-          summary: parsed.summary || det.summary,
-          hypotheses: det.hypotheses,
-          contradictions: [...groundedContradictions, ...det.contradictions],
-          limitations: [...limitations, ...det.limitations],
-        };
+        throw new Error('[MistralInstructProvider] Model did not generate any grounded clinical hypotheses for the verified findings.');
       }
 
       return {
@@ -1433,16 +1422,8 @@ export class MistralInstructProvider implements ReasoningProvider {
       };
     } catch (err: any) {
       const msg = String(err?.message || err);
-      const is429 = msg.includes('429') || msg.toLowerCase().includes('rate') || msg.toLowerCase().includes('overload');
-      const is503 = msg.includes('503') || msg.toLowerCase().includes('warming') || msg.toLowerCase().includes('loading');
-
-      if (is429 || is503) {
-        console.warn(`[MistralInstructProvider] Model temporarily unavailable (${is429 ? '429 rate-limit' : '503 loading'}) — using deterministic synthesizer.`);
-      } else {
-        console.warn('[MistralInstructProvider] Generation error — falling back to deterministic:', msg);
-      }
-
-      return deterministicProvider.generateAssessment(input);
+      console.error('[MistralInstructProvider] Diagnosis generation failed:', msg);
+      throw new Error(`Mistral Reasoning Engine error: ${msg}`);
     }
   }
 }
@@ -1476,10 +1457,10 @@ export class MultiModelLiveReasoningProvider implements ReasoningProvider {
   get name(): string {
     const s = loadAiEngineSettings();
     switch (s.selectedProvider) {
-      case 'gemini': return s.geminiApiKey ? 'Google Gemini 2.5 Flash (Live)' : 'Nexus Autonomous Clinical Engine';
-      case 'groq': return s.groqApiKey ? 'Groq Llama 3.3 70B (Live)' : 'Nexus Autonomous Clinical Engine';
+      case 'gemini': return s.geminiApiKey ? 'Google Gemini 3.8 Flash (Live)' : 'Nexus Autonomous Clinical Engine';
+      case 'groq': return s.groqApiKey ? 'Groq Cloud Qwen 27B / GPT-OSS (Live)' : 'Nexus Autonomous Clinical Engine';
       case 'openai': return s.openaiApiKey ? 'OpenAI GPT-4o Mini (Live)' : 'Nexus Autonomous Clinical Engine';
-      case 'huggingface': return s.hfApiToken ? 'Hugging Face Inference (Live)' : 'Nexus Autonomous Clinical Engine';
+      case 'huggingface': return s.hfApiToken ? 'Hugging Face Mistral-7B (Live)' : 'Nexus Autonomous Clinical Engine';
       default: return 'Nexus Autonomous Clinical Engine';
     }
   }
@@ -1487,8 +1468,8 @@ export class MultiModelLiveReasoningProvider implements ReasoningProvider {
   get version(): string {
     const s = loadAiEngineSettings();
     switch (s.selectedProvider) {
-      case 'gemini': return '2.5-flash-live';
-      case 'groq': return 'llama-3.3-70b-live';
+      case 'gemini': return '3.8-flash-live';
+      case 'groq': return 'qwen-3.8-27b-live';
       case 'openai': return 'gpt-4o-mini-live';
       case 'huggingface': return '0.3-hf';
       default: return '2.5.0-clinical';
@@ -1499,46 +1480,42 @@ export class MultiModelLiveReasoningProvider implements ReasoningProvider {
     const s = loadAiEngineSettings();
 
     // 1. Google Gemini
-    if (s.selectedProvider === 'gemini' && s.geminiApiKey.trim()) {
-      try {
-        console.info('[MultiModelLiveReasoningProvider] Calling live Google Gemini 2.5 Flash...');
-        return await geminiProvider.generateAssessment(input);
-      } catch (err: any) {
-        console.warn('[MultiModelLiveReasoningProvider] Gemini call failed, engaging autonomous clinical fallback:', err?.message || err);
+    if (s.selectedProvider === 'gemini') {
+      if (!s.geminiApiKey.trim()) {
+        throw new Error('Google Gemini is selected as the reasoning provider, but no API key is configured. Please provide VITE_GEMINI_API_KEY in .env or via the AI Engine settings.');
       }
+      console.info('[MultiModelLiveReasoningProvider] Calling live Google Gemini 3.8 Flash...');
+      return await geminiProvider.generateAssessment(input);
     }
 
     // 2. Groq Cloud
-    if (s.selectedProvider === 'groq' && s.groqApiKey.trim()) {
-      try {
-        console.info('[MultiModelLiveReasoningProvider] Calling live Groq Llama 3.3 70B...');
-        return await groqProvider.generateAssessment(input);
-      } catch (err: any) {
-        console.warn('[MultiModelLiveReasoningProvider] Groq call failed, engaging autonomous clinical fallback:', err?.message || err);
+    if (s.selectedProvider === 'groq') {
+      if (!s.groqApiKey.trim()) {
+        throw new Error('Groq Cloud is selected as the reasoning provider, but no API key is configured. Please provide VITE_GROQ_API_KEY in .env or via the AI Engine settings.');
       }
+      console.info('[MultiModelLiveReasoningProvider] Calling live Groq Cloud...');
+      return await groqProvider.generateAssessment(input);
     }
 
     // 3. OpenAI
-    if (s.selectedProvider === 'openai' && s.openaiApiKey.trim()) {
-      try {
-        console.info('[MultiModelLiveReasoningProvider] Calling live OpenAI GPT-4o...');
-        return await openaiProvider.generateAssessment(input);
-      } catch (err: any) {
-        console.warn('[MultiModelLiveReasoningProvider] OpenAI call failed, engaging autonomous clinical fallback:', err?.message || err);
+    if (s.selectedProvider === 'openai') {
+      if (!s.openaiApiKey.trim()) {
+        throw new Error('OpenAI is selected as the reasoning provider, but no API key is configured. Please provide VITE_OPENAI_API_KEY in .env or via the AI Engine settings.');
       }
+      console.info('[MultiModelLiveReasoningProvider] Calling live OpenAI...');
+      return await openaiProvider.generateAssessment(input);
     }
 
     // 4. Hugging Face
-    if (s.selectedProvider === 'huggingface' && s.hfApiToken.trim()) {
-      try {
-        console.info('[MultiModelLiveReasoningProvider] Calling Hugging Face Mistral...');
-        return await mistralProvider.generateAssessment(input);
-      } catch (err: any) {
-        console.warn('[MultiModelLiveReasoningProvider] HF call failed, engaging autonomous clinical fallback:', err?.message || err);
+    if (s.selectedProvider === 'huggingface') {
+      if (!s.hfApiToken.trim()) {
+        throw new Error('Hugging Face is selected as the reasoning provider, but no API token is configured.');
       }
+      console.info('[MultiModelLiveReasoningProvider] Calling Hugging Face Mistral...');
+      return await mistralProvider.generateAssessment(input);
     }
 
-    // 5. Autonomous Clinical Rules Engine (Primary offline / unconfigured engine)
+    // 5. Autonomous Clinical Rules Engine (Explicitly selected by clinician)
     console.info('[MultiModelLiveReasoningProvider] Synthesizing via Nexus Autonomous Clinical Engine...');
     return autonomousProvider.generateAssessment(input);
   }

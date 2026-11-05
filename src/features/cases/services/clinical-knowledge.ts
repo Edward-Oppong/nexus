@@ -808,9 +808,19 @@ export interface EvaluateEsiInput {
  * Evaluates patient presentation, vital signs, and anticipated clinical resources
  * strictly against the official Emergency Severity Index (ESI) Flowchart.
  */
+export function stripNegatedClinicalTerms(text: string): string {
+  return text.replace(
+    /\b(?:no|denies|denied|without|negative for|rules? out|free of)\s+(?:chest pain|angina|shortness of breath|dyspnea|fever|headache|pain|cough|nausea|vomiting|bleed(?:ing)?|vision changes?)\b/gi,
+    ' '
+  );
+}
+
 export function evaluateEsiTriage(input: EvaluateEsiInput): EsiTriageEvaluation {
-  const { presentation, observations, patientDemographics } = input;
+  const presentation = input.presentation || { title: '', historyOfPresentIllness: '', pastMedicalHistory: '', physicalExamNotes: '' };
+  const observations = input.observations || [];
+  const patientDemographics = input.patientDemographics;
   const fullText = `${presentation.title || ''} ${presentation.historyOfPresentIllness || ''} ${presentation.pastMedicalHistory || ''} ${presentation.physicalExamNotes || ''}`.toLowerCase();
+  const positiveText = stripNegatedClinicalTerms(fullText);
 
   // Extract vital signs from observations and free-text notes
   let sbp: number | undefined;
@@ -966,7 +976,7 @@ export function evaluateEsiTriage(input: EvaluateEsiInput): EsiTriageEvaluation 
   // Detect Zero Resources (ESI 5):
   // Medication refill, stitch removal, mild stable rash, non-urgent prescription request without acute symptoms
   const isMedicationRefill = /\b(medication refill|prescription refill|ran out of|routine refill|refill|blood pressure check|asymptomatic|stitch removal|suture removal)\b/i.test(fullText) &&
-    !/\b(pain|shortness of breath|chest pain|fever|bleed|trauma|fracture|sprain|vomit)\b/i.test(fullText);
+    !/\b(pain|shortness of breath|chest pain|fever|bleed|trauma|fracture|sprain|vomit)\b/i.test(positiveText);
 
   if (isMedicationRefill) {
     return {
@@ -987,7 +997,7 @@ export function evaluateEsiTriage(input: EvaluateEsiInput): EsiTriageEvaluation 
   // Detect Single Resource (ESI 4):
   // Isolated extremities injury (ankle sprain, wrist sprain, simple laceration, simple cellulitis needing oral meds only, uncomplicated URI)
   const isSingleResource = /\b(ankle sprain|twisted ankle|wrist sprain|foot injury|finger injury|minor laceration|simple cut|suture|x-ray only|isolated limb)\b/i.test(fullText) ||
-    (/\b(malleolus|swelling|bear weight|ottawa ankle)\b/i.test(fullText) && !/\b(abdominal|chest|fever|dyspnea|stroke|altered)\b/i.test(fullText));
+    (/\b(malleolus|swelling|bear weight|ottawa ankle)\b/i.test(fullText) && !/\b(abdominal|chest|fever|dyspnea|stroke|altered)\b/i.test(positiveText));
 
   if (isSingleResource) {
     return {
