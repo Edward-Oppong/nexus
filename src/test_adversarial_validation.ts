@@ -910,7 +910,7 @@ async function runPhase4_ClinicalReasoning() {
     .map((f) => f.content);
 
   const hasIrrelevantDifferential = allHypLabels.some((h) =>
-    /coronary|myocardial|stemi|stroke|pulmonary embolism/i.test(h)
+    /coronary|myocardial|\bstemi\b|stroke|pulmonary embolism/i.test(h)
   );
   if (hasIrrelevantDifferential) {
     metrics.phase4_clinicalReasoning.unsupportedHypotheses++;

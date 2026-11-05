@@ -164,9 +164,14 @@ export class AutonomousClinicalProvider implements ReasoningProvider {
     const coughFindingIds = matchFindings(['cough', 'productive', 'sputum', 'purulent', 'yellowish']);
     const cracklesFindingIds = matchFindings(['crackle', 'crepitation', 'bronchial breath', 'dullness']);
     const consolidationFindingIds = matchFindings(['consolidation', 'air-space opacity', 'opacity', 'infiltrate', 'cxr', 'x-ray', 'bronchogram']);
+    // respiratoryFindingIds: match SYMPTOMATIC respiratory terms only.
+    // Deliberately exclude bare vital-sign labels ('respiratory rate', 'spo2', 'oxygen')
+    // because a finding like 'Respiratory Rate 18 bpm' or 'SpO2 99%' is a normal
+    // recorded vital, not evidence the patient is experiencing dyspnea.
     const respiratoryFindingIds = matchFindings([
       'dyspnoea', 'dyspnea', 'shortness of breath', 'sob', 'breathless',
-      'hypox', 'spo2', 'oxygen', 'respiratory rate', 'tachypnea', 'work of breathing',
+      'respiratory distress', 'hypoxia', 'hypoxemia', 'low oxygen saturation',
+      'desaturation', 'tachypnea', 'tachypnoea', 'work of breathing',
     ]);
     const wheezeFindingIds = matchFindings(['wheeze', 'wheezing', 'rhonchi', 'expiratory wheeze', 'bronchospasm', 'stridor']);
     const pneumothoraxFindingIds = matchFindings(['pneumothorax', 'absent breath sound', 'diminished breath sound', 'hyperresonance', 'tracheal deviat']);
@@ -962,8 +967,14 @@ export class AutonomousClinicalProvider implements ReasoningProvider {
 
     // ──────────────────────────────────────────────────────────
     // 16. Pulmonary Embolism (PE)
+    // Gate: requires SYMPTOMATIC dyspnea (not just a normal vital sign recording).
+    // Suppressed when the presentation has a dominant abdominal focus
+    // (appendicitis, peritonism, RLQ, McBurney) with no respiratory complaint.
     // ──────────────────────────────────────────────────────────
-    if (hasDyspnea && (hasFeature(['pleuritic', 'dvt', 'unilateral leg', 'hemoptysis', 'ctpa']) || ddimerIds.length > 0)) {
+    const hasDominantAbdominalFocus =
+      appendicitisFindingIds.length > 0 ||
+      hasFeature(['appendicitis', 'rlq', 'mcburney', 'right lower quadrant', 'rovsing', 'peritoneal sign', 'peritonism', 'iliac fossa']);
+    if (hasDyspnea && !hasDominantAbdominalFocus && (hasFeature(['pleuritic', 'dvt', 'unilateral leg', 'hemoptysis', 'ctpa']) || ddimerIds.length > 0)) {
       let peScore = 5;
       if (ddimerIds.length > 0) peScore += 6;
       if (hasDefinitePulmonaryInfection) peScore -= 6;
