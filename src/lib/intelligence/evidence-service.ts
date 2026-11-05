@@ -1,16 +1,16 @@
 // ============================================================
 // src/lib/intelligence/evidence-service.ts
 // Phase 6F: Layer 2 — Evidence Retrieval Service
-// Retrieves relevant evidence for a clinical question.
-// Architecture is provider-replaceable (PubMed adapter later).
-// Do not let an LLM invent citations — retrieve first, then reason.
+// All evidence is retrieved live: local scoring from items
+// passed explicitly by the caller, then augmented with live
+// PubMed / Europe PMC results.
+// No static mock data is stored or used here.
 // ============================================================
 
 import { EvidenceQuery, EvidenceResult, EvidenceItem } from '../../domain/evidence';
-import { MOCK_EVIDENCE_ITEMS } from '../../data/evidence/mockEvidence';
 
 // ----------------------------------------------------------
-// Convert legacy EvidenceItem to EvidenceResult for the pipeline
+// Convert EvidenceItem to EvidenceResult for the pipeline
 // ----------------------------------------------------------
 function evidenceItemToResult(item: EvidenceItem, matchedConcepts: string[], score: number): EvidenceResult {
   return {
@@ -60,13 +60,11 @@ function scoreEvidence(item: EvidenceItem, concepts: string[], hypothesisId?: st
   const matched: string[] = [];
   let score = 0;
 
-  // Hypothesis match — strong signal
   if (hypothesisId && (item.relevantHypothesisId === hypothesisId || item.hypothesisIds?.includes(hypothesisId ?? ''))) {
     score += 40;
     matched.push('hypothesis-match');
   }
 
-  // Keyword overlap
   concepts.forEach((concept) => {
     if (searchText.includes(concept)) {
       score += 10;
@@ -74,17 +72,17 @@ function scoreEvidence(item: EvidenceItem, concepts: string[], hypothesisId?: st
     }
   });
 
-  // Authority bonus
   if (item.authority === 'High') score += 5;
 
   return { score, matched: [...new Set(matched)] };
 }
 
 // ----------------------------------------------------------
-// Main search function — searches Supabase-backed evidence library
-// Returns results ranked by relevance. Deduplicates by ID.
+// Local search — scores items passed in by the caller.
+// Callers must provide their own item list; this function
+// does NOT use any static or mock data.
 // ----------------------------------------------------------
-export function searchEvidence(query: EvidenceQuery, items: EvidenceItem[] = MOCK_EVIDENCE_ITEMS): EvidenceResult[] {
+export function searchEvidence(query: EvidenceQuery, items: EvidenceItem[] = []): EvidenceResult[] {
   const concepts = extractConcepts(query.question + ' ' + (query.hypothesis ?? ''));
   const seen = new Set<string>();
   const results: Array<{ result: EvidenceResult; score: number }> = [];
@@ -92,7 +90,6 @@ export function searchEvidence(query: EvidenceQuery, items: EvidenceItem[] = MOC
   for (const item of items) {
     if (seen.has(item.id)) continue;
 
-    // Source type filter
     if (query.sourceTypes && query.sourceTypes.length > 0) {
       const itemSourceType = item.sourceType ?? 'GUIDELINE';
       if (!query.sourceTypes.includes(itemSourceType as any)) continue;
@@ -105,7 +102,6 @@ export function searchEvidence(query: EvidenceQuery, items: EvidenceItem[] = MOC
     }
   }
 
-  // Sort by score descending, limit
   const limit = query.limit ?? 10;
   return results
     .sort((a, b) => b.score - a.score)
@@ -115,25 +111,25 @@ export function searchEvidence(query: EvidenceQuery, items: EvidenceItem[] = MOC
 
 // ----------------------------------------------------------
 // Live PubMed / Europe PMC evidence search
-// Combines local Tier-1 clinical guidelines with live peer-reviewed literature
+// Goes directly to live retrieval — no static fallback.
 // ----------------------------------------------------------
 import { fetchLivePubMedEvidence } from './services/pubmed-service';
 
 export async function searchEvidenceAsync(
   query: EvidenceQuery,
-  items: EvidenceItem[] = MOCK_EVIDENCE_ITEMS
+  items: EvidenceItem[] = []
 ): Promise<EvidenceResult[]> {
   const localResults = searchEvidence(query, items);
   const seenIds = new Set(localResults.map((r) => r.source.id));
 
-  // Determine if we need live PubMed augmentation
   const limit = query.limit ?? 4;
   const topic = query.hypothesis || query.question;
 
-  if (topic && localResults.length < limit) {
+  // Always try live PubMed — fill up to limit or top up local results
+  if (topic) {
     try {
       const pubmedResults = await fetchLivePubMedEvidence(topic, {
-        limit: limit - localResults.length,
+        limit: limit - localResults.length > 0 ? limit - localResults.length : limit,
         preferGuidelines: true,
       });
 
@@ -174,4 +170,3 @@ export async function retrieveEvidenceForCase(
 
   return resultMap;
 }
-

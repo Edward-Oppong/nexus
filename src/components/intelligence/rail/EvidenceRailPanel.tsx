@@ -1,38 +1,31 @@
 // ============================================================
 // src/components/intelligence/rail/EvidenceRailPanel.tsx
 // Core Rail Function 2: "What evidence supports this?"
-// Surfaces case-specific MedCPT-retrieved evidence when a
-// Nexus assessment exists; falls back to baseline guidelines.
+// Shows evidence retrieved by Nexus after analysis.
+// No static mock data — empty state shown until analysis runs.
 // ============================================================
 
 import React from 'react';
 import { useCase } from '../../../app/providers/CaseContext';
 import { useDrawer } from '../../../app/providers/DrawerContext';
-import { BookOpen, ExternalLink, AlertCircle } from 'lucide-react';
-import { MOCK_EVIDENCE_ITEMS } from '../../../data/evidence/mockEvidence';
+import { BookOpen, ExternalLink, FlaskConical } from 'lucide-react';
 
 export const EvidenceRailPanel: React.FC = () => {
   const { setActiveCaseSubTab, nexusAssessment } = useCase();
   const { openEvidenceDrawer } = useDrawer();
 
-  // If a Nexus assessment has been run, match its retrieved evidence IDs
-  // against the MOCK_EVIDENCE_ITEMS library (which mirrors what evidence-service returns).
   const assessmentSources = nexusAssessment?.evidenceSources ?? [];
-  const isCaseAnalysed = assessmentSources.length > 0;
+  const nexusFindings = nexusAssessment?.nexusFindings ?? [];
 
-  const matchedEvidence = isCaseAnalysed
-    ? assessmentSources
-        .slice(0, 4)
-        .map((src) => MOCK_EVIDENCE_ITEMS.find((ev) => ev.id === src.evidenceSourceId))
-        .filter((ev): ev is NonNullable<typeof ev> => ev !== undefined)
-        .slice(0, 2)
-    : [];
+  // Build display evidence from nexus assessment findings that have evidence source IDs
+  // These are populated after retrieveEvidenceForCase() runs during Nexus analysis.
+  const evidenceEntries = nexusFindings
+    .filter((f) => f.evidenceSourceIds && f.evidenceSourceIds.length > 0)
+    .flatMap((f) => (f.evidenceSourceIds || []).map((id) => ({ id, content: f.content })))
+    .slice(0, 2);
 
-  // Fall back to top-2 baseline guidelines when no case-matched evidence is available
-  const displayEvidence =
-    matchedEvidence.length > 0 ? matchedEvidence : MOCK_EVIDENCE_ITEMS.slice(0, 2);
-
-  const isCaseSpecific = matchedEvidence.length > 0;
+  // Also check the flat evidenceSources list from the assessment
+  const hasEvidence = assessmentSources.length > 0 || evidenceEntries.length > 0;
 
   return (
     <section
@@ -69,88 +62,114 @@ export const EvidenceRailPanel: React.FC = () => {
           <BookOpen size={13} color="#059669" />
           Clinical Evidence
         </span>
-        <span
-          style={{
-            fontSize: '10px',
-            fontFamily: 'var(--font-mono)',
-            fontWeight: 600,
-            color: isCaseSpecific ? '#059669' : '#64748B',
-            background: isCaseSpecific ? '#ECFDF5' : '#F1F5F9',
-            padding: '2px 6px',
-            borderRadius: '4px',
-          }}
-        >
-          {isCaseSpecific ? 'Case-Matched' : 'MedCPT Reranked'}
-        </span>
+        {hasEvidence && (
+          <span
+            style={{
+              fontSize: '10px',
+              fontFamily: 'var(--font-mono)',
+              fontWeight: 600,
+              color: '#059669',
+              background: '#ECFDF5',
+              padding: '2px 6px',
+              borderRadius: '4px',
+            }}
+          >
+            {assessmentSources.length} source{assessmentSources.length !== 1 ? 's' : ''} retrieved
+          </span>
+        )}
       </div>
 
-      {/* Prompt to run analysis when no assessment exists */}
-      {!isCaseAnalysed && (
+      {/* Empty state — no analysis run yet */}
+      {!hasEvidence && (
         <div
           style={{
             display: 'flex',
-            alignItems: 'flex-start',
-            gap: '6px',
-            padding: '6px 8px',
-            background: '#FFFBEB',
-            border: '1px solid #FDE68A',
-            borderRadius: '4px',
-            fontSize: '10px',
-            color: '#92400E',
-            lineHeight: 1.4,
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '16px 8px',
+            background: '#F8FAFC',
+            border: '1px dashed #CBD5E1',
+            borderRadius: '6px',
+            textAlign: 'center',
           }}
         >
-          <AlertCircle size={11} style={{ flexShrink: 0, marginTop: '1px' }} />
-          <span>Run Nexus Analysis to retrieve case-specific evidence citations</span>
+          <FlaskConical size={22} color="#94A3B8" />
+          <div style={{ fontSize: '11px', fontWeight: 600, color: '#475569' }}>
+            No evidence retrieved yet
+          </div>
+          <div style={{ fontSize: '10px', color: '#94A3B8', lineHeight: 1.5 }}>
+            Run Nexus Analysis to retrieve case-specific PubMed citations and clinical guidelines
+          </div>
         </div>
       )}
 
-      {/* Evidence cards */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {displayEvidence.map((ev) => (
-          <div
-            key={ev.id}
-            onClick={() => openEvidenceDrawer(ev)}
-            style={{
-              padding: '8px 10px',
-              borderRadius: '5px',
-              background: isCaseSpecific ? '#F0FDF4' : '#F8FAFC',
-              border: `1px solid ${isCaseSpecific ? '#BBF7D0' : '#F1F5F9'}`,
-              cursor: 'pointer',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '4px',
-            }}
-          >
+      {/* Evidence source cards (if assessment ran and returned sources) */}
+      {hasEvidence && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {assessmentSources.slice(0, 2).map((src, idx) => (
             <div
+              key={src.evidenceSourceId}
               style={{
-                fontSize: '11px',
-                fontWeight: 600,
-                color: '#0F172A',
-                lineHeight: 1.35,
-              }}
-            >
-              {ev.title}
-            </div>
-            <div
-              style={{
-                fontSize: '10px',
-                color: '#64748B',
+                padding: '8px 10px',
+                borderRadius: '5px',
+                background: '#F0FDF4',
+                border: '1px solid #BBF7D0',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
+                flexDirection: 'column',
+                gap: '4px',
               }}
             >
-              <span>{ev.sourceOrganization} ({ev.publicationYear})</span>
-              <span style={{ color: '#0284C7', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                Inspect <ExternalLink size={9} />
-              </span>
+              <div
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  color: '#0F172A',
+                  lineHeight: 1.35,
+                }}
+              >
+                Evidence Source #{idx + 1}
+              </div>
+              <div
+                style={{
+                  fontSize: '10px',
+                  color: '#64748B',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '9px',
+                    color: '#64748B',
+                    wordBreak: 'break-all',
+                  }}
+                >
+                  {src.evidenceSourceId}
+                </span>
+                <span
+                  style={{
+                    color: '#059669',
+                    fontSize: '10px',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '2px',
+                    whiteSpace: 'nowrap',
+                    marginLeft: '6px',
+                  }}
+                >
+                  Rank #{src.retrievalRank} <ExternalLink size={9} />
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {/* Footer nav */}
+      {/* Navigate to full evidence tab */}
       <button
         onClick={() => setActiveCaseSubTab('evidence')}
         style={{
@@ -165,7 +184,9 @@ export const EvidenceRailPanel: React.FC = () => {
           textAlign: 'center',
         }}
       >
-        View Full Evidence Library ›
+        {hasEvidence
+          ? `View All ${assessmentSources.length} Evidence Sources ›`
+          : 'Open Evidence Library ›'}
       </button>
     </section>
   );

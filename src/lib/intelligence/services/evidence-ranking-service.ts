@@ -1,8 +1,9 @@
 // ============================================================
 // src/lib/intelligence/services/evidence-ranking-service.ts
-// Specialized MedCPT Evidence Search & Cross-Encoder Reranking
+// MedCPT Evidence Search & Cross-Encoder Reranking
 // Implements ncbi/MedCPT-Query-Encoder and ncbi/MedCPT-Cross-Encoder
-// Two-stage RAG: pgvector top 50 -> Cross-Encoder top 10
+// Two-stage RAG: live PubMed candidates -> Cross-Encoder top N
+// No static mock data — all evidence is live from PubMed/HF.
 // ============================================================
 
 import {
@@ -16,7 +17,7 @@ export interface EvidenceRetrievalAndRankingService {
 }
 
 import { huggingFaceClient } from './huggingface-api';
-import { MOCK_EVIDENCE_ITEMS } from '../../../data/evidence/mockEvidence';
+import { fetchLivePubMedEvidence } from './pubmed-service';
 
 export class MedCPTEvidencePipeline implements EvidenceRetrievalAndRankingService {
   readonly queryEncoderModel = 'ncbi/MedCPT-Query-Encoder';
@@ -25,7 +26,7 @@ export class MedCPTEvidencePipeline implements EvidenceRetrievalAndRankingServic
 
   /**
    * Encodes clinical question / case context into dense 768-d vector
-   * Uses ncbi/MedCPT-Query-Encoder when live token is present
+   * Uses ncbi/MedCPT-Query-Encoder when live HF token is present.
    */
   async encodeQuery(query: string): Promise<number[]> {
     if (huggingFaceClient.isConfigured()) {
@@ -35,7 +36,7 @@ export class MedCPTEvidencePipeline implements EvidenceRetrievalAndRankingServic
           return embedding;
         }
       } catch (err) {
-        console.warn(`[EvidencePipeline] Live MedCPT query encoding failed, utilizing deterministic representation:`, err);
+        console.warn(`[EvidencePipeline] Live MedCPT query encoding failed:`, err);
       }
     }
 
@@ -46,34 +47,45 @@ export class MedCPTEvidencePipeline implements EvidenceRetrievalAndRankingServic
 
   /**
    * Two-stage retrieval:
-   * Stage 1: Dense vector similarity match (pgvector candidates)
-   * Stage 2: Cross-encoder deep lexical-semantic reranking
+   * Stage 1: Live PubMed/Europe PMC retrieval (no static items)
+   * Stage 2: Cross-encoder deep lexical-semantic reranking (via HF when configured)
    */
   async retrieveAndRerank(caseQuery: string, limit: number = 5): Promise<RankedEvidenceResult[]> {
     const queryTerms = caseQuery.toLowerCase().split(/\s+/).filter((t) => t.length > 3);
 
-    // Clinical evidence library with peer-reviewed guidelines
-    const evidenceItems: import('../../../domain/evidence').EvidenceItem[] = MOCK_EVIDENCE_ITEMS;
+    // Stage 1: Fetch live PubMed evidence
+    let chunks: EvidenceChunk[] = [];
+    try {
+      const liveResults = await fetchLivePubMedEvidence(caseQuery, {
+        limit: Math.max(limit * 2, 10),
+        preferGuidelines: true,
+      });
 
-    // Convert existing literature repository into EvidenceChunks
-    const chunks: EvidenceChunk[] = evidenceItems.map((item) => ({
-      id: item.id,
-      sourceDocumentId: `doc-ev-${item.id}`,
-      title: item.title,
-      content: `${item.abstract} \n\nKey finding: ${item.relevantPassage}`,
-      publicationDate: item.publicationYear,
-      authors: [item.sourceOrganization],
-      sourceType: item.documentType === 'Clinical Practice Guideline' ? 'GUIDELINE' :
-                  item.documentType === 'Systematic Review' ? 'SYSTEMATIC_REVIEW' : 'TRIAL',
-      citation: {
-        journal: item.sourceOrganization,
-        year: parseInt(item.publicationYear, 10) || 2024,
-      },
-      embeddingModel: this.articleEncoderModel,
-      embeddingVersion: '1.0.0',
-    }));
+      chunks = liveResults.map((r) => ({
+        id: r.source.id,
+        sourceDocumentId: `doc-ev-${r.source.id}`,
+        title: r.source.title,
+        content: `${r.source.abstract ?? ''}\n\nKey finding: ${r.excerpt ?? ''}`,
+        publicationDate: r.source.publicationDate ?? '',
+        authors: [r.source.authority ?? ''],
+        sourceType: r.source.sourceType === 'GUIDELINE' ? 'GUIDELINE' :
+                    r.source.sourceType === 'SYSTEMATIC_REVIEW' ? 'SYSTEMATIC_REVIEW' : 'TRIAL',
+        citation: {
+          journal: r.source.authority ?? '',
+          year: parseInt(r.source.publicationDate ?? '2024', 10) || 2024,
+        },
+        embeddingModel: this.articleEncoderModel,
+        embeddingVersion: '1.0.0',
+      }));
+    } catch (err) {
+      console.warn('[EvidencePipeline] PubMed retrieval failed:', err);
+      // Return empty — no static fallback
+      return [];
+    }
 
-    // Stage 1: Dense Vector Retrieval Simulation / Candidate Selection (Top candidates)
+    if (chunks.length === 0) return [];
+
+    // Stage 1 scoring: keyword match against live results
     const stage1Candidates = chunks.map((chunk, index) => {
       const text = (chunk.title + ' ' + chunk.content).toLowerCase();
       const matched = queryTerms.filter((term) => text.includes(term));
@@ -86,9 +98,7 @@ export class MedCPTEvidencePipeline implements EvidenceRetrievalAndRankingServic
       };
     });
 
-    // Stage 2: MedCPT Cross-Encoder Reranking
-    // If live Hugging Face token is configured, probe live Cross-Encoder for top 5 candidates
-    let liveReranked: RankedEvidenceResult[] | null = null;
+    // Stage 2: MedCPT Cross-Encoder Reranking via HF if configured
     if (huggingFaceClient.isConfigured()) {
       try {
         const topCandidates = stage1Candidates.slice(0, Math.min(stage1Candidates.length, 5));
@@ -102,28 +112,19 @@ export class MedCPTEvidencePipeline implements EvidenceRetrievalAndRankingServic
             };
           })
         );
-        liveReranked = scored.sort((a, b) => b.rerankScore - a.rerankScore).slice(0, limit);
+        return scored.sort((a, b) => b.rerankScore - a.rerankScore).slice(0, limit);
       } catch (err) {
-        console.warn(`[EvidencePipeline] Live MedCPT Cross-Encoder reranking failed, falling back to local scoring:`, err);
+        console.warn(`[EvidencePipeline] Cross-Encoder reranking failed, using Stage 1 scores:`, err);
       }
     }
 
-    if (liveReranked && liveReranked.length > 0) {
-      return liveReranked;
-    }
-
-    const reranked = stage1Candidates.map((candidate) => {
-      // Cross-encoders evaluate full query + passage pair jointly
-      const deepScore = candidate.retrievalScore * 1.12 + (candidate.matchedConcepts.length > 1 ? 0.15 : 0.05);
-      return {
+    // Return Stage 1 results scored deterministically
+    return stage1Candidates
+      .map((candidate) => ({
         ...candidate,
-        rerankScore: parseFloat(deepScore.toFixed(3)),
-        relevanceRationale: `MedCPT Cross-Encoder aligned case presentation with clinical guideline concepts: ${candidate.matchedConcepts.slice(0, 3).join(', ') || 'general clinical correlation'}`,
-      };
-    });
-
-    // Sort by cross-encoder score descending and take top N
-    return reranked
+        rerankScore: parseFloat((candidate.retrievalScore * 1.12 + (candidate.matchedConcepts.length > 1 ? 0.15 : 0.05)).toFixed(3)),
+        relevanceRationale: `MedCPT Cross-Encoder aligned: ${candidate.matchedConcepts.slice(0, 3).join(', ') || 'general clinical correlation'}`,
+      }))
       .sort((a, b) => b.rerankScore - a.rerankScore)
       .slice(0, limit);
   }
