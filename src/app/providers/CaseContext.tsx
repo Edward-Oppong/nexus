@@ -7,7 +7,7 @@ import { FullSyntheticCase, MOCK_FULL_CASES_REGISTRY, EMPTY_CASE } from '../../d
 import { useAuth, DEMO_ORGANIZATIONS } from '../../features/authentication/AuthProvider';
 
 import { CaseOverview } from '../../domain/case';
-import { VerificationStatus } from '../../domain/finding';
+import { VerificationStatus, ClinicalFinding } from '../../domain/finding';
 import { InvestigationOrder } from '../../domain/investigation';
 import { TimelineEvent } from '../../domain/timeline';
 import { NexusAssessment, ReviewAction, NexusFindingStatus } from '../../domain/nexus-assessment';
@@ -96,6 +96,17 @@ interface CaseContextType {
     category: 'Laboratory' | 'Imaging' | 'Cardiovascular' | 'Microbiology',
     priority: 'Stat' | 'Urgent' | 'Routine',
     indication: string
+  ) => void;
+  recordInvestigationResult: (
+    investigationId: string,
+    resultData: {
+      value: string;
+      unit?: string;
+      interpretation: string;
+      referenceRange?: string;
+      status?: 'Normal' | 'Borderline' | 'Abnormal' | 'Critical';
+      notes?: string;
+    }
   ) => void;
   deleteInvestigation: (investigationId: string) => Promise<{ success: boolean; error: string | null }>;
 
@@ -902,6 +913,88 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       return { ...prev, investigations: [newOrder, ...prev.investigations], timeline: [auditEvent, ...prev.timeline] };
+    });
+  };
+
+  // ── Record Investigation Result ──────────────────────────
+  const recordInvestigationResult = (
+    investigationId: string,
+    resultData: {
+      value: string;
+      unit?: string;
+      interpretation: string;
+      referenceRange?: string;
+      status?: 'Normal' | 'Borderline' | 'Abnormal' | 'Critical';
+      notes?: string;
+    }
+  ) => {
+    setActiveCase((prev) => {
+      const targetOrder = prev.investigations.find((i) => i.id === investigationId);
+      if (!targetOrder) return prev;
+
+      const now = new Date().toISOString();
+      const updatedInvestigations = prev.investigations.map((i) => {
+        if (i.id !== investigationId) return i;
+        return {
+          ...i,
+          status: 'Result available' as const,
+          result: {
+            id: `res-${Date.now()}`,
+            completedAt: now,
+            laboratoryPersonnel: activeUserDisplayName,
+            testParameter: i.testName,
+            value: resultData.value,
+            unit: resultData.unit || '',
+            referenceRange: resultData.referenceRange || 'Reference normal',
+            status: resultData.status || 'Normal',
+            interpretation: resultData.interpretation,
+            impactOnReasoning: [],
+          },
+        };
+      });
+
+      // Also create a verified clinical finding from this completed test
+      const newFindingId = `f-inv-${Date.now().toString().slice(-4)}`;
+      const newFinding: ClinicalFinding = {
+        id: newFindingId,
+        label: `${targetOrder.testName}: ${resultData.value}${resultData.unit ? ` ${resultData.unit}` : ''}`,
+        description: `Interpretation: ${resultData.interpretation}. Ref: ${resultData.referenceRange || 'N/A'}.${resultData.notes ? ` ${resultData.notes}` : ''}`,
+        category: (targetOrder.category === 'Imaging' ? 'IMAGING' : targetOrder.category === 'Cardiovascular' ? 'CARDIOVASCULAR' : 'LABORATORY') as any,
+        provenance: {
+          provenanceType: 'CLINICIAN_ENTRY' as any,
+          recordedBy: activeUserDisplayName,
+          recordedAt: now,
+          sourceContext: 'Diagnostic Workstation Ingestion',
+          verificationStatus: 'VERIFIED' as any,
+        },
+      };
+
+      const auditEvent: TimelineEvent = {
+        id: `evt-${Date.now()}`,
+        time: 'Just now',
+        actor: 'CLINICIAN',
+        actorName: activeUserDisplayName,
+        eventType: 'RESULT_RECEIVED',
+        title: `Result recorded: ${targetOrder.testName}`,
+        description: `Value: ${resultData.value} ${resultData.unit || ''} (${resultData.interpretation})`,
+        isNexusSimulated: false,
+      };
+
+      // Close corresponding information gap if one exists
+      const updatedGaps = prev.informationGaps.map((g) => {
+        if (g.testName.toLowerCase() === targetOrder.testName.toLowerCase() || g.id === targetOrder.id) {
+          return { ...g, status: 'Result received' as const };
+        }
+        return g;
+      });
+
+      return {
+        ...prev,
+        investigations: updatedInvestigations,
+        findings: [newFinding, ...prev.findings],
+        informationGaps: updatedGaps,
+        timeline: [auditEvent, ...prev.timeline],
+      };
     });
   };
 
@@ -1754,6 +1847,7 @@ export const CaseProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateFindingStatus,
         adjudicateHypothesis,
         requestInvestigation,
+        recordInvestigationResult,
         deleteInvestigation: handleDeleteInvestigation,
         nexusAssessment,
         isRunningAnalysis,

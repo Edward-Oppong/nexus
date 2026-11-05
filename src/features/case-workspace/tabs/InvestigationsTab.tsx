@@ -5,7 +5,7 @@ import { FlaskConical, Plus, CheckCircle2, Clock, AlertTriangle, TrendingUp, Tre
 import { InvestigationOrder } from '../../../domain/investigation';
 
 export const InvestigationsTab: React.FC = () => {
-  const { activeCase, requestInvestigation, deleteInvestigation } = useCase();
+  const { activeCase, requestInvestigation, recordInvestigationResult, deleteInvestigation } = useCase();
   const { currentPersona } = usePersona();
   const [selectedOrder, setSelectedOrder] = useState<InvestigationOrder>(activeCase.investigations[0]);
 
@@ -14,6 +14,16 @@ export const InvestigationsTab: React.FC = () => {
   const [newPriority, setNewPriority] = useState<'Stat' | 'Urgent' | 'Routine'>('Urgent');
   const [newCategory, setNewCategory] = useState<'Laboratory' | 'Imaging' | 'Cardiovascular' | 'Microbiology'>('Laboratory');
   const [newIndication, setNewIndication] = useState('');
+
+  // Result entry modal state
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [resultOrder, setResultOrder] = useState<InvestigationOrder | null>(null);
+  const [resultValue, setResultValue] = useState('');
+  const [resultUnit, setResultUnit] = useState('');
+  const [resultInterpretation, setResultInterpretation] = useState('Abnormal / Positive');
+  const [resultRefRange, setResultRefRange] = useState('');
+  const [resultStatus, setResultStatus] = useState<'Normal' | 'Borderline' | 'Abnormal' | 'Critical'>('Abnormal');
+  const [resultNotes, setResultNotes] = useState('');
 
   const [pendingDeleteOrder, setPendingDeleteOrder] = useState<InvestigationOrder | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -336,11 +346,28 @@ export const InvestigationsTab: React.FC = () => {
                 </div>
               ) : (
                 <div style={{ padding: '24px', textAlign: 'center', color: '#64748B', background: '#F8FAFC', borderRadius: '6px' }}>
-                  <Clock size={28} color="#94A3B8" style={{ marginBottom: '8px' }} />
+                  <Clock size={28} color="#94A3B8" style={{ margin: '0 auto 8px' }} />
                   <div style={{ fontSize: '13px', fontWeight: 600 }}>Investigation In Progress</div>
-                  <div style={{ fontSize: '11px', marginTop: '4px' }}>
+                  <div style={{ fontSize: '11px', marginTop: '4px', maxWidth: '340px', margin: '4px auto 14px' }}>
                     Results will automatically appear here with automated reasoning impact analysis upon laboratory sign-off.
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResultOrder(selectedOrder);
+                      setResultValue('');
+                      setResultUnit('');
+                      setResultRefRange('Normal');
+                      setResultInterpretation('Consistent with clinical presentation.');
+                      setResultStatus('Abnormal');
+                      setResultNotes('');
+                      setShowResultModal(true);
+                    }}
+                    className="btn btn-sm btn-primary"
+                    style={{ margin: '0 auto' }}
+                  >
+                    <Plus size={12} /> Record Diagnostic Result
+                  </button>
                 </div>
               )}
             </div>
@@ -424,6 +451,130 @@ export const InvestigationsTab: React.FC = () => {
                 </button>
                 <button type="submit" className="btn btn-primary">
                   Submit Order
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Record Diagnostic Result Modal */}
+      {showResultModal && resultOrder && (
+        <div className="modal-overlay" onClick={() => setShowResultModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ padding: '24px', maxWidth: '480px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
+              Record Diagnostic Result
+            </h3>
+            <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '16px' }}>
+              {resultOrder.testName} ({resultOrder.category})
+            </p>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!resultValue.trim()) return;
+                recordInvestigationResult(resultOrder.id, {
+                  value: resultValue.trim(),
+                  unit: resultUnit.trim() || undefined,
+                  interpretation: resultInterpretation.trim() || 'Evaluated',
+                  referenceRange: resultRefRange.trim() || undefined,
+                  status: resultStatus,
+                  notes: resultNotes.trim() || undefined,
+                });
+                setShowResultModal(false);
+              }}
+            >
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                    Result Value *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={resultValue}
+                    onChange={(e) => setResultValue(e.target.value)}
+                    placeholder="e.g. 2.4, Positive, Clear"
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                    Unit
+                  </label>
+                  <input
+                    type="text"
+                    value={resultUnit}
+                    onChange={(e) => setResultUnit(e.target.value)}
+                    placeholder="ng/mL, mg/dL..."
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                    Reference Range
+                  </label>
+                  <input
+                    type="text"
+                    value={resultRefRange}
+                    onChange={(e) => setResultRefRange(e.target.value)}
+                    placeholder="e.g. < 0.04, Negative"
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                    Status Classification
+                  </label>
+                  <select
+                    value={resultStatus}
+                    onChange={(e) => setResultStatus(e.target.value as any)}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                  >
+                    <option value="Normal">Normal</option>
+                    <option value="Borderline">Borderline</option>
+                    <option value="Abnormal">Abnormal / Elevated</option>
+                    <option value="Critical">Critical Alert</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                  Clinical Interpretation *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={resultInterpretation}
+                  onChange={(e) => setResultInterpretation(e.target.value)}
+                  placeholder="e.g. Elevation consistent with cardiac ischemia"
+                  style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                  Clinical Notes (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={resultNotes}
+                  onChange={(e) => setResultNotes(e.target.value)}
+                  placeholder="Technician or pathologist observations..."
+                  style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                <button type="button" onClick={() => setShowResultModal(false)} className="btn">
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Save & Validate Result
                 </button>
               </div>
             </form>

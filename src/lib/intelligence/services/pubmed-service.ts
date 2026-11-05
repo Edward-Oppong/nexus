@@ -27,6 +27,54 @@ export interface PubMedArticle {
 // Memory cache to prevent duplicate requests across clinical re-evaluations
 const pubMedQueryCache = new Map<string, EvidenceResult[]>();
 
+const PUBMED_CACHE_STORAGE_KEY = 'nexus_pubmed_cache_v1';
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+interface PersistentCacheEntry {
+  timestamp: number;
+  results: EvidenceResult[];
+}
+
+function loadPersistentCache(): Record<string, PersistentCacheEntry> {
+  try {
+    const raw = localStorage.getItem(PUBMED_CACHE_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function savePersistentCache(key: string, results: EvidenceResult[]) {
+  try {
+    const cache = loadPersistentCache();
+    cache[key] = {
+      timestamp: Date.now(),
+      results,
+    };
+    // Keep at most 100 entries to prevent localStorage bloat
+    const keys = Object.keys(cache);
+    if (keys.length > 100) {
+      delete cache[keys[0]];
+    }
+    localStorage.setItem(PUBMED_CACHE_STORAGE_KEY, JSON.stringify(cache));
+  } catch {
+    // Fail-safe if localStorage is full or disabled
+  }
+}
+
+function getFromPersistentCache(key: string): EvidenceResult[] | null {
+  try {
+    const cache = loadPersistentCache();
+    const entry = cache[key];
+    if (entry && (Date.now() - entry.timestamp) < CACHE_TTL_MS) {
+      return entry.results;
+    }
+  } catch {
+    // Return null if invalid
+  }
+  return null;
+}
+
 /**
  * Clean HTML markup often returned in PubMed/Europe PMC abstracts
  */
@@ -87,6 +135,11 @@ export async function fetchLivePubMedEvidence(
   const cacheKey = `${sanitizedTopic}__${limit}__${preferGuidelines}`;
   if (pubMedQueryCache.has(cacheKey)) {
     return pubMedQueryCache.get(cacheKey)!;
+  }
+  const persistentResults = getFromPersistentCache(cacheKey);
+  if (persistentResults) {
+    pubMedQueryCache.set(cacheKey, persistentResults);
+    return persistentResults;
   }
 
   // Build targeted PubMed query prioritizing clinical practice guidelines & reviews
@@ -176,6 +229,7 @@ export async function fetchLivePubMedEvidence(
     });
 
     pubMedQueryCache.set(cacheKey, mapped);
+    savePersistentCache(cacheKey, mapped);
     return mapped;
   } catch (err: any) {
     if (err?.name === 'AbortError') {

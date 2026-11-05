@@ -1805,7 +1805,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                   <div style={{ padding: '32px', textAlign: 'center', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px dashed #CBD5E1' }}>
                     <FlaskConical size={28} color="#94A3B8" style={{ margin: '0 auto 8px' }} />
                     <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>
-                      No discrete observations entered yet. Click "Add Observation" above or load a demo template.
+                      No discrete observations entered yet. Click "Add Observation" above to record vital signs or laboratory results.
                     </p>
                   </div>
                 ) : (

@@ -27,6 +27,7 @@ export const DecisionTab: React.FC = () => {
     hasBlockingSafety,
     safetyConcerns,
     setActiveCaseSubTab,
+    adjudicateHypothesis,
   } = useCase();
   const { currentPersona } = usePersona();
 
@@ -198,6 +199,122 @@ export const DecisionTab: React.FC = () => {
           <div style={{ fontSize: '11px', color: '#38BDF8' }}>{authorizingClinicianRole}</div>
         </div>
       </div>
+
+      {/* Candidate Hypotheses Adjudication Section (EU MDR / FDA CDS Compliant) */}
+      {activeCase.hypotheses && activeCase.hypotheses.length > 0 && (
+        <div
+          style={{
+            background: '#FFFFFF',
+            border: '1px solid #E2E8F0',
+            borderRadius: '8px',
+            padding: '18px 20px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#0284C7', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                DIAGNOSTIC ADJUDICATION (MDCG 2020-1)
+              </div>
+              <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: '2px 0 0 0' }}>
+                Candidate Differential Hypotheses
+              </h3>
+            </div>
+            <span style={{ fontSize: '11px', color: '#64748B' }}>
+              Adjudicate each hypothesis before signing final formulation
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {activeCase.hypotheses.map((hyp) => {
+              const isAccepted = hyp.clinicalReviewStatus === 'Accepted';
+              const isRejected = hyp.clinicalReviewStatus === 'Rejected';
+
+              return (
+                <div
+                  key={hyp.id}
+                  style={{
+                    padding: '12px 14px',
+                    borderRadius: '6px',
+                    border: `1px solid ${isAccepted ? '#A7F3D0' : isRejected ? '#FECACA' : '#E2E8F0'}`,
+                    background: isAccepted ? '#F0FDF4' : isRejected ? '#FEF2F2' : '#F8FAFC',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                  }}
+                >
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                      <strong style={{ fontSize: '13px', color: '#0F172A' }}>{hyp.title}</strong>
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          padding: '1px 6px',
+                          borderRadius: '4px',
+                          background: isAccepted ? '#DCFCE7' : isRejected ? '#FEE2E2' : '#E2E8F0',
+                          color: isAccepted ? '#166534' : isRejected ? '#991B1B' : '#475569',
+                        }}
+                      >
+                        {isAccepted ? '✓ WORKING DIAGNOSIS' : isRejected ? '✗ EXCLUDED' : 'PENDING ADJUDICATION'}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#475569' }}>
+                      {hyp.rationale || hyp.statusDetail || 'Generated from verified case observations.'}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        adjudicateHypothesis(hyp.id, 'ACCEPT', 'Clinician verified and accepted as working diagnosis.');
+                        // Pre-populate summary if empty
+                        if (!summary) {
+                          setSummary(`Working Diagnosis: ${hyp.title}. Formulated following comprehensive clinical adjudication.`);
+                        }
+                      }}
+                      style={{
+                        padding: '5px 10px',
+                        borderRadius: '4px',
+                        border: '1px solid #10B981',
+                        background: isAccepted ? '#10B981' : '#FFFFFF',
+                        color: isAccepted ? '#FFFFFF' : '#047857',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {isAccepted ? '✓ Accepted' : 'Accept as Working'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const reason = window.prompt(`Reason for excluding ${hyp.title}:`, 'Clinically excluded based on findings & examination');
+                        if (reason) {
+                          adjudicateHypothesis(hyp.id, 'REJECT', reason);
+                        }
+                      }}
+                      style={{
+                        padding: '5px 10px',
+                        borderRadius: '4px',
+                        border: '1px solid #CBD5E1',
+                        background: isRejected ? '#EF4444' : '#FFFFFF',
+                        color: isRejected ? '#FFFFFF' : '#64748B',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {isRejected ? 'Excluded' : 'Exclude'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Phase 9 Deterministic CDS Pre-Flight Check Banner */}
       <div
