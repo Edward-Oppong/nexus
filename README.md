@@ -752,6 +752,14 @@ Duplicate imports are safely skipped.
 - [x] 1-Click FHIR R4 Bundle Export (`fhir-case-exporter.ts`): Downloads comprehensive FHIR R4 Document Bundle (Patient, Observation, Condition, DiagnosticReport)
 - [x] Full Production Verification: 0 TypeScript errors, 35/35 adversarial tests passed, production build clean (17.2s)
 
+### Phase 20 — Comprehensive Design Token System & High-Resolution Architecture Documentation (v1.9.0)
+- [x] Multi-Theme Context Engine (`ThemeContext.tsx`): 3-mode theme state (`light` / `dark` / `system`) listening to OS `prefers-color-scheme`, synchronizing `data-theme` attribute, and persisting user choice via `localStorage`.
+- [x] Accessible 3-Way Segmented Theme Switcher (`ThemeToggle.tsx`): Segmented pill and collapsed icon toggle integrated into Global Nav.
+- [x] Semantic Design Tokens Overhaul (`tokens.css`): Complete light and obsidian-slate dark flight-deck palettes (`--bg-app: #080D1A`, `--bg-surface: #0F172A`, `--bg-subtle: #182234`, `--accent-primary: #38BDF8`, semantic status borders, text, and surfaces).
+- [x] Zero Hardcoded Hex Color Literals: Completely tokenized 69 files across all 6 Intelligence Rail Panels, 12 Workspace Tabs, and System Modals.
+- [x] High-Resolution Visual Architecture & Workflow Diagrams: Generated system architecture, physician decision workflow, and 3-zone UI layout diagrams embedded in `README.md` and `ARCHITECTURE.md`.
+- [x] Full Production Verification: TypeScript 0 errors, clean production bundle build, and 100% (35/35) adversarial tests passed.
+
 ---
 
 ## 13. Contributing
