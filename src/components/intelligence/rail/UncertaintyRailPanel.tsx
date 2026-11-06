@@ -20,8 +20,8 @@ export const UncertaintyRailPanel: React.FC = () => {
   return (
     <section
       style={{
-        background: '#FFFFFF',
-        border: '1px solid #E2E8F0',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-subtle)',
         borderRadius: '6px',
         padding: '12px',
         display: 'flex',
@@ -42,13 +42,13 @@ export const UncertaintyRailPanel: React.FC = () => {
             fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: '0.06em',
-            color: '#0F172A',
+            color: 'var(--text-primary)',
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
           }}
         >
-          <HelpCircle size={13} color="#64748B" />
+          <HelpCircle size={13} color="var(--text-muted)" />
           Uncertainty & Gaps
         </span>
         <span
@@ -56,8 +56,9 @@ export const UncertaintyRailPanel: React.FC = () => {
             fontSize: '9px',
             fontFamily: 'var(--font-mono)',
             fontWeight: 600,
-            color: '#B45309',
-            background: '#FEF3C7',
+            color: 'var(--status-warning)',
+            background: 'var(--warning-subtle)',
+            border: '1px solid var(--warning-border)',
             padding: '2px 5px',
             borderRadius: '3px',
           }}
@@ -73,10 +74,10 @@ export const UncertaintyRailPanel: React.FC = () => {
             style={{
               padding: '6px 8px',
               borderRadius: '4px',
-              background: '#F8FAFC',
-              borderLeft: '3px solid #94A3B8',
+              background: 'var(--bg-subtle)',
+              borderLeft: '3px solid var(--border-strong)',
               fontSize: '11px',
-              color: '#334155',
+              color: 'var(--text-secondary)',
               lineHeight: 1.4,
             }}
           >
@@ -89,7 +90,7 @@ export const UncertaintyRailPanel: React.FC = () => {
           <div
             style={{
               fontSize: '11px',
-              color: '#64748B',
+              color: 'var(--text-muted)',
               lineHeight: 1.35,
               paddingLeft: '4px',
             }}
@@ -107,12 +108,12 @@ export const UncertaintyRailPanel: React.FC = () => {
               alignItems: 'flex-start',
               gap: '6px',
               fontSize: '11px',
-              color: '#64748B',
+              color: 'var(--text-secondary)',
               cursor: 'pointer',
               paddingTop: '2px',
             }}
           >
-            <Clock size={12} style={{ flexShrink: 0, marginTop: '2px', color: '#D97706' }} />
+            <Clock size={12} style={{ flexShrink: 0, marginTop: '2px', color: 'var(--status-warning)' }} />
             <span>
               Assessment conditioned on {pendingTests.length} pending test(s) ({pendingTests.map((t) => t.testName || t.id).slice(0, 2).join(', ')})
             </span>

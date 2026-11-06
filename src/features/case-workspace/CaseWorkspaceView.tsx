@@ -18,7 +18,7 @@ import { DocumentsTab } from './tabs/DocumentsTab';
 import { RulesTab } from './tabs/RulesTab';
 import { SafetyBanner } from '../safety/SafetyBanner';
 
-import { FolderKanban, Plus, ArrowRight } from 'lucide-react';
+import { FolderKanban, Plus } from 'lucide-react';
 
 export const CaseWorkspaceView: React.FC = () => {
   const { activeCaseSubTab, activeCase, setActiveView } = useCase();
@@ -74,19 +74,20 @@ export const CaseWorkspaceView: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'center',
           padding: '48px 24px',
-          background: '#F8FAFC',
+          background: 'var(--bg-app)',
           height: '100%',
+          transition: 'background-color 0.2s ease',
         }}
       >
         <div
           style={{
             maxWidth: '460px',
             textAlign: 'center',
-            background: '#FFFFFF',
-            borderRadius: '12px',
+            background: 'var(--bg-surface)',
+            borderRadius: 'var(--radius-xl)',
             padding: '36px 32px',
-            border: '1px solid #E2E8F0',
-            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)',
+            border: '1px solid var(--border-subtle)',
+            boxShadow: 'var(--shadow-md)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -95,57 +96,37 @@ export const CaseWorkspaceView: React.FC = () => {
         >
           <div
             style={{
-              width: '52px',
-              height: '52px',
-              borderRadius: '12px',
-              background: '#F1F5F9',
+              width: '56px',
+              height: '56px',
+              borderRadius: 'var(--radius-lg)',
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-subtle)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#64748B',
+              color: 'var(--accent-primary)',
             }}
           >
-            <FolderKanban size={26} />
+            <FolderKanban size={28} />
           </div>
           <div>
-            <h2 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', marginBottom: '6px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
               No Active Case Selected
             </h2>
-            <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, margin: 0 }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
               The clinical workspace requires an active case to evaluate evidence, generate differential reasoning, and review safety guardrails.
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
             <button
               onClick={() => setActiveView('cases')}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '6px',
-                fontSize: '12px',
-                fontWeight: 600,
-                border: '1px solid #CBD5E1',
-                background: '#FFFFFF',
-                color: '#334155',
-                cursor: 'pointer',
-              }}
+              className="btn btn-sm"
             >
               Browse Case List
             </button>
             <button
               onClick={() => setActiveView('case-intake')}
-              style={{
-                padding: '8px 18px',
-                borderRadius: '6px',
-                fontSize: '12px',
-                fontWeight: 600,
-                background: '#0284C7',
-                border: 'none',
-                color: '#FFFFFF',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-              }}
+              className="btn btn-sm btn-primary"
             >
               <Plus size={14} /> New Case Intake
             </button>
@@ -172,7 +153,8 @@ export const CaseWorkspaceView: React.FC = () => {
             flex: 1,
             overflowY: 'auto',
             padding: '24px 32px',
-            background: '#F8FAFC',
+            background: 'var(--bg-app)',
+            transition: 'background-color 0.2s ease',
           }}
         >
           <div style={{ maxWidth: '980px', margin: '0 auto' }}>

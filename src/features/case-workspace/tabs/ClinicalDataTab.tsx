@@ -12,23 +12,23 @@ export const ClinicalDataTab: React.FC = () => {
       {/* Chief Complaint & HPI */}
       <section
         style={{
-          background: '#FFFFFF',
-          border: '1px solid #E2E8F0',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-subtle)',
           borderRadius: '6px',
           padding: '20px',
         }}
       >
-        <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '6px' }}>
+        <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '6px' }}>
           Chief Complaint
         </div>
-        <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', marginBottom: '14px' }}>
+        <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px' }}>
           "{chiefComplaint}"
         </h2>
 
-        <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '6px' }}>
+        <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '6px' }}>
           History of Present Illness (HPI)
         </div>
-        <p style={{ fontSize: '13px', color: '#334155', lineHeight: 1.6 }}>
+        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
           {historyOfPresentIllness}
         </p>
       </section>
@@ -36,18 +36,18 @@ export const ClinicalDataTab: React.FC = () => {
       {/* Vital Signs Grid with Hardware/Nurse Provenance */}
       <section
         style={{
-          background: '#FFFFFF',
-          border: '1px solid #E2E8F0',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-subtle)',
           borderRadius: '6px',
           padding: '20px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
           <div>
-            <h3 style={{ fontSize: '12px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em' }}>
+            <h3 style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em' }}>
               Vital Signs & Telemetry
             </h3>
-            <div style={{ fontSize: '11px', color: '#94A3B8' }}>Serial triage acquisitions with hardware device provenance</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Serial triage acquisitions with hardware device provenance</div>
           </div>
           <span className="badge badge-verified">
             Telemetry Synced
@@ -59,8 +59,8 @@ export const ClinicalDataTab: React.FC = () => {
             <div
               key={idx}
               style={{
-                background: '#F8FAFC',
-                border: '1px solid #E2E8F0',
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-subtle)',
                 borderRadius: '6px',
                 padding: '12px',
                 display: 'flex',
@@ -69,30 +69,30 @@ export const ClinicalDataTab: React.FC = () => {
               }}
             >
               <div>
-                <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>{v.parameter}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500 }}>{v.parameter}</div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', margin: '4px 0' }}>
                   <span
                     style={{
                       fontFamily: 'var(--font-mono)',
                       fontSize: '20px',
                       fontWeight: 700,
-                      color: v.status === 'Elevated' ? '#B45309' : '#0F172A',
+                      color: v.status === 'Elevated' ? 'var(--status-warning)' : 'var(--text-primary)',
                     }}
                   >
                     {v.value}
                   </span>
-                  <span style={{ fontSize: '11px', color: '#64748B' }}>{v.unit}</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{v.unit}</span>
                 </div>
               </div>
 
               {/* Provenance Micro-Label */}
               <div
                 style={{
-                  borderTop: '1px solid #F1F5F9',
+                  borderTop: '1px solid var(--bg-subtle)',
                   paddingTop: '6px',
                   marginTop: '6px',
                   fontSize: '10px',
-                  color: '#64748B',
+                  color: 'var(--text-muted)',
                   lineHeight: 1.3,
                 }}
               >
@@ -109,16 +109,16 @@ export const ClinicalDataTab: React.FC = () => {
         {/* Past Medical History */}
         <section
           style={{
-            background: '#FFFFFF',
-            border: '1px solid #E2E8F0',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: '6px',
             padding: '20px',
           }}
         >
-          <h3 style={{ fontSize: '12px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '12px' }}>
+          <h3 style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '12px' }}>
             Past Medical & Surgical History
           </h3>
-          <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: '#334155' }}>
+          <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
             {pastMedicalHistory.map((item, idx) => (
               <li key={idx}>{item}</li>
             ))}
@@ -128,15 +128,15 @@ export const ClinicalDataTab: React.FC = () => {
         {/* Active Medications & Allergies */}
         <section
           style={{
-            background: '#FFFFFF',
-            border: '1px solid #E2E8F0',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: '6px',
             padding: '20px',
           }}
         >
           {/* Allergies with Warning */}
           <div style={{ marginBottom: '18px' }}>
-            <h3 style={{ fontSize: '12px', textTransform: 'uppercase', color: '#DC2626', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <h3 style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--status-danger)', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <ShieldAlert size={14} /> Recorded Allergies ({allergies.length})
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -144,15 +144,15 @@ export const ClinicalDataTab: React.FC = () => {
                 <div
                   key={idx}
                   style={{
-                    background: '#FEF2F2',
-                    border: '1px solid #FCA5A5',
+                    background: 'var(--danger-subtle)',
+                    border: '1px solid var(--danger-border)',
                     padding: '8px 10px',
                     borderRadius: '4px',
                     fontSize: '12px',
                   }}
                 >
-                  <strong style={{ color: '#991B1B' }}>{a.allergen}</strong>
-                  <span style={{ color: '#7F1D1D', marginLeft: '6px' }}>
+                  <strong style={{ color: 'var(--status-danger)' }}>{a.allergen}</strong>
+                  <span style={{ color: 'var(--status-danger)', marginLeft: '6px' }}>
                     ({a.severity}: {a.reaction})
                   </span>
                 </div>
@@ -162,7 +162,7 @@ export const ClinicalDataTab: React.FC = () => {
 
           {/* Active Medications */}
           <div>
-            <h3 style={{ fontSize: '12px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '8px' }}>
+            <h3 style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '8px' }}>
               Active Medications ({medications.length})
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -170,14 +170,14 @@ export const ClinicalDataTab: React.FC = () => {
                 <div
                   key={idx}
                   style={{
-                    background: '#F8FAFC',
-                    border: '1px solid #E2E8F0',
+                    background: 'var(--bg-subtle)',
+                    border: '1px solid var(--border-subtle)',
                     padding: '8px 10px',
                     borderRadius: '4px',
                     fontSize: '12px',
                   }}
                 >
-                  <strong style={{ color: '#0F172A' }}>{m.name}</strong> · {m.dosage} ({m.frequency})
+                  <strong style={{ color: 'var(--text-primary)' }}>{m.name}</strong> · {m.dosage} ({m.frequency})
                 </div>
               ))}
             </div>

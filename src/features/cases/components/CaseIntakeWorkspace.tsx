@@ -118,10 +118,10 @@ const CONTEXT_CONFIGS: Record<CareContext, ContextConfig> = {
     label: 'Triage / Emergency',
     shortLabel: 'Triage',
     tagline: 'Fast-track patient registration with immediate vitals capture and one-click escalation.',
-    color: '#DC2626',
-    bgColor: '#FEF2F2',
-    borderColor: '#FECACA',
-    dotColor: '#EF4444',
+    color: 'var(--status-danger)',
+    bgColor: 'var(--danger-subtle)',
+    borderColor: 'var(--danger-border)',
+    dotColor: 'var(--status-danger)',
     steps: [
       { num: 1, label: '01 Patient ID', icon: <User size={14} /> },
       { num: 2, label: '02 Vitals & Presentation', icon: <Activity size={14} /> },
@@ -133,10 +133,10 @@ const CONTEXT_CONFIGS: Record<CareContext, ContextConfig> = {
     label: 'Routine OPD',
     shortLabel: 'OPD',
     tagline: 'Outpatient consultation with chief complaint, vitals, and targeted diagnostics.',
-    color: '#B45309',
-    bgColor: '#FFFBEB',
-    borderColor: '#FDE68A',
-    dotColor: '#F59E0B',
+    color: 'var(--status-warning)',
+    bgColor: 'var(--warning-subtle)',
+    borderColor: 'var(--warning-border)',
+    dotColor: 'var(--status-warning)',
     steps: [
       { num: 1, label: '01 Patient Identity', icon: <User size={14} /> },
       { num: 2, label: '02 Presentation', icon: <FileText size={14} /> },
@@ -150,10 +150,10 @@ const CONTEXT_CONFIGS: Record<CareContext, ContextConfig> = {
     label: 'Inpatient Admission',
     shortLabel: 'Inpatient',
     tagline: 'Comprehensive admission charting with document ingestion, full history, and AI extraction.',
-    color: '#0369A1',
-    bgColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
-    dotColor: '#3B82F6',
+    color: 'var(--accent-primary)',
+    bgColor: 'var(--accent-subtle)',
+    borderColor: 'var(--border-medium)',
+    dotColor: 'var(--accent-primary)',
     steps: [
       { num: 1, label: '01 Patient Identity', icon: <User size={14} /> },
       { num: 2, label: '02 Documents & Ingestion', icon: <Paperclip size={14} /> },
@@ -576,7 +576,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
       <div
         style={{
           flex: 1,
-          backgroundColor: '#F8FAFC',
+          backgroundColor: 'var(--bg-subtle)',
           minHeight: '100%',
           display: 'flex',
           flexDirection: 'column',
@@ -595,9 +595,9 @@ export const CaseIntakeWorkspace: React.FC = () => {
                 gap: '8px',
                 padding: '4px 14px',
                 borderRadius: '999px',
-                backgroundColor: '#F0FDFA',
-                border: '1px solid #CCFBF1',
-                color: '#0F766E',
+                backgroundColor: 'var(--success-subtle)',
+                border: '1px solid var(--success-border)',
+                color: 'var(--accent-primary)',
                 fontSize: '12px',
                 fontWeight: 600,
                 marginBottom: '14px',
@@ -605,10 +605,10 @@ export const CaseIntakeWorkspace: React.FC = () => {
             >
               <Sparkles size={14} /> Adaptive Clinical Intake Wizard
             </div>
-            <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#0F172A', margin: '0 0 10px 0', letterSpacing: '-0.02em' }}>
+            <h1 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 10px 0', letterSpacing: '-0.02em' }}>
               Select Clinical Care Context
             </h1>
-            <p style={{ fontSize: '14px', color: '#64748B', margin: 0, maxWidth: '620px', marginInline: 'auto', lineHeight: 1.6 }}>
+            <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: 0, maxWidth: '620px', marginInline: 'auto', lineHeight: 1.6 }}>
               Tailor the intake pace, field requirements, and step workflow to your clinical setting. Each mode adapts the form so data entry matches the urgency of care.
             </p>
           </div>
@@ -619,9 +619,9 @@ export const CaseIntakeWorkspace: React.FC = () => {
             <div
               onClick={() => handleSelectContext('TRIAGE')}
               style={{
-                backgroundColor: '#FFFFFF',
+                backgroundColor: 'var(--bg-surface)',
                 borderRadius: '12px',
-                border: '2px solid #FECACA',
+                border: '2px solid var(--danger-border)',
                 padding: '24px',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
@@ -631,40 +631,40 @@ export const CaseIntakeWorkspace: React.FC = () => {
                 justifyContent: 'space-between',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#DC2626';
+                e.currentTarget.style.borderColor = 'var(--status-danger)';
                 e.currentTarget.style.transform = 'translateY(-2px)';
                 e.currentTarget.style.boxShadow = '0 6px 16px rgba(220, 38, 38, 0.15)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#FECACA';
+                e.currentTarget.style.borderColor = 'var(--danger-border)';
                 e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.boxShadow = '0 2px 8px rgba(220, 38, 38, 0.08)';
               }}
             >
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                  <div style={{ width: '42px', height: '42px', borderRadius: '10px', backgroundColor: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#DC2626' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '10px', backgroundColor: 'var(--danger-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--status-danger)' }}>
                     <Zap size={22} />
                   </div>
-                  <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', backgroundColor: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', backgroundColor: 'var(--danger-subtle)', color: 'var(--status-danger)', border: '1px solid var(--danger-border)', textTransform: 'uppercase' }}>
                     Seconds Count
                   </span>
                 </div>
-                <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>
+                <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px 0' }}>
                   Triage / Emergency
                 </h3>
-                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, margin: '0 0 16px 0' }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5, margin: '0 0 16px 0' }}>
                   Ultra-fast, 3-step rapid registration. Immediate vitals capture, instant acuity rating, and 1-click escalation straight to the trauma/ED board.
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', color: '#475569', marginBottom: '18px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '18px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <CheckCircle2 size={14} color="#DC2626" /> 3 collapsed steps (Identity → Vitals → Escalate)
+                    <CheckCircle2 size={14} color="var(--status-danger)" /> 3 collapsed steps (Identity → Vitals → Escalate)
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <CheckCircle2 size={14} color="#DC2626" /> One-click "Quick-Save & Escalate"
+                    <CheckCircle2 size={14} color="var(--status-danger)" /> One-click "Quick-Save & Escalate"
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <CheckCircle2 size={14} color="#DC2626" /> Urgent priority preset
+                    <CheckCircle2 size={14} color="var(--status-danger)" /> Urgent priority preset
                   </div>
                 </div>
               </div>
@@ -674,9 +674,9 @@ export const CaseIntakeWorkspace: React.FC = () => {
                   width: '100%',
                   padding: '10px 0',
                   borderRadius: '6px',
-                  backgroundColor: '#FEF2F2',
-                  color: '#DC2626',
-                  border: '1px solid #FECACA',
+                  backgroundColor: 'var(--danger-subtle)',
+                  color: 'var(--status-danger)',
+                  border: '1px solid var(--danger-border)',
                   fontSize: '13px',
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -695,9 +695,9 @@ export const CaseIntakeWorkspace: React.FC = () => {
             <div
               onClick={() => handleSelectContext('OPD')}
               style={{
-                backgroundColor: '#FFFFFF',
+                backgroundColor: 'var(--bg-surface)',
                 borderRadius: '12px',
-                border: '2px solid #FDE68A',
+                border: '2px solid var(--warning-border)',
                 padding: '24px',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
@@ -707,40 +707,40 @@ export const CaseIntakeWorkspace: React.FC = () => {
                 justifyContent: 'space-between',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#B45309';
+                e.currentTarget.style.borderColor = 'var(--status-warning)';
                 e.currentTarget.style.transform = 'translateY(-2px)';
                 e.currentTarget.style.boxShadow = '0 6px 16px rgba(217, 119, 6, 0.15)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#FDE68A';
+                e.currentTarget.style.borderColor = 'var(--warning-border)';
                 e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.boxShadow = '0 2px 8px rgba(217, 119, 6, 0.08)';
               }}
             >
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                  <div style={{ width: '42px', height: '42px', borderRadius: '10px', backgroundColor: '#FFFBEB', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#B45309' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '10px', backgroundColor: 'var(--warning-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--status-warning)' }}>
                     <Stethoscope size={22} />
                   </div>
-                  <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', backgroundColor: '#FFFBEB', color: '#B45309', border: '1px solid #FDE68A', textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', backgroundColor: 'var(--warning-subtle)', color: 'var(--status-warning)', border: '1px solid var(--warning-border)', textTransform: 'uppercase' }}>
                     Balanced Pace
                   </span>
                 </div>
-                <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>
+                <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px 0' }}>
                   Routine Outpatient (OPD)
                 </h3>
-                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, margin: '0 0 16px 0' }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5, margin: '0 0 16px 0' }}>
                   Standard clinical consultation. Focused on chief complaint, rapid tab-traversable vitals grid (BP, HR, SpO2, Temp, BMI), and active medications.
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', color: '#475569', marginBottom: '18px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '18px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <CheckCircle2 size={14} color="#B45309" /> 5 structured consultative steps
+                    <CheckCircle2 size={14} color="var(--status-warning)" /> 5 structured consultative steps
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <CheckCircle2 size={14} color="#B45309" /> Tab-traversable OPD vitals check-in grid
+                    <CheckCircle2 size={14} color="var(--status-warning)" /> Tab-traversable OPD vitals check-in grid
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <CheckCircle2 size={14} color="#B45309" /> Focused history & medication reconciliation
+                    <CheckCircle2 size={14} color="var(--status-warning)" /> Focused history & medication reconciliation
                   </div>
                 </div>
               </div>
@@ -750,9 +750,9 @@ export const CaseIntakeWorkspace: React.FC = () => {
                   width: '100%',
                   padding: '10px 0',
                   borderRadius: '6px',
-                  backgroundColor: '#FFFBEB',
-                  color: '#B45309',
-                  border: '1px solid #FDE68A',
+                  backgroundColor: 'var(--warning-subtle)',
+                  color: 'var(--status-warning)',
+                  border: '1px solid var(--warning-border)',
                   fontSize: '13px',
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -771,9 +771,9 @@ export const CaseIntakeWorkspace: React.FC = () => {
             <div
               onClick={() => handleSelectContext('INPATIENT')}
               style={{
-                backgroundColor: '#FFFFFF',
+                backgroundColor: 'var(--bg-surface)',
                 borderRadius: '12px',
-                border: '2px solid #BFDBFE',
+                border: '2px solid var(--border-medium)',
                 padding: '24px',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
@@ -783,40 +783,40 @@ export const CaseIntakeWorkspace: React.FC = () => {
                 justifyContent: 'space-between',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#0369A1';
+                e.currentTarget.style.borderColor = 'var(--accent-primary)';
                 e.currentTarget.style.transform = 'translateY(-2px)';
                 e.currentTarget.style.boxShadow = '0 6px 16px rgba(3, 105, 161, 0.15)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#BFDBFE';
+                e.currentTarget.style.borderColor = 'var(--border-medium)';
                 e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.boxShadow = '0 2px 8px rgba(3, 105, 161, 0.08)';
               }}
             >
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                  <div style={{ width: '42px', height: '42px', borderRadius: '10px', backgroundColor: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0369A1' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '10px', backgroundColor: 'var(--accent-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)' }}>
                     <Building2 size={22} />
                   </div>
-                  <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', backgroundColor: '#EFF6FF', color: '#0369A1', border: '1px solid #BFDBFE', textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', backgroundColor: 'var(--accent-subtle)', color: 'var(--accent-primary)', border: '1px solid var(--border-medium)', textTransform: 'uppercase' }}>
                     Deep Charting
                   </span>
                 </div>
-                <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>
+                <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px 0' }}>
                   Inpatient Admission
                 </h3>
-                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, margin: '0 0 16px 0' }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5, margin: '0 0 16px 0' }}>
                   Comprehensive admission charting. Document and transfer packet ingestion placed at Step 2 so background AI parsing runs while clinical histories are entered.
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', color: '#475569', marginBottom: '18px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '18px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <CheckCircle2 size={14} color="#0369A1" /> Early Document Ingestion (Step 2)
+                    <CheckCircle2 size={14} color="var(--accent-primary)" /> Early Document Ingestion (Step 2)
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <CheckCircle2 size={14} color="#0369A1" /> Full longitudinal admission history
+                    <CheckCircle2 size={14} color="var(--accent-primary)" /> Full longitudinal admission history
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <CheckCircle2 size={14} color="#0369A1" /> Background OCR / AI clinical extraction
+                    <CheckCircle2 size={14} color="var(--accent-primary)" /> Background OCR / AI clinical extraction
                   </div>
                 </div>
               </div>
@@ -826,9 +826,9 @@ export const CaseIntakeWorkspace: React.FC = () => {
                   width: '100%',
                   padding: '10px 0',
                   borderRadius: '6px',
-                  backgroundColor: '#EFF6FF',
-                  color: '#0369A1',
-                  border: '1px solid #BFDBFE',
+                  backgroundColor: 'var(--accent-subtle)',
+                  color: 'var(--accent-primary)',
+                  border: '1px solid var(--border-medium)',
                   fontSize: '13px',
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -850,7 +850,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#64748B',
+                color: 'var(--text-muted)',
                 fontSize: '13px',
                 cursor: 'pointer',
                 display: 'inline-flex',
@@ -870,7 +870,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
     <div
       style={{
         flex: 1,
-        backgroundColor: '#F8FAFC',
+        backgroundColor: 'var(--bg-subtle)',
         height: '100%',
         overflowY: 'auto',
         display: 'flex',
@@ -881,8 +881,8 @@ export const CaseIntakeWorkspace: React.FC = () => {
       <header
         style={{
           padding: '16px 32px',
-          backgroundColor: '#FFFFFF',
-          borderBottom: '1px solid #E2E8F0',
+          backgroundColor: 'var(--bg-surface)',
+          borderBottom: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -898,7 +898,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                color: '#64748B',
+                color: 'var(--text-muted)',
                 padding: '4px',
                 display: 'flex',
                 alignItems: 'center',
@@ -907,10 +907,10 @@ export const CaseIntakeWorkspace: React.FC = () => {
             >
               <ArrowLeft size={16} />
             </button>
-            <h1 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+            <h1 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
               New Clinical Case Intake
             </h1>
-            <div style={{ display: 'inline-flex', alignItems: 'center', backgroundColor: '#F1F5F9', padding: '2px', borderRadius: '6px', gap: '2px' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', backgroundColor: 'var(--bg-subtle)', padding: '2px', borderRadius: '6px', gap: '2px' }}>
               {(['TRIAGE', 'OPD', 'INPATIENT'] as CareContext[]).map((mode) => {
                 const cfg = CONTEXT_CONFIGS[mode];
                 const isActive = careContext === mode;
@@ -922,8 +922,8 @@ export const CaseIntakeWorkspace: React.FC = () => {
                     title={`Switch to ${cfg.label}`}
                     style={{
                       border: 'none',
-                      background: isActive ? '#FFFFFF' : 'transparent',
-                      color: isActive ? cfg.color : '#64748B',
+                      background: isActive ? 'var(--bg-surface)' : 'transparent',
+                      color: isActive ? cfg.color : 'var(--text-muted)',
                       fontWeight: isActive ? 700 : 500,
                       fontSize: '11px',
                       padding: '3px 8px',
@@ -945,7 +945,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
               onClick={() => setCareContextChosen(false)}
               style={{
                 fontSize: '11px',
-                color: '#64748B',
+                color: 'var(--text-muted)',
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
@@ -960,8 +960,8 @@ export const CaseIntakeWorkspace: React.FC = () => {
               style={{
                 fontSize: '11px',
                 fontFamily: 'var(--font-mono, monospace)',
-                backgroundColor: '#E0F2FE',
-                color: '#0369A1',
+                backgroundColor: 'var(--accent-subtle)',
+                color: 'var(--accent-primary)',
                 padding: '2px 8px',
                 borderRadius: '4px',
                 fontWeight: 600,
@@ -970,7 +970,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
               Step {currentStepNum} of {currentSteps.length}
             </span>
           </div>
-          <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B' }}>
+          <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
             {contextConfig.tagline}
           </p>
         </div>
@@ -982,10 +982,10 @@ export const CaseIntakeWorkspace: React.FC = () => {
             title="Reset form"
             style={{
               background: 'none',
-              border: '1px solid #E2E8F0',
+              border: '1px solid var(--border-subtle)',
               padding: '6px 12px',
               borderRadius: '6px',
-              color: '#64748B',
+              color: 'var(--text-muted)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -1004,9 +1004,9 @@ export const CaseIntakeWorkspace: React.FC = () => {
         <div
           style={{
             padding: '10px 32px',
-            backgroundColor: statusMessage.type === 'error' ? '#FEF2F2' : '#F0FDF4',
-            borderBottom: `1px solid ${statusMessage.type === 'error' ? '#FECACA' : '#DCFCE7'}`,
-            color: statusMessage.type === 'error' ? '#991B1B' : '#166534',
+            backgroundColor: statusMessage.type === 'error' ? 'var(--danger-subtle)' : 'var(--success-subtle)',
+            borderBottom: `1px solid ${statusMessage.type === 'error' ? 'var(--danger-border)' : 'var(--success-subtle)'}`,
+            color: statusMessage.type === 'error' ? 'var(--status-danger)' : 'var(--status-success)',
             fontSize: '13px',
             fontWeight: 500,
             display: 'flex',
@@ -1035,9 +1035,9 @@ export const CaseIntakeWorkspace: React.FC = () => {
         {/* LEFT COLUMN: Adaptive Clinical Intake Form */}
         <div
           style={{
-            backgroundColor: '#FFFFFF',
+            backgroundColor: 'var(--bg-surface)',
             borderRadius: '10px',
-            border: '1px solid #E2E8F0',
+            border: '1px solid var(--border-subtle)',
             boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
             display: 'flex',
             flexDirection: 'column',
@@ -1048,8 +1048,8 @@ export const CaseIntakeWorkspace: React.FC = () => {
           <div
             style={{
               display: 'flex',
-              borderBottom: '1px solid #E2E8F0',
-              backgroundColor: '#F8FAFC',
+              borderBottom: '1px solid var(--border-subtle)',
+              backgroundColor: 'var(--bg-subtle)',
               overflowX: 'auto',
             }}
           >
@@ -1064,8 +1064,8 @@ export const CaseIntakeWorkspace: React.FC = () => {
                   padding: '12px 16px',
                   border: 'none',
                   borderBottom: currentStepNum === s.num ? `2px solid ${contextConfig.color}` : '2px solid transparent',
-                  backgroundColor: currentStepNum === s.num ? '#FFFFFF' : 'transparent',
-                  color: currentStepNum === s.num ? contextConfig.color : '#64748B',
+                  backgroundColor: currentStepNum === s.num ? 'var(--bg-surface)' : 'transparent',
+                  color: currentStepNum === s.num ? contextConfig.color : 'var(--text-muted)',
                   fontSize: '12px',
                   fontWeight: currentStepNum === s.num ? 600 : 500,
                   cursor: 'pointer',
@@ -1083,11 +1083,11 @@ export const CaseIntakeWorkspace: React.FC = () => {
             {/* ── STEP 1: Patient Identity & Encounter Context ──────── */}
             {activeStepId === 'patient' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
-                  <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                <div style={{ borderBottom: '1px solid var(--bg-subtle)', paddingBottom: '12px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                     Patient Identity & Encounter Context
                   </h3>
-                  <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B' }}>
+                  <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
                     Register a new longitudinal patient record with administrative sex and encounter parameters.
                   </p>
                 </div>
@@ -1096,16 +1096,16 @@ export const CaseIntakeWorkspace: React.FC = () => {
                   <div
                     style={{
                       padding: '12px 16px',
-                      backgroundColor: '#FEF3C7',
-                      border: '1px solid #FCD34D',
+                      backgroundColor: 'var(--warning-subtle)',
+                      border: '1px solid var(--warning-border)',
                       borderRadius: '6px',
                       display: 'flex',
                       alignItems: 'flex-start',
                       gap: '10px',
                     }}
                   >
-                    <AlertTriangle size={18} color="#B45309" style={{ flexShrink: 0, marginTop: '2px' }} />
-                    <div style={{ fontSize: '12px', color: '#92400E', lineHeight: 1.5 }}>
+                    <AlertTriangle size={18} color="var(--status-warning)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <div style={{ fontSize: '12px', color: 'var(--status-warning)', lineHeight: 1.5 }}>
                       {duplicateWarning}
                     </div>
                   </div>
@@ -1113,7 +1113,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                       Given Name *
                     </label>
                     <input
@@ -1121,11 +1121,11 @@ export const CaseIntakeWorkspace: React.FC = () => {
                       value={draft.patient.givenName}
                       onChange={(e) => setDraft((p) => ({ ...p, patient: { ...p.patient, givenName: e.target.value } }))}
                       placeholder="e.g. Arthur"
-                      style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
                     />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                       Family Name
                     </label>
                     <input
@@ -1133,31 +1133,31 @@ export const CaseIntakeWorkspace: React.FC = () => {
                       value={draft.patient.familyName}
                       onChange={(e) => setDraft((p) => ({ ...p, patient: { ...p.patient, familyName: e.target.value } }))}
                       placeholder="e.g. Pendelton (optional)"
-                      style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
                     />
                   </div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                       Date of Birth
                     </label>
                     <input
                       type="date"
                       value={draft.patient.dateOfBirth}
                       onChange={(e) => setDraft((p) => ({ ...p, patient: { ...p.patient, dateOfBirth: e.target.value } }))}
-                      style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
                     />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                       Administrative Sex
                     </label>
                     <select
                       value={draft.patient.administrativeSex}
                       onChange={(e) => setDraft((p) => ({ ...p, patient: { ...p.patient, administrativeSex: e.target.value as any } }))}
-                      style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', backgroundColor: '#FFFFFF' }}
+                      style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px', backgroundColor: 'var(--bg-surface)' }}
                     >
                       <option value="MALE">Male</option>
                       <option value="FEMALE">Female</option>
@@ -1166,7 +1166,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                       Hospital MRN
                     </label>
                     <input
@@ -1174,7 +1174,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                       value={draft.patient.externalPatientId}
                       onChange={(e) => setDraft((p) => ({ ...p, patient: { ...p.patient, externalPatientId: e.target.value } }))}
                       placeholder="e.g. MRN-849102"
-                      style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
                     />
                   </div>
                 </div>
@@ -1189,14 +1189,14 @@ export const CaseIntakeWorkspace: React.FC = () => {
                     <div
                       style={{
                         padding: '8px 12px',
-                        backgroundColor: '#F0FDFA',
-                        border: '1px solid #CCFBF1',
+                        backgroundColor: 'var(--success-subtle)',
+                        border: '1px solid var(--success-border)',
                         borderRadius: '6px',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '8px',
                         fontSize: '11px',
-                        color: '#0F766E',
+                        color: 'var(--accent-primary)',
                       }}
                     >
                       <Sparkles size={13} />
@@ -1236,12 +1236,12 @@ export const CaseIntakeWorkspace: React.FC = () => {
                       }}
                       style={{
                         padding: '5px 12px',
-                        backgroundColor: '#FEF2F2',
-                        border: '1px dashed #DC2626',
+                        backgroundColor: 'var(--danger-subtle)',
+                        border: '1px dashed var(--status-danger)',
                         borderRadius: '5px',
                         fontSize: '11px',
                         fontWeight: 600,
-                        color: '#DC2626',
+                        color: 'var(--status-danger)',
                         cursor: 'pointer',
                         display: 'inline-flex',
                         alignItems: 'center',
@@ -1258,8 +1258,8 @@ export const CaseIntakeWorkspace: React.FC = () => {
                   <div
                     style={{
                       padding: '14px 18px',
-                      backgroundColor: '#FEF2F2',
-                      border: '1px solid #FECACA',
+                      backgroundColor: 'var(--danger-subtle)',
+                      border: '1px solid var(--danger-border)',
                       borderRadius: '8px',
                       display: 'flex',
                       alignItems: 'center',
@@ -1269,12 +1269,12 @@ export const CaseIntakeWorkspace: React.FC = () => {
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Zap size={20} color="#DC2626" />
+                      <Zap size={20} color="var(--status-danger)" />
                       <div>
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#991B1B' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--status-danger)' }}>
                           Emergency Triage Fast-Track Mode
                         </div>
-                        <div style={{ fontSize: '12px', color: '#B91C1C' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--status-danger)' }}>
                           Seconds count. Enter minimal identity and escalate immediately to trauma bay / ED tracking.
                         </div>
                       </div>
@@ -1289,8 +1289,8 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         gap: '6px',
                         padding: '9px 18px',
                         borderRadius: '6px',
-                        backgroundColor: '#DC2626',
-                        color: '#FFFFFF',
+                        backgroundColor: 'var(--status-danger)',
+                        color: 'var(--bg-surface)',
                         border: 'none',
                         fontSize: '13px',
                         fontWeight: 700,
@@ -1298,16 +1298,16 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         boxShadow: '0 2px 4px rgba(220, 38, 38, 0.3)',
                       }}
                     >
-                      <Zap size={15} fill="#FFFFFF" />
+                      <Zap size={15} fill="var(--bg-surface)" />
                       <span>{isSubmitting ? 'Escalating...' : 'Quick-Save & Escalate (ED / Trauma)'}</span>
                     </button>
                   </div>
                 )}
 
-                <div style={{ padding: '10px 14px', backgroundColor: '#F8FAFC', borderRadius: '6px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ padding: '10px 14px', backgroundColor: 'var(--bg-subtle)', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Sparkles size={14} color="#0F766E" />
-                    <span style={{ fontSize: '12px', color: '#475569' }}>
+                    <Sparkles size={14} color="var(--accent-primary)" />
+                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
                       Department routing and triage priority are automatically inferred by the clinical system from presentation acuity and observations.
                     </span>
                   </div>
@@ -1318,17 +1318,17 @@ export const CaseIntakeWorkspace: React.FC = () => {
             {/* ── STEP 2 (TRIAGE): Vitals & Presentation (Merged) ── */}
             {activeStepId === 'triage_vitals' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
+                <div style={{ borderBottom: '1px solid var(--bg-subtle)', paddingBottom: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
                     <div>
-                      <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                      <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                         Triage Vitals & Acuity Evaluation
                       </h3>
-                      <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B' }}>
+                      <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
                         Rapid data entry: Acuity score, chief presenting complaint, and immediate bedside vital signs.
                       </p>
                     </div>
-                    <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', backgroundColor: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', backgroundColor: 'var(--danger-subtle)', color: 'var(--status-danger)', border: '1px solid var(--danger-border)' }}>
                       EMERGENCY TRIAGE
                     </span>
                   </div>
@@ -1338,10 +1338,10 @@ export const CaseIntakeWorkspace: React.FC = () => {
                 {/* Emergency Severity Index (ESI) 5-Level Algorithm Selector */}
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', margin: 0 }}>
+                    <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', margin: 0 }}>
                       Emergency Severity Index (ESI 5-Level Triage) *
                     </label>
-                    <span style={{ fontSize: '11px', color: '#64748B' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                       Deterministic 5-tier algorithm (AHRQ / ACEP Guidelines)
                     </span>
                   </div>
@@ -1353,11 +1353,11 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         tier: 'ESI 1',
                         label: 'Resuscitation',
                         desc: 'Requires immediate life-saving intervention / airway compromise',
-                        bg: '#FEF2F2',
-                        border: '#FECACA',
-                        activeBorder: '#DC2626',
-                        color: '#991B1B',
-                        badgeBg: '#DC2626',
+                        bg: 'var(--danger-subtle)',
+                        border: 'var(--danger-border)',
+                        activeBorder: 'var(--status-danger)',
+                        color: 'var(--status-danger)',
+                        badgeBg: 'var(--status-danger)',
                         priority: 'URGENT' as const,
                       },
                       {
@@ -1365,11 +1365,11 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         tier: 'ESI 2',
                         label: 'Emergent',
                         desc: 'High risk, acute altered mental state, severe pain/distress (≥7/10)',
-                        bg: '#FFF7ED',
-                        border: '#FFEDD5',
-                        activeBorder: '#EA580C',
-                        color: '#9A3412',
-                        badgeBg: '#EA580C',
+                        bg: 'var(--warning-subtle)',
+                        border: 'var(--warning-border)',
+                        activeBorder: 'var(--status-warning)',
+                        color: 'var(--status-warning)',
+                        badgeBg: 'var(--status-warning)',
                         priority: 'URGENT' as const,
                       },
                       {
@@ -1377,11 +1377,11 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         tier: 'ESI 3',
                         label: 'Urgent',
                         desc: 'Multiple resources anticipated (≥2) + stable baseline vitals',
-                        bg: '#FFFBEB',
-                        border: '#FEF3C7',
-                        activeBorder: '#D97706',
-                        color: '#92400E',
-                        badgeBg: '#D97706',
+                        bg: 'var(--warning-subtle)',
+                        border: 'var(--warning-subtle)',
+                        activeBorder: 'var(--status-warning)',
+                        color: 'var(--status-warning)',
+                        badgeBg: 'var(--status-warning)',
                         priority: 'HIGH' as const,
                       },
                       {
@@ -1389,11 +1389,11 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         tier: 'ESI 4',
                         label: 'Less Urgent',
                         desc: 'Single resource anticipated (e.g. simple X-ray or suture only)',
-                        bg: '#F0FDF4',
-                        border: '#DCFCE7',
-                        activeBorder: '#16A34A',
-                        color: '#166534',
-                        badgeBg: '#16A34A',
+                        bg: 'var(--success-subtle)',
+                        border: 'var(--success-subtle)',
+                        activeBorder: 'var(--status-success)',
+                        color: 'var(--status-success)',
+                        badgeBg: 'var(--status-success)',
                         priority: 'ROUTINE' as const,
                       },
                       {
@@ -1401,11 +1401,11 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         tier: 'ESI 5',
                         label: 'Non-Urgent',
                         desc: 'No diagnostic/therapeutic resources anticipated (e.g. prescription refill)',
-                        bg: '#F8FAFC',
-                        border: '#E2E8F0',
-                        activeBorder: '#64748B',
-                        color: '#334155',
-                        badgeBg: '#64748B',
+                        bg: 'var(--bg-subtle)',
+                        border: 'var(--border-subtle)',
+                        activeBorder: 'var(--text-muted)',
+                        color: 'var(--text-secondary)',
+                        badgeBg: 'var(--text-muted)',
                         priority: 'ROUTINE' as const,
                       },
                     ].map((esi) => {
@@ -1428,7 +1428,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                             padding: '10px 8px',
                             borderRadius: '8px',
                             border: isSelected ? `2px solid ${esi.activeBorder}` : `1px solid ${esi.border}`,
-                            backgroundColor: isSelected ? esi.bg : '#FFFFFF',
+                            backgroundColor: isSelected ? esi.bg : 'var(--bg-surface)',
                             cursor: 'pointer',
                             textAlign: 'left',
                             display: 'flex',
@@ -1445,8 +1445,8 @@ export const CaseIntakeWorkspace: React.FC = () => {
                                 fontWeight: 800,
                                 padding: '2px 6px',
                                 borderRadius: '4px',
-                                backgroundColor: isSelected ? esi.badgeBg : '#E2E8F0',
-                                color: isSelected ? '#FFFFFF' : '#475569',
+                                backgroundColor: isSelected ? esi.badgeBg : 'var(--border-subtle)',
+                                color: isSelected ? 'var(--bg-surface)' : 'var(--text-secondary)',
                               }}
                             >
                               {esi.tier}
@@ -1458,7 +1458,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                           <span style={{ fontSize: '11px', fontWeight: 700, color: esi.color, marginTop: '2px' }}>
                             {esi.label}
                           </span>
-                          <span style={{ fontSize: '10px', color: '#64748B', lineHeight: '1.25' }}>
+                          <span style={{ fontSize: '10px', color: 'var(--text-muted)', lineHeight: '1.25' }}>
                             {esi.desc}
                           </span>
                         </button>
@@ -1469,7 +1469,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
 
                 {/* Chief Complaint / Acuity Title */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                     Chief Complaint / Presenting Acuity *
                   </label>
                   <input
@@ -1477,27 +1477,27 @@ export const CaseIntakeWorkspace: React.FC = () => {
                     value={draft.presentation.title}
                     onChange={(e) => setDraft((p) => ({ ...p, presentation: { ...p.presentation, title: e.target.value } }))}
                     placeholder="e.g. Acute severe central chest pain radiating to left arm, diaphoresis"
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '14px', fontWeight: 500 }}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '14px', fontWeight: 500 }}
                   />
                 </div>
 
                 {/* Rapid Triage Vitals Strip */}
-                <div style={{ padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                <div style={{ padding: '16px', backgroundColor: 'var(--bg-subtle)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Activity size={16} color="#DC2626" />
-                      <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                      <Activity size={16} color="var(--status-danger)" />
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
                         Immediate Bedside Vitals (Tab-Traversable)
                       </span>
                     </div>
-                    <span style={{ fontSize: '11px', color: '#64748B' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                       Auto-evaluates clinical thresholds in real-time
                     </span>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                         Blood Pressure (mmHg)
                       </label>
                       <input
@@ -1505,12 +1505,12 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         placeholder="e.g. 90/60"
                         value={getVitalValue('Blood Pressure')}
                         onChange={(e) => setVitalValue('Blood Pressure', e.target.value, 'mmHg', 'vital-signs')}
-                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
                       />
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                         Heart Rate (bpm)
                       </label>
                       <input
@@ -1518,12 +1518,12 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         placeholder="e.g. 124"
                         value={getVitalValue('Heart Rate')}
                         onChange={(e) => setVitalValue('Heart Rate', e.target.value, 'bpm', 'vital-signs')}
-                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
                       />
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                         SpO2 (%)
                       </label>
                       <input
@@ -1531,12 +1531,12 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         placeholder="e.g. 91"
                         value={getVitalValue('Oxygen Saturation') || getVitalValue('SpO2')}
                         onChange={(e) => setVitalValue('Oxygen Saturation (SpO2)', e.target.value, '%', 'vital-signs')}
-                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
                       />
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                         Body Temp (°C)
                       </label>
                       <input
@@ -1545,12 +1545,12 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         placeholder="e.g. 38.9"
                         value={getVitalValue('Body Temperature') || getVitalValue('Temperature')}
                         onChange={(e) => setVitalValue('Body Temperature', e.target.value, '°C', 'vital-signs')}
-                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
                       />
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                         Resp Rate (/min)
                       </label>
                       <input
@@ -1558,7 +1558,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         placeholder="e.g. 26"
                         value={getVitalValue('Respiratory Rate')}
                         onChange={(e) => setVitalValue('Respiratory Rate', e.target.value, '/min', 'vital-signs')}
-                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
                       />
                     </div>
                   </div>
@@ -1566,7 +1566,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
 
                 {/* Brief HPI Narrative */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                     Rapid HPI / Mechanism of Injury / Acute Symptoms
                   </label>
                   <textarea
@@ -1574,7 +1574,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                     value={draft.presentation.historyOfPresentIllness}
                     onChange={(e) => setDraft((p) => ({ ...p, presentation: { ...p.presentation, historyOfPresentIllness: e.target.value } }))}
                     placeholder="Brief narrative of onset, duration, known triggers, or initial paramedic handover details..."
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', lineHeight: 1.5 }}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px', lineHeight: 1.5 }}
                   />
                 </div>
               </div>
@@ -1583,17 +1583,17 @@ export const CaseIntakeWorkspace: React.FC = () => {
             {/* ── STEP 2 / 3: Clinical Presentation & History ────────── */}
             {activeStepId === 'presentation' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
-                  <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                <div style={{ borderBottom: '1px solid var(--bg-subtle)', paddingBottom: '12px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                     Clinical Problem & Presentation
                   </h3>
-                  <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B' }}>
+                  <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
                     Record the chief complaint, history of present illness (HPI), and physical bedside exam findings.
                   </p>
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                     Chief Complaint / Clinical Problem Title *
                   </label>
                   <input
@@ -1601,12 +1601,12 @@ export const CaseIntakeWorkspace: React.FC = () => {
                     value={draft.presentation.title}
                     onChange={(e) => setDraft((p) => ({ ...p, presentation: { ...p.presentation, title: e.target.value } }))}
                     placeholder="e.g. 3-week fever of unknown origin, new regurgitant murmur, and fatigue"
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                     History of Present Illness (HPI)
                   </label>
                   <textarea
@@ -1614,13 +1614,13 @@ export const CaseIntakeWorkspace: React.FC = () => {
                     value={draft.presentation.historyOfPresentIllness}
                     onChange={(e) => setDraft((p) => ({ ...p, presentation: { ...p.presentation, historyOfPresentIllness: e.target.value } }))}
                     placeholder="Chronological narrative of onset, duration, fever patterns, dental or procedural history, night sweats, etc."
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', lineHeight: 1.5 }}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px', lineHeight: 1.5 }}
                   />
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                       Past Medical History
                     </label>
                     <textarea
@@ -1628,11 +1628,11 @@ export const CaseIntakeWorkspace: React.FC = () => {
                       value={draft.presentation.pastMedicalHistory}
                       onChange={(e) => setDraft((p) => ({ ...p, presentation: { ...p.presentation, pastMedicalHistory: e.target.value } }))}
                       placeholder="List conditions separated by comma, semicolon, or new line. E.g.: Hypertension, Type 2 DM; Prior MI"
-                      style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', lineHeight: 1.5 }}
+                      style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px', lineHeight: 1.5 }}
                     />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                       Bedside Physical Examination
                     </label>
                     <textarea
@@ -1640,7 +1640,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                       value={draft.presentation.physicalExamNotes}
                       onChange={(e) => setDraft((p) => ({ ...p, presentation: { ...p.presentation, physicalExamNotes: e.target.value } }))}
                       placeholder="e.g. Murmur description, Janeway lesions, Osler nodes, splinter hemorrhages..."
-                      style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', lineHeight: 1.5 }}
+                      style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px', lineHeight: 1.5 }}
                     />
                   </div>
                 </div>
@@ -1650,12 +1650,12 @@ export const CaseIntakeWorkspace: React.FC = () => {
             {/* ── STEP 3 / 4: Structured Observations & Labs ────────── */}
             {activeStepId === 'vitals_labs' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--bg-subtle)', paddingBottom: '12px' }}>
                   <div>
-                    <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                    <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                       Structured Observations & Laboratory Feeds
                     </h3>
-                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B' }}>
+                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
                       Enter discrete observations. Reference ranges and clinical status are automatically evaluated by the system.
                     </p>
                   </div>
@@ -1684,8 +1684,8 @@ export const CaseIntakeWorkspace: React.FC = () => {
                       gap: '4px',
                       padding: '6px 12px',
                       borderRadius: '6px',
-                      backgroundColor: '#0F766E',
-                      color: '#FFFFFF',
+                      backgroundColor: 'var(--accent-primary)',
+                      color: 'var(--bg-surface)',
                       border: 'none',
                       fontSize: '12px',
                       fontWeight: 600,
@@ -1701,26 +1701,26 @@ export const CaseIntakeWorkspace: React.FC = () => {
                 <div
                   style={{
                     padding: '16px',
-                    backgroundColor: '#F8FAFC',
+                    backgroundColor: 'var(--bg-subtle)',
                     borderRadius: '8px',
-                    border: '1px solid #E2E8F0',
+                    border: '1px solid var(--border-subtle)',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Activity size={16} color="#0F766E" />
-                      <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                      <Activity size={16} color="var(--accent-primary)" />
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
                         Rapid OPD Vitals Check-in Grid (Tab-Traversable)
                       </span>
                     </div>
-                    <span style={{ fontSize: '11px', color: '#64748B' }}>
-                      Press <kbd style={{ padding: '1px 5px', background: '#E2E8F0', borderRadius: '3px', fontFamily: 'monospace' }}>Tab</kbd> to move between fields
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                      Press <kbd style={{ padding: '1px 5px', background: 'var(--border-subtle)', borderRadius: '3px', fontFamily: 'monospace' }}>Tab</kbd> to move between fields
                     </span>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                         Blood Pressure (mmHg)
                       </label>
                       <input
@@ -1728,12 +1728,12 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         placeholder="e.g. 120/80"
                         value={getVitalValue('Blood Pressure')}
                         onChange={(e) => setVitalValue('Blood Pressure', e.target.value, 'mmHg', 'vital-signs')}
-                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
                       />
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                         Heart Rate (bpm)
                       </label>
                       <input
@@ -1741,12 +1741,12 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         placeholder="e.g. 72"
                         value={getVitalValue('Heart Rate')}
                         onChange={(e) => setVitalValue('Heart Rate', e.target.value, 'bpm', 'vital-signs')}
-                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
                       />
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                         SpO2 (%)
                       </label>
                       <input
@@ -1754,12 +1754,12 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         placeholder="e.g. 98"
                         value={getVitalValue('Oxygen Saturation') || getVitalValue('SpO2')}
                         onChange={(e) => setVitalValue('Oxygen Saturation (SpO2)', e.target.value, '%', 'vital-signs')}
-                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
                       />
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                         Body Temp (°C)
                       </label>
                       <input
@@ -1768,12 +1768,12 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         placeholder="e.g. 36.8"
                         value={getVitalValue('Body Temperature') || getVitalValue('Temperature')}
                         onChange={(e) => setVitalValue('Body Temperature', e.target.value, '°C', 'vital-signs')}
-                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
                       />
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                         Resp Rate (/min)
                       </label>
                       <input
@@ -1781,12 +1781,12 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         placeholder="e.g. 16"
                         value={getVitalValue('Respiratory Rate')}
                         onChange={(e) => setVitalValue('Respiratory Rate', e.target.value, '/min', 'vital-signs')}
-                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
                       />
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                         BMI (kg/m²)
                       </label>
                       <input
@@ -1795,22 +1795,22 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         placeholder="e.g. 23.4"
                         value={getVitalValue('BMI') || getVitalValue('Body Mass Index')}
                         onChange={(e) => setVitalValue('Body Mass Index (BMI)', e.target.value, 'kg/m²', 'vital-signs')}
-                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                        style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
                       />
                     </div>
                   </div>
                 </div>
 
                 {draft.observations.length === 0 ? (
-                  <div style={{ padding: '32px', textAlign: 'center', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px dashed #CBD5E1' }}>
-                    <FlaskConical size={28} color="#94A3B8" style={{ margin: '0 auto 8px' }} />
-                    <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>
+                  <div style={{ padding: '32px', textAlign: 'center', backgroundColor: 'var(--bg-subtle)', borderRadius: '8px', border: '1px dashed var(--border-medium)' }}>
+                    <FlaskConical size={28} color="var(--text-muted)" style={{ margin: '0 auto 8px' }} />
+                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>
                       No discrete observations entered yet. Click "Add Observation" above to record vital signs or laboratory results.
                     </p>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1.1fr 1.3fr auto', gap: '10px', padding: '0 12px 2px', fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1.1fr 1.3fr auto', gap: '10px', padding: '0 12px 2px', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       <div>Observation / Test</div>
                       <div>Measured Value</div>
                       <div>System Evaluation</div>
@@ -1834,9 +1834,9 @@ export const CaseIntakeWorkspace: React.FC = () => {
                             gap: '10px',
                             alignItems: 'center',
                             padding: '12px',
-                            backgroundColor: '#F8FAFC',
+                            backgroundColor: 'var(--bg-subtle)',
                             borderRadius: '4px',
-                            border: '1px solid #CBD5E1',
+                            border: '1px solid var(--border-medium)',
                           }}
                         >
                           <div>
@@ -1862,7 +1862,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                                   ),
                                 }));
                               }}
-                              style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                              style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px' }}
                             />
                           </div>
                           <div style={{ display: 'flex', gap: '4px' }}>
@@ -1887,7 +1887,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                                   ),
                                 }));
                               }}
-                              style={{ flex: 1, padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                              style={{ flex: 1, padding: '7px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px' }}
                             />
                             {/* Unit selector — only shown when the test has multiple valid units */}
                             {(() => {
@@ -1916,10 +1916,10 @@ export const CaseIntakeWorkspace: React.FC = () => {
                                   style={{
                                     padding: '7px 6px',
                                     borderRadius: '4px',
-                                    border: '1px solid #0F766E',
+                                    border: '1px solid var(--accent-primary)',
                                     fontSize: '11px',
-                                    backgroundColor: '#F0FDFA',
-                                    color: '#0F766E',
+                                    backgroundColor: 'var(--success-subtle)',
+                                    color: 'var(--accent-primary)',
                                     fontWeight: 600,
                                     cursor: 'pointer',
                                     minWidth: '80px',
@@ -1942,12 +1942,12 @@ export const CaseIntakeWorkspace: React.FC = () => {
                                     borderRadius: '4px',
                                     fontSize: '11px',
                                     fontWeight: 700,
-                                    backgroundColor: '#FEF2F2',
-                                    color: '#991B1B',
-                                    border: '1px solid #FECACA',
+                                    backgroundColor: 'var(--danger-subtle)',
+                                    color: 'var(--status-danger)',
+                                    border: '1px solid var(--danger-border)',
                                   }}
                                 >
-                                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#DC2626' }} />
+                                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--status-danger)' }} />
                                   Critical Finding
                                 </span>
                               ) : displayInterp === 'HIGH' ? (
@@ -1960,12 +1960,12 @@ export const CaseIntakeWorkspace: React.FC = () => {
                                     borderRadius: '4px',
                                     fontSize: '11px',
                                     fontWeight: 600,
-                                    backgroundColor: '#FFFBEB',
-                                    color: '#92400E',
-                                    border: '1px solid #FDE68A',
+                                    backgroundColor: 'var(--warning-subtle)',
+                                    color: 'var(--status-warning)',
+                                    border: '1px solid var(--warning-border)',
                                   }}
                                 >
-                                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#D97706' }} />
+                                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--status-warning)' }} />
                                   High / Elevated
                                 </span>
                               ) : displayInterp === 'LOW' ? (
@@ -1978,12 +1978,12 @@ export const CaseIntakeWorkspace: React.FC = () => {
                                     borderRadius: '4px',
                                     fontSize: '11px',
                                     fontWeight: 600,
-                                    backgroundColor: '#EFF6FF',
-                                    color: '#1E40AF',
-                                    border: '1px solid #BFDBFE',
+                                    backgroundColor: 'var(--accent-subtle)',
+                                    color: 'var(--accent-primary)',
+                                    border: '1px solid var(--border-medium)',
                                   }}
                                 >
-                                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#2563EB' }} />
+                                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--accent-primary)' }} />
                                   Low / Reduced
                                 </span>
                               ) : displayInterp === 'ABNORMAL' ? (
@@ -1996,9 +1996,9 @@ export const CaseIntakeWorkspace: React.FC = () => {
                                     borderRadius: '4px',
                                     fontSize: '11px',
                                     fontWeight: 600,
-                                    backgroundColor: '#FEF3C7',
-                                    color: '#B45309',
-                                    border: '1px solid #FCD34D',
+                                    backgroundColor: 'var(--warning-subtle)',
+                                    color: 'var(--status-warning)',
+                                    border: '1px solid var(--warning-border)',
                                   }}
                                 >
                                   Abnormal
@@ -2013,23 +2013,23 @@ export const CaseIntakeWorkspace: React.FC = () => {
                                     borderRadius: '4px',
                                     fontSize: '11px',
                                     fontWeight: 600,
-                                    backgroundColor: '#F0FDF4',
-                                    color: '#166534',
-                                    border: '1px solid #BBF7D0',
+                                    backgroundColor: 'var(--success-subtle)',
+                                    color: 'var(--status-success)',
+                                    border: '1px solid var(--success-border)',
                                   }}
                                 >
-                                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#16A34A' }} />
+                                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--status-success)' }} />
                                   Normal
                                 </span>
                               )}
                             </div>
                             {displayRefRange ? (
-                              <div style={{ fontSize: '11px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <span style={{ fontWeight: 600, color: '#475569' }}>Ref:</span>
+                              <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Ref:</span>
                                 <span>{displayRefRange} {obs.unit || ''}</span>
                               </div>
                             ) : (
-                              <div style={{ fontSize: '11px', color: '#94A3B8', fontStyle: 'italic' }}>
+                              <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
                                 Ref range auto-detected on entry
                               </div>
                             )}
@@ -2039,7 +2039,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                               setDraft((p) => ({ ...p, observations: p.observations.filter((_, i) => i !== idx) }));
                             }}
                             title="Remove observation"
-                            style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: '4px' }}
+                            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
                           >
                             <Trash2 size={14} />
                           </button>
@@ -2056,12 +2056,12 @@ export const CaseIntakeWorkspace: React.FC = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 {/* Allergies Block */}
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F1F5F9', paddingBottom: '8px', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--bg-subtle)', paddingBottom: '8px', marginBottom: '12px' }}>
                     <div>
-                      <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                      <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                         Documented Allergy Intolerances
                       </h3>
-                      <span style={{ fontSize: '11px', color: '#64748B' }}>Audited by the deterministic safety engine against all active orders</span>
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Audited by the deterministic safety engine against all active orders</span>
                     </div>
                     <button
                       onClick={() => {
@@ -2076,20 +2076,20 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         };
                         setDraft((p) => ({ ...p, allergies: [...p.allergies, newAlg] }));
                       }}
-                      style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', backgroundColor: '#F1F5F9', border: '1px solid #CBD5E1', cursor: 'pointer', fontWeight: 600 }}
+                      style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', backgroundColor: 'var(--bg-subtle)', border: '1px solid var(--border-medium)', cursor: 'pointer', fontWeight: 600 }}
                     >
                       + Add Allergy
                     </button>
                   </div>
 
                   {draft.allergies.length === 0 ? (
-                    <div style={{ padding: '16px', fontSize: '12px', color: '#64748B', backgroundColor: '#F8FAFC', borderRadius: '6px' }}>
+                    <div style={{ padding: '16px', fontSize: '12px', color: 'var(--text-muted)', backgroundColor: 'var(--bg-subtle)', borderRadius: '6px' }}>
                       No documented allergies. Click "+ Add Allergy" to record documented sensitivities.
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {draft.allergies.map((alg, idx) => (
-                        <div key={alg.id} style={{ display: 'grid', gridTemplateColumns: '1.5fr 2fr 1fr auto', gap: '8px', alignItems: 'center', padding: '8px', backgroundColor: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '6px' }}>
+                        <div key={alg.id} style={{ display: 'grid', gridTemplateColumns: '1.5fr 2fr 1fr auto', gap: '8px', alignItems: 'center', padding: '8px', backgroundColor: 'var(--danger-subtle)', border: '1px solid var(--danger-border)', borderRadius: '6px' }}>
                           <input
                             type="text"
                             placeholder="Allergen (e.g. Penicillins)"
@@ -2098,7 +2098,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                               const val = e.target.value;
                               setDraft((p) => ({ ...p, allergies: p.allergies.map((a, i) => (i === idx ? { ...a, substance: val } : a)) }));
                             }}
-                            style={{ padding: '6px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                            style={{ padding: '6px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px' }}
                           />
                           <input
                             type="text"
@@ -2108,7 +2108,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                               const val = e.target.value;
                               setDraft((p) => ({ ...p, allergies: p.allergies.map((a, i) => (i === idx ? { ...a, reaction: val } : a)) }));
                             }}
-                            style={{ padding: '6px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                            style={{ padding: '6px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px' }}
                           />
                           <select
                             value={alg.severity}
@@ -2116,13 +2116,13 @@ export const CaseIntakeWorkspace: React.FC = () => {
                               const val = e.target.value as any;
                               setDraft((p) => ({ ...p, allergies: p.allergies.map((a, i) => (i === idx ? { ...a, severity: val } : a)) }));
                             }}
-                            style={{ padding: '6px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px', backgroundColor: '#FFFFFF' }}
+                            style={{ padding: '6px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px', backgroundColor: 'var(--bg-surface)' }}
                           >
                             <option value="MILD">Mild</option>
                             <option value="MODERATE">Moderate</option>
                             <option value="SEVERE">Severe (Anaphylaxis)</option>
                           </select>
-                          <button onClick={() => setDraft((p) => ({ ...p, allergies: p.allergies.filter((_, i) => i !== idx) }))} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer' }}>
+                          <button onClick={() => setDraft((p) => ({ ...p, allergies: p.allergies.filter((_, i) => i !== idx) }))} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                             <X size={14} />
                           </button>
                         </div>
@@ -2133,12 +2133,12 @@ export const CaseIntakeWorkspace: React.FC = () => {
 
                 {/* Active Medications Block */}
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F1F5F9', paddingBottom: '8px', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--bg-subtle)', paddingBottom: '8px', marginBottom: '12px' }}>
                     <div>
-                      <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                      <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                         Active / Inpatient Prescriptions
                       </h3>
-                      <span style={{ fontSize: '11px', color: '#64748B' }}>Pharmacotherapy orders evaluated for drug-allergy & dosing contradictions</span>
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Pharmacotherapy orders evaluated for drug-allergy & dosing contradictions</span>
                     </div>
                     <button
                       onClick={() => {
@@ -2154,20 +2154,20 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         };
                         setDraft((p) => ({ ...p, medications: [...p.medications, newMed] }));
                       }}
-                      style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', backgroundColor: '#F1F5F9', border: '1px solid #CBD5E1', cursor: 'pointer', fontWeight: 600 }}
+                      style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', backgroundColor: 'var(--bg-subtle)', border: '1px solid var(--border-medium)', cursor: 'pointer', fontWeight: 600 }}
                     >
                       + Add Medication
                     </button>
                   </div>
 
                   {draft.medications.length === 0 ? (
-                    <div style={{ padding: '16px', fontSize: '12px', color: '#64748B', backgroundColor: '#F8FAFC', borderRadius: '6px' }}>
+                    <div style={{ padding: '16px', fontSize: '12px', color: 'var(--text-muted)', backgroundColor: 'var(--bg-subtle)', borderRadius: '6px' }}>
                       No medications entered. Click "+ Add Medication" to record current inpatient pharmacotherapy.
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {draft.medications.map((med, idx) => (
-                        <div key={med.id} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr auto', gap: '8px', alignItems: 'center', padding: '8px', backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '6px' }}>
+                        <div key={med.id} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr auto', gap: '8px', alignItems: 'center', padding: '8px', backgroundColor: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)', borderRadius: '6px' }}>
                           <input
                             type="text"
                             placeholder="Drug name (e.g. Ceftriaxone IV)"
@@ -2176,7 +2176,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                               const val = e.target.value;
                               setDraft((p) => ({ ...p, medications: p.medications.map((m, i) => (i === idx ? { ...m, name: val } : m)) }));
                             }}
-                            style={{ padding: '6px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                            style={{ padding: '6px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px' }}
                           />
                           <input
                             type="text"
@@ -2186,7 +2186,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                               const val = e.target.value;
                               setDraft((p) => ({ ...p, medications: p.medications.map((m, i) => (i === idx ? { ...m, dosage: val } : m)) }));
                             }}
-                            style={{ padding: '6px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                            style={{ padding: '6px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px' }}
                           />
                           <input
                             type="text"
@@ -2196,7 +2196,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                               const val = e.target.value;
                               setDraft((p) => ({ ...p, medications: p.medications.map((m, i) => (i === idx ? { ...m, frequency: val } : m)) }));
                             }}
-                            style={{ padding: '6px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                            style={{ padding: '6px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px' }}
                           />
                           <select
                             value={med.route}
@@ -2204,14 +2204,14 @@ export const CaseIntakeWorkspace: React.FC = () => {
                               const val = e.target.value;
                               setDraft((p) => ({ ...p, medications: p.medications.map((m, i) => (i === idx ? { ...m, route: val } : m)) }));
                             }}
-                            style={{ padding: '6px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px', backgroundColor: '#FFFFFF' }}
+                            style={{ padding: '6px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px', backgroundColor: 'var(--bg-surface)' }}
                           >
                             <option value="Oral">Oral (PO)</option>
                             <option value="Intravenous">Intravenous (IV)</option>
                             <option value="Subcutaneous">Subcutaneous (SC)</option>
                             <option value="Inhaled">Inhaled</option>
                           </select>
-                          <button onClick={() => setDraft((p) => ({ ...p, medications: p.medications.filter((_, i) => i !== idx) }))} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer' }}>
+                          <button onClick={() => setDraft((p) => ({ ...p, medications: p.medications.filter((_, i) => i !== idx) }))} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                             <X size={14} />
                           </button>
                         </div>
@@ -2225,11 +2225,11 @@ export const CaseIntakeWorkspace: React.FC = () => {
             {/* ── STEP 2 (INPATIENT) / 5 (OPD): Documents & PDFs Ingestion ────────────── */}
             {activeStepId === 'documents' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
-                  <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                <div style={{ borderBottom: '1px solid var(--bg-subtle)', paddingBottom: '12px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                     Clinical Documents & Attachment Ingestion
                   </h3>
-                  <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B' }}>
+                  <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
                     Attach clinical PDFs, consultant letters, and discharge summaries. Entities extracted are marked <code>AI_EXTRACTED</code> with page provenance until verified by a clinician.
                   </p>
                 </div>
@@ -2237,8 +2237,8 @@ export const CaseIntakeWorkspace: React.FC = () => {
                 {/* PDF error */}
                 {pdfExtractionError && (
                   <div style={{
-                    background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '6px',
-                    padding: '10px 14px', fontSize: '12px', color: '#DC2626',
+                    background: 'var(--danger-subtle)', border: '1px solid var(--danger-border)', borderRadius: '6px',
+                    padding: '10px 14px', fontSize: '12px', color: 'var(--status-danger)',
                     display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px',
                   }}>
                     <AlertTriangle size={14} />
@@ -2259,11 +2259,11 @@ export const CaseIntakeWorkspace: React.FC = () => {
                 <div style={{ width: '100%' }}>
                   <div
                     style={{
-                      border: `2px dashed ${isExtractingPdf ? '#0284C7' : '#CBD5E1'}`,
+                      border: `2px dashed ${isExtractingPdf ? 'var(--accent-primary)' : 'var(--border-medium)'}`,
                       borderRadius: '8px',
                       padding: '32px 20px',
                       textAlign: 'center',
-                      backgroundColor: isExtractingPdf ? '#EFF6FF' : '#F8FAFC',
+                      backgroundColor: isExtractingPdf ? 'var(--accent-subtle)' : 'var(--bg-subtle)',
                       cursor: isExtractingPdf ? 'wait' : 'pointer',
                       transition: 'all 0.2s',
                     }}
@@ -2276,26 +2276,26 @@ export const CaseIntakeWorkspace: React.FC = () => {
                             width: '26px',
                             height: '26px',
                             borderRadius: '50%',
-                            border: '3px solid #BFDBFE',
-                            borderTopColor: '#0284C7',
+                            border: '3px solid var(--border-medium)',
+                            borderTopColor: 'var(--accent-primary)',
                             animation: 'spin 0.8s linear infinite',
                             margin: '0 auto 8px',
                           }}
                         />
-                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#0284C7' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--accent-primary)' }}>
                           Reconstructing file & extracting clinical entities…
                         </div>
-                        <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
                           Parsing document, running NER model, and building editable data table
                         </div>
                       </>
                     ) : (
                       <>
-                        <Upload size={24} color="#0F766E" style={{ margin: '0 auto 8px' }} />
-                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>
+                        <Upload size={24} color="var(--accent-primary)" style={{ margin: '0 auto 8px' }} />
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
                           Click to attach Clinical PDF, Scan, or Image
                         </div>
-                        <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
                           Supports PDF, PNG, JPG, WEBP, TXT · Reconstructs visual file + editable clinical table
                         </div>
                       </>
@@ -2325,11 +2325,11 @@ export const CaseIntakeWorkspace: React.FC = () => {
             {/* ── STEP 3 (TRIAGE) / 5 (OPD) / 6 (INPATIENT): Review & Activate ────────────────────── */}
             {activeStepId === 'review' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
-                  <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                <div style={{ borderBottom: '1px solid var(--bg-subtle)', paddingBottom: '12px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                     Intake Validation & Safety Review
                   </h3>
-                  <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B' }}>
+                  <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
                     Review deterministic safety alerts before committing the clinical record to the hospital repository.
                   </p>
                 </div>
@@ -2339,17 +2339,17 @@ export const CaseIntakeWorkspace: React.FC = () => {
                   <div
                     style={{
                       padding: '14px 18px',
-                      backgroundColor: '#FEF2F2',
-                      border: '1px solid #FCA5A5',
+                      backgroundColor: 'var(--danger-subtle)',
+                      border: '1px solid var(--danger-border)',
                       borderRadius: '8px',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#991B1B', fontWeight: 700, fontSize: '13px', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--status-danger)', fontWeight: 700, fontSize: '13px', marginBottom: '6px' }}>
                       <ShieldAlert size={18} />
                       <span>{safetyPreview.concerns.length} Reviewable Safety Concern(s) Flagged</span>
                     </div>
                     {safetyPreview.concerns.map((c) => (
-                      <div key={c.id} style={{ fontSize: '12px', color: '#7F1D1D', marginTop: '4px', lineHeight: 1.5 }}>
+                      <div key={c.id} style={{ fontSize: '12px', color: 'var(--status-danger)', marginTop: '4px', lineHeight: 1.5 }}>
                         • <strong>{c.category}</strong>: {c.description}
                       </div>
                     ))}
@@ -2358,14 +2358,14 @@ export const CaseIntakeWorkspace: React.FC = () => {
                   <div
                     style={{
                       padding: '12px 16px',
-                      backgroundColor: '#F0FDF4',
-                      border: '1px solid #BBF7D0',
+                      backgroundColor: 'var(--success-subtle)',
+                      border: '1px solid var(--success-border)',
                       borderRadius: '8px',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
                       fontSize: '13px',
-                      color: '#166534',
+                      color: 'var(--status-success)',
                       fontWeight: 500,
                     }}
                   >
@@ -2376,37 +2376,37 @@ export const CaseIntakeWorkspace: React.FC = () => {
 
                 {/* Case Summary Grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '12px' }}>
-                  <div style={{ padding: '12px', backgroundColor: '#F8FAFC', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                    <div style={{ color: '#64748B', marginBottom: '4px', fontWeight: 600 }}>PATIENT IDENTITY</div>
-                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+                  <div style={{ padding: '12px', backgroundColor: 'var(--bg-subtle)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 600 }}>PATIENT IDENTITY</div>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                       {draft.patient.givenName} {draft.patient.familyName || '(Unnamed)'}
                     </div>
-                    <div style={{ color: '#475569', marginTop: '2px' }}>
+                    <div style={{ color: 'var(--text-secondary)', marginTop: '2px' }}>
                       DOB: {draft.patient.dateOfBirth || 'Unspecified'} · Sex: {draft.patient.administrativeSex} · MRN: {draft.patient.externalPatientId || 'Pending'}
                     </div>
                   </div>
 
-                  <div style={{ padding: '12px', backgroundColor: '#F8FAFC', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
+                  <div style={{ padding: '12px', backgroundColor: 'var(--bg-subtle)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span style={{ color: '#64748B', fontWeight: 600, fontSize: '11px', textTransform: 'uppercase' }}>
+                      <span style={{ color: 'var(--text-muted)', fontWeight: 600, fontSize: '11px', textTransform: 'uppercase' }}>
                         Clinical Problem & Routing
                       </span>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#0F766E', backgroundColor: '#F0FDFA', padding: '1px 6px', borderRadius: '4px', border: '1px solid #CCFBF1', fontWeight: 600 }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--accent-primary)', backgroundColor: 'var(--success-subtle)', padding: '1px 6px', borderRadius: '4px', border: '1px solid var(--success-border)', fontWeight: 600 }}>
                         <Sparkles size={11} /> Auto-Triaged
                       </span>
                     </div>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
                       {draft.presentation.title || '(No title entered)'}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#475569', marginTop: '4px', fontSize: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', marginTop: '4px', fontSize: '12px' }}>
                       <span style={{
                         padding: '2px 6px',
                         borderRadius: '4px',
                         fontWeight: 700,
                         fontSize: '11px',
-                        backgroundColor: draft.encounter.priority === 'URGENT' ? '#FEF2F2' : draft.encounter.priority === 'HIGH' ? '#FFFBEB' : '#F0FDF4',
-                        color: draft.encounter.priority === 'URGENT' ? '#991B1B' : draft.encounter.priority === 'HIGH' ? '#92400E' : '#166534',
-                        border: `1px solid ${draft.encounter.priority === 'URGENT' ? '#FECACA' : draft.encounter.priority === 'HIGH' ? '#FDE68A' : '#BBF7D0'}`
+                        backgroundColor: draft.encounter.priority === 'URGENT' ? 'var(--danger-subtle)' : draft.encounter.priority === 'HIGH' ? 'var(--warning-subtle)' : 'var(--success-subtle)',
+                        color: draft.encounter.priority === 'URGENT' ? 'var(--status-danger)' : draft.encounter.priority === 'HIGH' ? 'var(--status-warning)' : 'var(--status-success)',
+                        border: `1px solid ${draft.encounter.priority === 'URGENT' ? 'var(--danger-border)' : draft.encounter.priority === 'HIGH' ? 'var(--warning-border)' : 'var(--success-border)'}`
                       }}>
                         {draft.encounter.priority}
                       </span>
@@ -2421,7 +2421,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                   style={{
                     marginTop: '12px',
                     paddingTop: '16px',
-                    borderTop: '1px solid #E2E8F0',
+                    borderTop: '1px solid var(--border-subtle)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -2438,9 +2438,9 @@ export const CaseIntakeWorkspace: React.FC = () => {
                       gap: '6px',
                       padding: '10px 18px',
                       borderRadius: '6px',
-                      backgroundColor: '#FFFFFF',
-                      color: '#0F172A',
-                      border: '1px solid #CBD5E1',
+                      backgroundColor: 'var(--bg-surface)',
+                      color: 'var(--text-primary)',
+                      border: '1px solid var(--border-medium)',
                       fontSize: '13px',
                       fontWeight: 600,
                       cursor: isSubmitting ? 'not-allowed' : 'pointer',
@@ -2459,8 +2459,8 @@ export const CaseIntakeWorkspace: React.FC = () => {
                       gap: '6px',
                       padding: '10px 22px',
                       borderRadius: '6px',
-                      backgroundColor: '#0F766E',
-                      color: '#FFFFFF',
+                      backgroundColor: 'var(--accent-primary)',
+                      color: 'var(--bg-surface)',
                       border: 'none',
                       fontSize: '13px',
                       fontWeight: 600,
@@ -2468,7 +2468,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                       boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
                     }}
                   >
-                    <Play size={14} fill="#FFFFFF" />
+                    <Play size={14} fill="var(--bg-surface)" />
                     <span>{isSubmitting ? 'Persisting & Analyzing...' : 'Create Case & Run Nexus Analysis'}</span>
                   </button>
                 </div>
@@ -2480,8 +2480,8 @@ export const CaseIntakeWorkspace: React.FC = () => {
           <div
             style={{
               padding: '16px 24px',
-              borderTop: '1px solid #E2E8F0',
-              backgroundColor: '#FFFFFF',
+              borderTop: '1px solid var(--border-subtle)',
+              backgroundColor: 'var(--bg-surface)',
               position: 'sticky',
               bottom: 0,
               zIndex: 20,
@@ -2500,9 +2500,9 @@ export const CaseIntakeWorkspace: React.FC = () => {
                 gap: '6px',
                 padding: '8px 16px',
                 borderRadius: '6px',
-                border: '1px solid #CBD5E1',
-                backgroundColor: '#FFFFFF',
-                color: currentStepNum === 1 ? '#CBD5E1' : '#334155',
+                border: '1px solid var(--border-medium)',
+                backgroundColor: 'var(--bg-surface)',
+                color: currentStepNum === 1 ? 'var(--border-medium)' : 'var(--text-secondary)',
                 fontSize: '13px',
                 fontWeight: 600,
                 cursor: currentStepNum === 1 ? 'not-allowed' : 'pointer',
@@ -2522,7 +2522,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                   padding: '9px 20px',
                   borderRadius: '6px',
                   backgroundColor: contextConfig.color,
-                  color: '#FFFFFF',
+                  color: 'var(--bg-surface)',
                   border: 'none',
                   fontSize: '13px',
                   fontWeight: 600,
@@ -2548,18 +2548,18 @@ export const CaseIntakeWorkspace: React.FC = () => {
         >
           <div
             style={{
-              backgroundColor: '#FFFFFF',
+              backgroundColor: 'var(--bg-surface)',
               borderRadius: '10px',
-              border: '1px solid #E2E8F0',
+              border: '1px solid var(--border-subtle)',
               padding: '20px',
               boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
               position: 'sticky',
               top: '24px',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', borderBottom: '1px solid #F1F5F9', paddingBottom: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', borderBottom: '1px solid var(--bg-subtle)', paddingBottom: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#0F766E', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase' }}>
                   LIVE PREVIEW
                 </span>
                 <span
@@ -2580,7 +2580,7 @@ export const CaseIntakeWorkspace: React.FC = () => {
                 onClick={() => setCareContextChosen(false)}
                 style={{
                   fontSize: '11px',
-                  color: '#64748B',
+                  color: 'var(--text-muted)',
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
@@ -2595,13 +2595,13 @@ export const CaseIntakeWorkspace: React.FC = () => {
 
             {/* Patient Card Preview */}
             <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '11px', color: '#64748B', marginBottom: '2px' }}>PATIENT</div>
-              <div style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>PATIENT</div>
+              <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
                 {draft.patient.givenName || draft.patient.familyName
                   ? `${draft.patient.givenName} ${draft.patient.familyName}`.trim()
                   : 'Patient Name Pending'}
               </div>
-              <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
                 {draft.patient.dateOfBirth ? `${draft.patient.dateOfBirth} · ` : ''}
                 Sex: {draft.patient.administrativeSex}
                 {draft.patient.externalPatientId ? ` · MRN: ${draft.patient.externalPatientId}` : ''}
@@ -2610,8 +2610,8 @@ export const CaseIntakeWorkspace: React.FC = () => {
 
             {/* Presentation Preview */}
             <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '11px', color: '#64748B', marginBottom: '2px' }}>PRESENTATION</div>
-              <div style={{ fontSize: '13px', color: '#0F172A', fontWeight: 500, lineHeight: 1.4 }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>PRESENTATION</div>
+              <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 500, lineHeight: 1.4 }}>
                 {draft.presentation.title || 'Enter chief complaint / problem in Step 2'}
               </div>
             </div>
@@ -2630,12 +2630,12 @@ export const CaseIntakeWorkspace: React.FC = () => {
                     marginBottom: '16px',
                     padding: '12px',
                     borderRadius: '8px',
-                    backgroundColor: esi.level === 1 ? '#FEF2F2' : esi.level === 2 ? '#FFF7ED' : '#F8FAFC',
+                    backgroundColor: esi.level === 1 ? 'var(--danger-subtle)' : esi.level === 2 ? 'var(--warning-subtle)' : 'var(--bg-subtle)',
                     border: `1px solid ${esi.badgeColor}50`,
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
                       ESI Triage Level
                     </span>
                     <span
@@ -2645,22 +2645,22 @@ export const CaseIntakeWorkspace: React.FC = () => {
                         padding: '2px 8px',
                         borderRadius: '4px',
                         backgroundColor: esi.badgeColor,
-                        color: '#FFFFFF',
+                        color: 'var(--bg-surface)',
                       }}
                     >
                       {esi.levelName}
                     </span>
                   </div>
-                  <p style={{ fontSize: '11px', color: '#334155', margin: '0 0 6px 0', lineHeight: 1.4 }}>
+                  <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: '0 0 6px 0', lineHeight: 1.4 }}>
                     {esi.rationale}
                   </p>
                   {esi.isLifeSavingRequired && (
-                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#DC2626', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--status-danger)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
                       <AlertTriangle size={12} /> IMMEDIATE RESUSCITATION INTERVENTION
                     </div>
                   )}
                   {esi.dangerZoneTriggered && (
-                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#EA580C', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--status-warning)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
                       <AlertTriangle size={12} /> DANGER ZONE VITALS BREACH (UPGRADED TO ESI 2)
                     </div>
                   )}
@@ -2670,29 +2670,29 @@ export const CaseIntakeWorkspace: React.FC = () => {
 
             {/* Data Stream Counters */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
-              <div style={{ padding: '10px', backgroundColor: '#F8FAFC', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                <div style={{ fontSize: '18px', fontWeight: 700, color: '#0F766E' }}>
+              <div style={{ padding: '10px', backgroundColor: 'var(--bg-subtle)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--accent-primary)' }}>
                   {draft.observations.length}
                 </div>
-                <div style={{ fontSize: '11px', color: '#64748B' }}>Observations / Labs</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Observations / Labs</div>
               </div>
-              <div style={{ padding: '10px', backgroundColor: '#F8FAFC', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                <div style={{ fontSize: '18px', fontWeight: 700, color: '#0F766E' }}>
+              <div style={{ padding: '10px', backgroundColor: 'var(--bg-subtle)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--accent-primary)' }}>
                   {draft.medications.length}
                 </div>
-                <div style={{ fontSize: '11px', color: '#64748B' }}>Active Medications</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Active Medications</div>
               </div>
-              <div style={{ padding: '10px', backgroundColor: '#F8FAFC', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                <div style={{ fontSize: '18px', fontWeight: 700, color: draft.allergies.length > 0 ? '#B91C1C' : '#64748B' }}>
+              <div style={{ padding: '10px', backgroundColor: 'var(--bg-subtle)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: draft.allergies.length > 0 ? 'var(--status-danger)' : 'var(--text-muted)' }}>
                   {draft.allergies.length}
                 </div>
-                <div style={{ fontSize: '11px', color: '#64748B' }}>Documented Allergies</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Documented Allergies</div>
               </div>
-              <div style={{ padding: '10px', backgroundColor: '#F8FAFC', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                <div style={{ fontSize: '18px', fontWeight: 700, color: '#0F766E' }}>
+              <div style={{ padding: '10px', backgroundColor: 'var(--bg-subtle)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--accent-primary)' }}>
                   {draft.documents.length}
                 </div>
-                <div style={{ fontSize: '11px', color: '#64748B' }}>Attached PDFs/Docs</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Attached PDFs/Docs</div>
               </div>
             </div>
 
@@ -2701,13 +2701,13 @@ export const CaseIntakeWorkspace: React.FC = () => {
               style={{
                 padding: '10px 12px',
                 borderRadius: '6px',
-                backgroundColor: safetyPreview.concerns.length > 0 ? '#FEF2F2' : '#F0FDF4',
-                border: `1px solid ${safetyPreview.concerns.length > 0 ? '#FECACA' : '#BBF7D0'}`,
+                backgroundColor: safetyPreview.concerns.length > 0 ? 'var(--danger-subtle)' : 'var(--success-subtle)',
+                border: `1px solid ${safetyPreview.concerns.length > 0 ? 'var(--danger-border)' : 'var(--success-border)'}`,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 fontSize: '12px',
-                color: safetyPreview.concerns.length > 0 ? '#991B1B' : '#166534',
+                color: safetyPreview.concerns.length > 0 ? 'var(--status-danger)' : 'var(--status-success)',
                 fontWeight: 600,
               }}
             >
@@ -2824,9 +2824,9 @@ export const CaseIntakeWorkspace: React.FC = () => {
                 width: '100%',
                 padding: '9px 12px',
                 borderRadius: '6px',
-                border: '1px solid #CBD5E1',
-                backgroundColor: '#FFFFFF',
-                color: '#0F766E',
+                border: '1px solid var(--border-medium)',
+                backgroundColor: 'var(--bg-surface)',
+                color: 'var(--accent-primary)',
                 fontSize: '12px',
                 fontWeight: 700,
                 cursor: 'pointer',

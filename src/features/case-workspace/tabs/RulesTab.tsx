@@ -279,16 +279,16 @@ export const RulesTab: React.FC = () => {
     switch (sev) {
       case 'CONTRAINDICATED':
       case 'CRITICAL':
-        return { bg: '#FEE2E2', text: '#991B1B', border: '#FCA5A5' };
+        return { bg: 'var(--danger-subtle)', text: 'var(--status-danger)', border: 'var(--danger-border)' };
       case 'MAJOR':
       case 'HIGH':
-        return { bg: '#FEF3C7', text: '#92400E', border: '#FCD34D' };
+        return { bg: 'var(--warning-subtle)', text: 'var(--status-warning)', border: 'var(--warning-border)' };
       case 'MODERATE':
-        return { bg: '#E0F2FE', text: '#0369A1', border: '#BAE6FD' };
+        return { bg: 'var(--accent-subtle)', text: 'var(--accent-primary)', border: 'var(--border-medium)' };
       case 'NONE':
-        return { bg: '#F8FAFC', text: '#64748B', border: '#CBD5E1' };
+        return { bg: 'var(--bg-subtle)', text: 'var(--text-secondary)', border: 'var(--border-medium)' };
       default:
-        return { bg: '#F0FDF4', text: '#166534', border: '#BBF7D0' };
+        return { bg: 'var(--success-subtle)', text: 'var(--status-success)', border: 'var(--success-border)' };
     }
   };
 
@@ -297,9 +297,9 @@ export const RulesTab: React.FC = () => {
       {/* Workstation Header */}
       <div
         style={{
-          background: '#FFFFFF',
+          background: 'var(--bg-surface)',
           borderRadius: '8px',
-          border: '1px solid #E2E8F0',
+          border: '1px solid var(--border-subtle)',
           padding: '18px 24px',
           display: 'flex',
           flexDirection: 'column',
@@ -311,8 +311,8 @@ export const RulesTab: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
               <div
                 style={{
-                  background: '#E0F2FE',
-                  color: '#0284C7',
+                  background: 'var(--accent-subtle)',
+                  color: 'var(--accent-primary)',
                   padding: '6px',
                   borderRadius: '6px',
                   display: 'flex',
@@ -320,24 +320,24 @@ export const RulesTab: React.FC = () => {
               >
                 <Cpu size={18} />
               </div>
-              <h1 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0F172A' }}>
+              <h1 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
                 Clinical Decision Rules & CDS Engine
               </h1>
               <span
                 style={{
                   fontSize: '11px',
                   fontWeight: 600,
-                  color: '#0284C7',
-                  background: '#F0F9FF',
+                  color: 'var(--accent-primary)',
+                  background: 'var(--accent-subtle)',
                   padding: '2px 8px',
                   borderRadius: '12px',
-                  border: '1px solid #BAE6FD',
+                  border: '1px solid var(--border-medium)',
                 }}
               >
                 Phase 9 · Deterministic CDS
               </span>
             </div>
-            <p style={{ margin: 0, fontSize: '13px', color: '#64748B', maxWidth: '750px' }}>
+            <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)', maxWidth: '750px' }}>
               Deterministic, evidence-based clinical algorithms separate from generative AI reasoning.
               Enforces reproducible scoring, pharmacotherapy dosing, drug interaction safety, and immunological allergy cross-reactivity.
             </p>
@@ -349,8 +349,8 @@ export const RulesTab: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              background: '#0F172A',
-              color: '#FFFFFF',
+              background: 'var(--bg-app)',
+              color: 'var(--bg-surface)',
               border: 'none',
               borderRadius: '6px',
               padding: '8px 14px',
@@ -364,7 +364,7 @@ export const RulesTab: React.FC = () => {
         </div>
 
         {/* 4-Panel Sub-Navigation */}
-        <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid #F1F5F9', paddingTop: '12px' }}>
+        <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid var(--bg-subtle)', paddingTop: '12px' }}>
           {[
             { id: 'RULES' as const, label: '1. Guideline Rules & Scores', icon: BookOpen, count: CLINICAL_RULES_REGISTRY.length },
             { id: 'DOSING' as const, label: '2. Renal & Dosing Calculator', icon: Calculator, count: DRUG_DOSING_CATALOG.length },
@@ -385,9 +385,9 @@ export const RulesTab: React.FC = () => {
                   borderRadius: '6px',
                   fontSize: '12px',
                   fontWeight: isActive ? 600 : 500,
-                  color: isActive ? '#0284C7' : '#475569',
-                  background: isActive ? '#F0F9FF' : '#FFFFFF',
-                  border: isActive ? '1px solid #BAE6FD' : '1px solid #E2E8F0',
+                  color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                  background: isActive ? 'var(--accent-subtle)' : 'var(--bg-surface)',
+                  border: isActive ? '1px solid var(--border-medium)' : '1px solid var(--border-subtle)',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
@@ -401,8 +401,8 @@ export const RulesTab: React.FC = () => {
                       fontWeight: 700,
                       padding: '1px 6px',
                       borderRadius: '10px',
-                      background: tab.alert ? '#FEE2E2' : isActive ? '#BAE6FD' : '#F1F5F9',
-                      color: tab.alert ? '#991B1B' : isActive ? '#0369A1' : '#64748B',
+                      background: tab.alert ? 'var(--danger-subtle)' : isActive ? 'var(--border-medium)' : 'var(--bg-subtle)',
+                      color: tab.alert ? 'var(--status-danger)' : isActive ? 'var(--accent-primary)' : 'var(--text-muted)',
                     }}
                   >
                     {tab.count}
@@ -421,7 +421,7 @@ export const RulesTab: React.FC = () => {
         <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '20px' }}>
           {/* Rules Selector Sidebar */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B', letterSpacing: '0.05em' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
               Deterministic Rule Catalog
             </div>
             {CLINICAL_RULES_REGISTRY.map((rule) => {
@@ -437,15 +437,15 @@ export const RulesTab: React.FC = () => {
                     gap: '4px',
                     padding: '12px 14px',
                     borderRadius: '6px',
-                    border: isSelected ? '1px solid #0284C7' : '1px solid #E2E8F0',
-                    background: isSelected ? '#F0F9FF' : '#FFFFFF',
+                    border: isSelected ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                    background: isSelected ? 'var(--accent-subtle)' : 'var(--bg-surface)',
                     textAlign: 'left',
                     cursor: 'pointer',
                     boxShadow: isSelected ? '0 1px 3px rgba(2, 132, 199, 0.1)' : 'none',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: isSelected ? '#0284C7' : '#64748B' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: isSelected ? 'var(--accent-primary)' : 'var(--text-muted)' }}>
                       {rule.code}
                     </span>
                     <span
@@ -453,18 +453,18 @@ export const RulesTab: React.FC = () => {
                         fontSize: '9px',
                         padding: '1px 5px',
                         borderRadius: '4px',
-                        background: '#F1F5F9',
-                        color: '#475569',
+                        background: 'var(--bg-subtle)',
+                        color: 'var(--text-secondary)',
                         fontWeight: 600,
                       }}
                     >
                       {rule.category.replace('_', ' ')}
                     </span>
                   </div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A', lineHeight: 1.3 }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>
                     {rule.title}
                   </div>
-                  <div style={{ fontSize: '11px', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
                     {rule.specialty}
                   </div>
                 </button>
@@ -475,13 +475,13 @@ export const RulesTab: React.FC = () => {
           {/* Rule Detail & Evaluator */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {/* Rule Header Card */}
-            <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '20px' }}>
+            <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <div>
-                  <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+                  <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
                     {selectedRule.title}
                   </h2>
-                  <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B' }}>
+                  <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
                     {selectedRule.shortDescription}
                   </p>
                 </div>
@@ -491,27 +491,27 @@ export const RulesTab: React.FC = () => {
                     fontWeight: 600,
                     padding: '3px 8px',
                     borderRadius: '4px',
-                    background: '#F8FAFC',
-                    border: '1px solid #E2E8F0',
-                    color: '#475569',
+                    background: 'var(--bg-subtle)',
+                    border: '1px solid var(--border-subtle)',
+                    color: 'var(--text-secondary)',
                   }}
                 >
                   Version {selectedRule.version}
                 </span>
               </div>
 
-              <div style={{ fontSize: '11px', color: '#475569', background: '#F8FAFC', padding: '8px 12px', borderRadius: '6px', border: '1px solid #F1F5F9' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', background: 'var(--bg-subtle)', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--bg-subtle)' }}>
                 <strong>Evidence Base:</strong> {selectedRule.guidelineCitation}
               </div>
             </div>
 
             {/* Criteria Checklist */}
-            <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '20px' }}>
+            <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                   Clinical Criteria Checklist
                 </h3>
-                <span style={{ fontSize: '11px', color: '#64748B' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                   Click to toggle criteria based on patient examination
                 </span>
               </div>
@@ -520,21 +520,21 @@ export const RulesTab: React.FC = () => {
               {autoForCurrentRule.length > 0 && (
                 <div style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  background: 'linear-gradient(135deg, #F0FDF4, #ECFDF5)',
-                  border: '1px solid #86EFAC',
+                  background: 'linear-gradient(135deg, var(--success-subtle), var(--success-subtle))',
+                  border: '1px solid var(--success-border)',
                   borderRadius: '6px', padding: '10px 14px', marginBottom: '14px',
                   flexWrap: 'wrap', gap: '8px',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Sparkles size={13} color="#059669" />
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#065F46' }}>
+                    <Sparkles size={13} color="var(--status-success)" />
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--status-success)' }}>
                       {autoForCurrentRule.length} criteria auto-detected from case findings
                     </span>
                     <span style={{
                       fontSize: '10px', fontWeight: 700,
-                      background: '#DCFCE7', color: '#166534',
+                      background: 'var(--success-subtle)', color: 'var(--status-success)',
                       padding: '1px 7px', borderRadius: '10px',
-                      border: '1px solid #86EFAC',
+                      border: '1px solid var(--success-border)',
                     }}>
                       Auto-detected
                     </span>
@@ -544,7 +544,7 @@ export const RulesTab: React.FC = () => {
                       onClick={applyAutoDetected}
                       style={{
                         display: 'flex', alignItems: 'center', gap: '5px',
-                        background: '#059669', color: '#FFFFFF',
+                        background: 'var(--status-success)', color: 'var(--bg-surface)',
                         border: 'none', borderRadius: '5px',
                         padding: '5px 12px', fontSize: '11px', fontWeight: 700,
                         cursor: 'pointer',
@@ -554,7 +554,7 @@ export const RulesTab: React.FC = () => {
                     </button>
                   )}
                   {unappliedAuto.length === 0 && (
-                    <span style={{ fontSize: '11px', color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--status-success)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <CheckCircle2 size={12} /> All applied
                     </span>
                   )}
@@ -575,10 +575,10 @@ export const RulesTab: React.FC = () => {
                         gap: '12px',
                         padding: '12px 14px',
                         borderRadius: '6px',
-                        background: isChecked ? '#F8FAFC' : '#FFFFFF',
+                        background: isChecked ? 'var(--bg-subtle)' : 'var(--bg-surface)',
                         border: isAutoDetected && !isChecked
-                          ? '1px solid #86EFAC'
-                          : isChecked ? '1px solid #CBD5E1' : '1px solid #F1F5F9',
+                          ? '1px solid var(--success-border)'
+                          : isChecked ? '1px solid var(--border-medium)' : '1px solid var(--bg-subtle)',
                         cursor: 'pointer',
                         transition: 'background 0.1s ease',
                       }}
@@ -588,8 +588,8 @@ export const RulesTab: React.FC = () => {
                           width: '18px',
                           height: '18px',
                           borderRadius: '4px',
-                          border: isChecked ? '1px solid #0284C7' : '1px solid #CBD5E1',
-                          background: isChecked ? '#0284C7' : '#FFFFFF',
+                          border: isChecked ? '1px solid var(--accent-primary)' : '1px solid var(--border-medium)',
+                          background: isChecked ? 'var(--accent-primary)' : 'var(--bg-surface)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -597,12 +597,12 @@ export const RulesTab: React.FC = () => {
                           flexShrink: 0,
                         }}
                       >
-                        {isChecked && <Check size={12} color="#FFFFFF" strokeWidth={3} />}
+                        {isChecked && <Check size={12} color="var(--bg-surface)" strokeWidth={3} />}
                       </div>
 
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>
+                          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
                             {criterion.name}
                           </span>
                           {criterion.category && (
@@ -612,31 +612,31 @@ export const RulesTab: React.FC = () => {
                                 fontWeight: 700,
                                 padding: '1px 6px',
                                 borderRadius: '4px',
-                                background: criterion.category === 'MAJOR' ? '#FEE2E2' : '#E0F2FE',
-                                color: criterion.category === 'MAJOR' ? '#991B1B' : '#0369A1',
+                                background: criterion.category === 'MAJOR' ? 'var(--danger-subtle)' : 'var(--accent-subtle)',
+                                color: criterion.category === 'MAJOR' ? 'var(--status-danger)' : 'var(--accent-primary)',
                               }}
                             >
                               {criterion.category}
                             </span>
                           )}
                           {criterion.points !== undefined && (
-                            <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>
+                            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>
                               +{criterion.points} pts
                             </span>
                           )}
                           {isAutoDetected && (
                             <span style={{
                               fontSize: '9px', fontWeight: 700,
-                              background: '#DCFCE7', color: '#166534',
+                              background: 'var(--success-subtle)', color: 'var(--status-success)',
                               padding: '1px 6px', borderRadius: '10px',
-                              border: '1px solid #86EFAC',
+                              border: '1px solid var(--success-border)',
                               display: 'flex', alignItems: 'center', gap: '3px',
                             }}>
                               <Sparkles size={9} /> Auto-detected
                             </span>
                           )}
                         </div>
-                        <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B', lineHeight: 1.4 }}>
+                        <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.4 }}>
                           {criterion.description}
                         </p>
                       </div>
@@ -649,7 +649,7 @@ export const RulesTab: React.FC = () => {
             {/* Evaluation Result Banner */}
             <div
               style={{
-                background: '#FFFFFF',
+                background: 'var(--bg-surface)',
                 borderRadius: '8px',
                 border: `2px solid ${getSeverityBadgeColor(ruleResult.matchedTier.riskSeverity).border}`,
                 padding: '20px',
@@ -661,7 +661,7 @@ export const RulesTab: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <CheckCircle2 size={20} color={getSeverityBadgeColor(ruleResult.matchedTier.riskSeverity).text} />
-                  <span style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+                  <span style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
                     {ruleResult.matchedTier.label}
                   </span>
                 </div>
@@ -680,18 +680,18 @@ export const RulesTab: React.FC = () => {
                 </span>
               </div>
 
-              <div style={{ fontSize: '13px', color: '#334155', lineHeight: 1.5 }}>
+              <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 {ruleResult.matchedTier.clinicalInterpretation}
               </div>
 
               <div
                 style={{
-                  background: '#F8FAFC',
+                  background: 'var(--bg-subtle)',
                   borderRadius: '6px',
                   padding: '12px 14px',
-                  border: '1px solid #E2E8F0',
+                  border: '1px solid var(--border-subtle)',
                   fontSize: '12px',
-                  color: '#0F172A',
+                  color: 'var(--text-primary)',
                 }}
               >
                 <strong>Mandated Clinical Action:</strong> {ruleResult.matchedTier.recommendedAction}
@@ -707,13 +707,13 @@ export const RulesTab: React.FC = () => {
       {activeSection === 'DOSING' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Patient Parameter Controls */}
-          <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '20px' }}>
+          <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
                   Patient Anthropometric & Renal Metrics
                 </h3>
-                <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B' }}>
+                <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
                   Synchronized from active patient encounter (#00482) — adjust parameters for clinical simulation.
                 </p>
               </div>
@@ -734,10 +734,10 @@ export const RulesTab: React.FC = () => {
                   fontSize: '11px',
                   padding: '4px 10px',
                   borderRadius: '4px',
-                  background: '#F1F5F9',
-                  border: '1px solid #CBD5E1',
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border-medium)',
                   cursor: 'pointer',
-                  color: '#475569',
+                  color: 'var(--text-secondary)',
                 }}
               >
                 <RotateCcw size={12} /> Reset to Case
@@ -746,25 +746,25 @@ export const RulesTab: React.FC = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '14px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                   Age (years)
                 </label>
                 <input
                   type="number"
                   value={patientMetrics.age}
                   onChange={(e) => setPatientMetrics({ ...patientMetrics, age: Number(e.target.value) })}
-                  style={{ width: '100%', padding: '6px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                   Biological Sex
                 </label>
                 <select
                   value={patientMetrics.gender}
                   onChange={(e) => setPatientMetrics({ ...patientMetrics, gender: e.target.value as 'MALE' | 'FEMALE' })}
-                  style={{ width: '100%', padding: '6px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '13px', background: '#FFFFFF' }}
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '13px', background: 'var(--bg-surface)' }}
                 >
                   <option value="FEMALE">Female (x0.85 CrCl)</option>
                   <option value="MALE">Male (x1.0 CrCl)</option>
@@ -772,7 +772,7 @@ export const RulesTab: React.FC = () => {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                   Weight (kg)
                 </label>
                 <input
@@ -780,24 +780,24 @@ export const RulesTab: React.FC = () => {
                   step="0.5"
                   value={patientMetrics.weightKg}
                   onChange={(e) => setPatientMetrics({ ...patientMetrics, weightKg: Number(e.target.value) })}
-                  style={{ width: '100%', padding: '6px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                   Height (cm)
                 </label>
                 <input
                   type="number"
                   value={patientMetrics.heightCm}
                   onChange={(e) => setPatientMetrics({ ...patientMetrics, heightCm: Number(e.target.value) })}
-                  style={{ width: '100%', padding: '6px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                   Serum Creatinine (mg/dL)
                 </label>
                 <input
@@ -805,7 +805,7 @@ export const RulesTab: React.FC = () => {
                   step="0.1"
                   value={patientMetrics.serumCreatinineMgDl}
                   onChange={(e) => setPatientMetrics({ ...patientMetrics, serumCreatinineMgDl: Number(e.target.value) })}
-                  style={{ width: '100%', padding: '6px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '13px', fontWeight: 700, color: '#0F172A' }}
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}
                 />
               </div>
             </div>
@@ -816,48 +816,48 @@ export const RulesTab: React.FC = () => {
                 marginTop: '16px',
                 padding: '14px 18px',
                 borderRadius: '6px',
-                background: '#F8FAFC',
-                border: '1px solid #E2E8F0',
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-subtle)',
                 display: 'grid',
                 gridTemplateColumns: 'repeat(5, 1fr)',
                 gap: '12px',
               }}
             >
               <div>
-                <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B' }}>
+                <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                   Cockcroft-Gault CrCl
                 </div>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: '#0284C7', marginTop: '2px' }}>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--accent-primary)', marginTop: '2px' }}>
                   {renalMetrics.cockcroftGaultCrCl} <span style={{ fontSize: '11px', fontWeight: 500 }}>mL/min</span>
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B' }}>
+                <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                   CKD-EPI 2021 eGFR
                 </div>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '2px' }}>
                   {renalMetrics.ckdEpiEgfr} <span style={{ fontSize: '11px', fontWeight: 500 }}>mL/min/1.73m²</span>
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B' }}>
+                <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                   Body Mass Index (BMI)
                 </div>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '2px' }}>
                   {renalMetrics.bmi} <span style={{ fontSize: '11px', fontWeight: 500 }}>kg/m²</span>
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B' }}>
+                <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                   Devine IBW / AdjBW
                 </div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', marginTop: '4px' }}>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>
                   IBW: {renalMetrics.idealBodyWeightKg} kg
                   {renalMetrics.adjustedBodyWeightKg && (
-                    <span style={{ display: 'block', fontSize: '11px', color: '#0284C7' }}>
+                    <span style={{ display: 'block', fontSize: '11px', color: 'var(--accent-primary)' }}>
                       AdjBW: {renalMetrics.adjustedBodyWeightKg} kg
                     </span>
                   )}
@@ -865,7 +865,7 @@ export const RulesTab: React.FC = () => {
               </div>
 
               <div>
-                <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B' }}>
+                <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                   KDIGO Stage
                 </div>
                 <div style={{ marginTop: '4px' }}>
@@ -875,9 +875,9 @@ export const RulesTab: React.FC = () => {
                       fontWeight: 700,
                       padding: '3px 8px',
                       borderRadius: '4px',
-                      background: renalMetrics.ckdStage === 'STAGE_1' ? '#F0FDF4' : '#FEF3C7',
-                      color: renalMetrics.ckdStage === 'STAGE_1' ? '#166534' : '#92400E',
-                      border: '1px solid #CBD5E1',
+                      background: renalMetrics.ckdStage === 'STAGE_1' ? 'var(--success-subtle)' : 'var(--warning-subtle)',
+                      color: renalMetrics.ckdStage === 'STAGE_1' ? 'var(--status-success)' : 'var(--status-warning)',
+                      border: '1px solid var(--border-medium)',
                     }}
                   >
                     {renalMetrics.ckdStage.replace('_', ' ')}
@@ -891,7 +891,7 @@ export const RulesTab: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '20px' }}>
             {/* Drug Catalog */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B', letterSpacing: '0.05em' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
                 Select Clinical Medication
               </div>
               {DRUG_DOSING_CATALOG.map((drug) => {
@@ -906,19 +906,19 @@ export const RulesTab: React.FC = () => {
                       alignItems: 'flex-start',
                       padding: '10px 12px',
                       borderRadius: '6px',
-                      border: isSelected ? '1px solid #0284C7' : '1px solid #E2E8F0',
-                      background: isSelected ? '#F0F9FF' : '#FFFFFF',
+                      border: isSelected ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                      background: isSelected ? 'var(--accent-subtle)' : 'var(--bg-surface)',
                       textAlign: 'left',
                       cursor: 'pointer',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
                         {drug.genericName}
                       </span>
-                      <span style={{ fontSize: '10px', color: '#64748B' }}>RxNorm: {drug.rxNormCode}</span>
+                      <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>RxNorm: {drug.rxNormCode}</span>
                     </div>
-                    <span style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
                       {drug.drugClass}
                     </span>
                   </button>
@@ -928,13 +928,13 @@ export const RulesTab: React.FC = () => {
 
             {/* Calculated Pharmacotherapy Recommendation */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '20px' }}>
+              <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
                       {selectedDrug.genericName} ({selectedDrug.brandNames.join(', ')})
                     </h3>
-                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B' }}>
+                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
                       Indication: {selectedDrug.indication}
                     </p>
                   </div>
@@ -944,8 +944,8 @@ export const RulesTab: React.FC = () => {
                       fontWeight: 700,
                       padding: '4px 10px',
                       borderRadius: '12px',
-                      background: '#E0F2FE',
-                      color: '#0284C7',
+                      background: 'var(--accent-subtle)',
+                      color: 'var(--accent-primary)',
                     }}
                   >
                     CrCl: {renalMetrics.cockcroftGaultCrCl} mL/min
@@ -955,44 +955,44 @@ export const RulesTab: React.FC = () => {
                 {/* Specific Calculated Regimen Cards */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '14px' }}>
                   {dosingResult.calculatedLoadingDose && (
-                    <div style={{ background: '#FEF3C7', padding: '14px', borderRadius: '6px', border: '1px solid #FCD34D' }}>
-                      <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#92400E' }}>
+                    <div style={{ background: 'var(--warning-subtle)', padding: '14px', borderRadius: '6px', border: '1px solid var(--warning-border)' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--status-warning)' }}>
                         Recommended Loading Dose
                       </div>
-                      <div style={{ fontSize: '16px', fontWeight: 800, color: '#78350F', marginTop: '4px' }}>
+                      <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--status-warning)', marginTop: '4px' }}>
                         {dosingResult.calculatedLoadingDose}
                       </div>
-                      <div style={{ fontSize: '11px', color: '#92400E', marginTop: '4px' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--status-warning)', marginTop: '4px' }}>
                         Administer over 120 minutes (rate &le; 1000 mg/hr) to avoid Red Man Syndrome.
                       </div>
                     </div>
                   )}
 
-                  <div style={{ background: '#F0F9FF', padding: '14px', borderRadius: '6px', border: '1px solid #BAE6FD' }}>
-                    <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#0284C7' }}>
+                  <div style={{ background: 'var(--accent-subtle)', padding: '14px', borderRadius: '6px', border: '1px solid var(--border-medium)' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--accent-primary)' }}>
                       Maintenance Regimen & Interval
                     </div>
-                    <div style={{ fontSize: '16px', fontWeight: 800, color: '#0369A1', marginTop: '4px' }}>
+                    <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--accent-primary)', marginTop: '4px' }}>
                       {dosingResult.calculatedMaintenanceDose} {dosingResult.calculatedInterval}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#0369A1', marginTop: '4px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--accent-primary)', marginTop: '4px' }}>
                       Tier: {dosingResult.adjustmentTier.clinicalNote}
                     </div>
                   </div>
                 </div>
 
                 {/* Therapeutic Monitoring Guidance */}
-                <div style={{ marginTop: '16px', padding: '14px', background: '#F8FAFC', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
+                <div style={{ marginTop: '16px', padding: '14px', background: 'var(--bg-subtle)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                    <Activity size={15} color="#0284C7" />
-                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                    <Activity size={15} color="var(--accent-primary)" />
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
                       Therapeutic Drug Monitoring (TDM) Protocol
                     </span>
                   </div>
-                  <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                     {dosingResult.monitoringPlan}
                   </div>
-                  <div style={{ marginTop: '8px', fontSize: '11px', color: '#64748B' }}>
+                  <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--text-muted)' }}>
                     <strong>Key Toxicities to Monitor:</strong> {selectedDrug.monitoringGuidance.toxicities.join(' · ')}
                   </div>
                 </div>
@@ -1008,13 +1008,13 @@ export const RulesTab: React.FC = () => {
       {activeSection === 'DDI' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Active Patient Medication Bar */}
-          <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '18px 20px' }}>
+          <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '18px 20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                   Encounter Medication Regimen (Pairwise DDI Evaluation)
                 </h3>
-                <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B' }}>
+                <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
                   Checks active prescriptions and proposed orders against the RxNorm interaction database.
                 </p>
               </div>
@@ -1027,7 +1027,7 @@ export const RulesTab: React.FC = () => {
                   value={newMedInput}
                   onChange={(e) => setNewMedInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && addMedication(newMedInput)}
-                  style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px', width: '240px' }}
+                  style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px', width: '240px' }}
                 />
                 <button
                   onClick={() => addMedication(newMedInput)}
@@ -1037,8 +1037,8 @@ export const RulesTab: React.FC = () => {
                     gap: '4px',
                     padding: '6px 10px',
                     borderRadius: '4px',
-                    background: '#0F172A',
-                    color: '#FFFFFF',
+                    background: 'var(--bg-app)',
+                    color: 'var(--bg-surface)',
                     border: 'none',
                     fontSize: '12px',
                     fontWeight: 600,
@@ -1061,19 +1061,19 @@ export const RulesTab: React.FC = () => {
                     gap: '8px',
                     padding: '5px 10px',
                     borderRadius: '20px',
-                    background: '#F1F5F9',
-                    border: '1px solid #CBD5E1',
+                    background: 'var(--bg-subtle)',
+                    border: '1px solid var(--border-medium)',
                     fontSize: '12px',
                     fontWeight: 600,
-                    color: '#0F172A',
+                    color: 'var(--text-primary)',
                   }}
                 >
-                  <Pill size={12} color="#0284C7" />
+                  <Pill size={12} color="var(--accent-primary)" />
                   <span>{med.name}</span>
-                  {med.rxNorm && <span style={{ fontSize: '10px', color: '#64748B' }}>({med.rxNorm})</span>}
+                  {med.rxNorm && <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>({med.rxNorm})</span>}
                   <button
                     onClick={() => removeMedication(idx)}
-                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', color: '#94A3B8' }}
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', color: 'var(--text-muted)' }}
                   >
                     <Trash2 size={12} />
                   </button>
@@ -1086,8 +1086,8 @@ export const RulesTab: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldAlert size={16} color={ddiResult.hasContraindications ? '#DC2626' : '#D97706'} />
-                <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+                <ShieldAlert size={16} color={ddiResult.hasContraindications ? 'var(--status-danger)' : 'var(--status-warning)'} />
+                <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                   Detected Interactions ({ddiResult.detectedInteractions.length})
                 </span>
               </div>
@@ -1107,7 +1107,7 @@ export const RulesTab: React.FC = () => {
             </div>
 
             {ddiResult.detectedInteractions.length === 0 ? (
-              <div style={{ background: '#FFFFFF', padding: '30px', textAlign: 'center', borderRadius: '8px', border: '1px solid #E2E8F0', color: '#64748B', fontSize: '13px' }}>
+              <div style={{ background: 'var(--bg-surface)', padding: '30px', textAlign: 'center', borderRadius: '8px', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', fontSize: '13px' }}>
                 No dangerous drug-drug interactions detected between current co-prescribed agents.
               </div>
             ) : (
@@ -1117,7 +1117,7 @@ export const RulesTab: React.FC = () => {
                   <div
                     key={ddi.id}
                     style={{
-                      background: '#FFFFFF',
+                      background: 'var(--bg-surface)',
                       borderRadius: '8px',
                       border: `1px solid ${badge.border}`,
                       borderLeft: `4px solid ${badge.text}`,
@@ -1129,10 +1129,10 @@ export const RulesTab: React.FC = () => {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
+                        <span style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)' }}>
                           {ddi.drugA.name} + {ddi.drugB.name}
                         </span>
-                        <span style={{ fontSize: '11px', color: '#64748B' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                           (RxNorm {ddi.drugA.rxNorm} &harr; {ddi.drugB.rxNorm})
                         </span>
                       </div>
@@ -1150,15 +1150,15 @@ export const RulesTab: React.FC = () => {
                       </span>
                     </div>
 
-                    <div style={{ fontSize: '12px', color: '#334155', lineHeight: 1.4 }}>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
                       <strong>Mechanism:</strong> {ddi.mechanism}
                     </div>
 
-                    <div style={{ fontSize: '12px', color: '#991B1B', background: '#FEF2F2', padding: '8px 12px', borderRadius: '4px', border: '1px solid #FEE2E2' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--status-danger)', background: 'var(--danger-subtle)', padding: '8px 12px', borderRadius: '4px', border: '1px solid var(--danger-subtle)' }}>
                       <strong>Clinical Hazard:</strong> {ddi.clinicalConsequence}
                     </div>
 
-                    <div style={{ fontSize: '12px', color: '#0F172A', background: '#F8FAFC', padding: '8px 12px', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--text-primary)', background: 'var(--bg-subtle)', padding: '8px 12px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                       <strong>Clinical Management Strategy:</strong> {ddi.managementRecommendation}
                     </div>
                   </div>
@@ -1175,10 +1175,10 @@ export const RulesTab: React.FC = () => {
       {activeSection === 'ALLERGY' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
           {/* Patient Documented Allergies */}
-          <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '18px 20px' }}>
+          <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '18px 20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-              <ShieldAlert size={18} color="#DC2626" />
-              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>
+              <ShieldAlert size={18} color="var(--status-danger)" />
+              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
                 Documented Patient Immunological Allergies
               </h3>
             </div>
@@ -1191,13 +1191,13 @@ export const RulesTab: React.FC = () => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
-                    background: '#FEE2E2',
-                    color: '#991B1B',
+                    background: 'var(--danger-subtle)',
+                    color: 'var(--status-danger)',
                     padding: '6px 12px',
                     borderRadius: '6px',
                     fontSize: '12px',
                     fontWeight: 700,
-                    border: '1px solid #FCA5A5',
+                    border: '1px solid var(--danger-border)',
                   }}
                 >
                   <AlertTriangle size={14} />
@@ -1208,11 +1208,11 @@ export const RulesTab: React.FC = () => {
           </div>
 
           {/* Interactive Challenge Tool */}
-          <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '20px' }}>
-            <h4 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+          <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '20px' }}>
+            <h4 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
               Pre-Prescription Allergy Cross-Reactivity Simulator
             </h4>
-            <p style={{ margin: '0 0 14px', fontSize: '12px', color: '#64748B' }}>
+            <p style={{ margin: '0 0 14px', fontSize: '12px', color: 'var(--text-muted)' }}>
               Select an intended candidate antimicrobial or therapeutic agent to compute structural cross-reactivity and shared side-chain risk.
             </p>
 
@@ -1239,9 +1239,9 @@ export const RulesTab: React.FC = () => {
                     style={{
                       padding: '6px 12px',
                       borderRadius: '4px',
-                      border: isSelected ? '1px solid #0284C7' : '1px solid #CBD5E1',
-                      background: isSelected ? '#0284C7' : '#FFFFFF',
-                      color: isSelected ? '#FFFFFF' : '#0F172A',
+                      border: isSelected ? '1px solid var(--accent-primary)' : '1px solid var(--border-medium)',
+                      background: isSelected ? 'var(--accent-primary)' : 'var(--bg-surface)',
+                      color: isSelected ? 'var(--bg-surface)' : 'var(--text-primary)',
                       fontSize: '12px',
                       fontWeight: 600,
                       cursor: 'pointer',
@@ -1259,9 +1259,9 @@ export const RulesTab: React.FC = () => {
                 style={{
                   padding: '16px',
                   borderRadius: '6px',
-                  background: '#F0FDF4',
-                  border: '1px solid #BBF7D0',
-                  color: '#166534',
+                  background: 'var(--success-subtle)',
+                  border: '1px solid var(--success-border)',
+                  color: 'var(--status-success)',
                   fontSize: '13px',
                 }}
               >
@@ -1274,9 +1274,9 @@ export const RulesTab: React.FC = () => {
                   <div
                     key={idx}
                     style={{
-                      background: isContra ? '#FEF2F2' : '#FFFBEB',
-                      border: isContra ? '1px solid #FCA5A5' : '1px solid #FCD34D',
-                      borderLeft: isContra ? '4px solid #DC2626' : '4px solid #D97706',
+                      background: isContra ? 'var(--danger-subtle)' : 'var(--warning-subtle)',
+                      border: isContra ? '1px solid var(--danger-border)' : '1px solid var(--warning-border)',
+                      borderLeft: isContra ? '4px solid var(--status-danger)' : '4px solid var(--status-warning)',
                       borderRadius: '6px',
                       padding: '16px',
                       display: 'flex',
@@ -1285,7 +1285,7 @@ export const RulesTab: React.FC = () => {
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '14px', fontWeight: 800, color: isContra ? '#991B1B' : '#92400E' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 800, color: isContra ? 'var(--status-danger)' : 'var(--status-warning)' }}>
                         {alert.alertHeadline}
                       </span>
                       <span
@@ -1294,23 +1294,23 @@ export const RulesTab: React.FC = () => {
                           fontWeight: 700,
                           padding: '2px 8px',
                           borderRadius: '4px',
-                          background: isContra ? '#DC2626' : '#D97706',
-                          color: '#FFFFFF',
+                          background: isContra ? 'var(--status-danger)' : 'var(--status-warning)',
+                          color: 'var(--bg-surface)',
                         }}
                       >
                         {alert.riskLevel}
                       </span>
                     </div>
 
-                    <div style={{ fontSize: '12px', color: '#1E293B', lineHeight: 1.4 }}>
+                    <div style={{ fontSize: '12px', color: 'var(--text-primary)', lineHeight: 1.4 }}>
                       <strong>Immunological Mechanism:</strong> {alert.rule.immunologicalMechanism}
                     </div>
 
-                    <div style={{ fontSize: '12px', color: '#1E293B', lineHeight: 1.4 }}>
+                    <div style={{ fontSize: '12px', color: 'var(--text-primary)', lineHeight: 1.4 }}>
                       <strong>Clinical Practice Guidance:</strong> {alert.managementAdvice}
                     </div>
 
-                    <div style={{ fontSize: '12px', color: '#0369A1', background: '#F0F9FF', padding: '8px 12px', borderRadius: '4px', border: '1px solid #BAE6FD', marginTop: '4px' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--accent-primary)', background: 'var(--accent-subtle)', padding: '8px 12px', borderRadius: '4px', border: '1px solid var(--border-medium)', marginTop: '4px' }}>
                       <strong>Validated Safe Therapeutic Alternatives:</strong>{' '}
                       {alert.safeSubstitutes.join(', ')}
                     </div>

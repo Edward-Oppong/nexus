@@ -67,11 +67,11 @@ export const ORG_TYPE_LABELS: Record<string, string> = {
 // Role display labels and colours
 // ----------------------------------------------------------
 export const ROLE_DISPLAY: Record<string, { label: string; bg: string; text: string; border: string }> = {
-  clinician:            { label: 'Clinician',      bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE' },
-  nurse:                { label: 'Nurse',           bg: '#F0FDF4', text: '#15803D', border: '#BBF7D0' },
-  laboratory:           { label: 'Laboratory',     bg: '#FFFBEB', text: '#B45309', border: '#FDE68A' },
+  clinician:            { label: 'Clinician',      bg: 'var(--accent-subtle)', text: 'var(--accent-primary)', border: 'var(--border-medium)' },
+  nurse:                { label: 'Nurse',           bg: 'var(--success-subtle)', text: 'var(--status-success)', border: 'var(--success-border)' },
+  laboratory:           { label: 'Laboratory',     bg: 'var(--warning-subtle)', text: 'var(--status-warning)', border: 'var(--warning-border)' },
   reviewer:             { label: 'Reviewer',       bg: '#FDF4FF', text: '#7E22CE', border: '#E9D5FF' },
-  organization_admin:   { label: 'Org Admin',      bg: '#F1F5F9', text: '#334155', border: '#CBD5E1' },
+  organization_admin:   { label: 'Org Admin',      bg: 'var(--bg-subtle)', text: 'var(--text-secondary)', border: 'var(--border-medium)' },
   platform_admin:       { label: 'Platform Admin', bg: '#FFF1F2', text: '#BE123C', border: '#FECDD3' },
 };
 

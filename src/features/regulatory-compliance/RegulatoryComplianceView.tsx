@@ -164,15 +164,15 @@ export const RegulatoryComplianceView: React.FC = () => {
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        background: '#F8FAFC',
+        background: 'var(--bg-subtle)',
         overflow: 'hidden',
       }}
     >
       {/* ── Top Header Banner ─────────────────────────────────── */}
       <header
         style={{
-          background: '#FFFFFF',
-          borderBottom: '1px solid #E2E8F0',
+          background: 'var(--bg-surface)',
+          borderBottom: '1px solid var(--border-subtle)',
           padding: '20px 32px 0 32px',
           flexShrink: 0,
         }}
@@ -181,14 +181,14 @@ export const RegulatoryComplianceView: React.FC = () => {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
               <span className="badge badge-neutral" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <ShieldCheck size={13} style={{ color: '#2563EB' }} />
+                <ShieldCheck size={13} style={{ color: 'var(--accent-primary)' }} />
                 MDR 2017/745 Class IIa SaMD
               </span>
-              <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'var(--font-mono)' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
                 FDA Product Code: QAS · CE Notified Body Standard: MDCG 2021-6
               </span>
             </div>
-            <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+            <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
               Regulatory & Compliance Workstation
             </h1>
           </div>
@@ -196,8 +196,8 @@ export const RegulatoryComplianceView: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div
               style={{
-                background: '#ECFDF5',
-                border: '1px solid #A7F3D0',
+                background: 'var(--success-subtle)',
+                border: '1px solid var(--success-border)',
                 padding: '6px 14px',
                 borderRadius: '6px',
                 display: 'flex',
@@ -205,12 +205,12 @@ export const RegulatoryComplianceView: React.FC = () => {
                 gap: '8px',
               }}
             >
-              <ShieldCheck size={18} style={{ color: '#059669' }} />
+              <ShieldCheck size={18} style={{ color: 'var(--status-success)' }} />
               <div>
-                <div style={{ fontSize: '10px', fontWeight: 700, color: '#065F46', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--status-success)', textTransform: 'uppercase' }}>
                   Audited Compliance Status
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#047857' }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--status-success)' }}>
                   {auditReport.overallScore}% · Verified Compliant
                 </div>
               </div>
@@ -235,8 +235,8 @@ export const RegulatoryComplianceView: React.FC = () => {
                   background: 'none',
                   border: 'none',
                   padding: '12px 2px',
-                  borderBottom: `2px solid ${isActive ? '#2563EB' : 'transparent'}`,
-                  color: isActive ? '#2563EB' : '#64748B',
+                  borderBottom: `2px solid ${isActive ? 'var(--accent-primary)' : 'transparent'}`,
+                  color: isActive ? 'var(--accent-primary)' : 'var(--text-muted)',
                   fontWeight: isActive ? 600 : 500,
                   fontSize: '13px',
                   cursor: 'pointer',
@@ -262,8 +262,8 @@ export const RegulatoryComplianceView: React.FC = () => {
             {/* Top Scorecard Summary */}
             <div
               style={{
-                background: '#FFFFFF',
-                border: '1px solid #E2E8F0',
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-subtle)',
                 borderRadius: '8px',
                 padding: '20px 24px',
                 display: 'flex',
@@ -273,20 +273,20 @@ export const RegulatoryComplianceView: React.FC = () => {
               }}
             >
               <div>
-                <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                   MDCG 2021-6 Clinical Evaluation & AI Invariants
                 </h2>
-                <p style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 0 0' }}>
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
                   European Medical Device Coordination Group guidance for Artificial Intelligence in Medical Devices (MDR 2017/745).
                 </p>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '11px', color: '#64748B', textTransform: 'uppercase', fontWeight: 600 }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
                     Passing Clauses
                   </div>
-                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#16A34A' }}>
+                  <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--status-success)' }}>
                     {auditReport.compliantCount} / {auditReport.totalClauses}
                   </div>
                 </div>
@@ -310,9 +310,9 @@ export const RegulatoryComplianceView: React.FC = () => {
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
                   style={{
-                    background: selectedCategory === cat ? '#0F172A' : '#FFFFFF',
-                    color: selectedCategory === cat ? '#FFFFFF' : '#475569',
-                    border: `1px solid ${selectedCategory === cat ? '#0F172A' : '#CBD5E1'}`,
+                    background: selectedCategory === cat ? 'var(--text-primary)' : 'var(--bg-surface)',
+                    color: selectedCategory === cat ? 'var(--bg-surface)' : 'var(--text-secondary)',
+                    border: `1px solid ${selectedCategory === cat ? 'var(--text-primary)' : 'var(--border-medium)'}`,
                     padding: '5px 12px',
                     borderRadius: '20px',
                     fontSize: '11px',
@@ -331,8 +331,8 @@ export const RegulatoryComplianceView: React.FC = () => {
                 <div
                   key={clause.clauseId}
                   style={{
-                    background: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '6px',
                     padding: '16px 20px',
                     boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
@@ -340,10 +340,10 @@ export const RegulatoryComplianceView: React.FC = () => {
                 >
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, color: '#2563EB', background: '#EFF6FF', padding: '2px 8px', borderRadius: '4px' }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, color: 'var(--accent-primary)', background: 'var(--accent-subtle)', padding: '2px 8px', borderRadius: '4px' }}>
                         {clause.clauseId}
                       </span>
-                      <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                      <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                         {clause.clauseTitle}
                       </h3>
                     </div>
@@ -354,8 +354,8 @@ export const RegulatoryComplianceView: React.FC = () => {
                         fontWeight: 700,
                         padding: '3px 8px',
                         borderRadius: '4px',
-                        background: clause.status === 'COMPLIANT' ? '#ECFDF5' : '#FEF2F2',
-                        color: clause.status === 'COMPLIANT' ? '#065F46' : '#991B1B',
+                        background: clause.status === 'COMPLIANT' ? 'var(--success-subtle)' : 'var(--danger-subtle)',
+                        color: clause.status === 'COMPLIANT' ? 'var(--status-success)' : 'var(--status-danger)',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '4px',
@@ -365,20 +365,20 @@ export const RegulatoryComplianceView: React.FC = () => {
                     </span>
                   </div>
 
-                  <p style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4, margin: '0 0 10px 0' }}>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.4, margin: '0 0 10px 0' }}>
                     <strong>Regulatory Requirement: </strong>
                     {clause.requirementDescription}
                   </p>
 
-                  <div style={{ background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '4px', padding: '10px 12px', fontSize: '12px', color: '#1E293B', marginBottom: '8px' }}>
-                    <strong style={{ color: '#0F172A' }}>Nexus Technical Implementation: </strong>
+                  <div style={{ background: 'var(--bg-subtle)', border: '1px solid var(--bg-subtle)', borderRadius: '4px', padding: '10px 12px', fontSize: '12px', color: 'var(--text-primary)', marginBottom: '8px' }}>
+                    <strong style={{ color: 'var(--text-primary)' }}>Nexus Technical Implementation: </strong>
                     {clause.nexusImplementation}
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', color: '#64748B' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
                     <span>
                       <strong>Audit Evidence: </strong>
-                      <code style={{ fontFamily: 'var(--font-mono)', background: '#F1F5F9', padding: '2px 6px', borderRadius: '3px' }}>
+                      <code style={{ fontFamily: 'var(--font-mono)', background: 'var(--bg-subtle)', padding: '2px 6px', borderRadius: '3px' }}>
                         {clause.auditEvidenceRef}
                       </code>
                     </span>
@@ -397,13 +397,13 @@ export const RegulatoryComplianceView: React.FC = () => {
         {activeTab === 'fda-pccp' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '1200px' }}>
             {/* Header Description */}
-            <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '20px 24px' }}>
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '20px 24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                  <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                     FDA Predetermined Change Control Plan (PCCP) Protocol
                   </h2>
-                  <p style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 0 0' }}>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
                     Cleared modification boundaries for AI/ML-enabled Software as a Medical Device (21 CFR 820 / FDA PCCP Guidance).
                   </p>
                 </div>
@@ -416,15 +416,15 @@ export const RegulatoryComplianceView: React.FC = () => {
             </div>
 
             {/* Interactive Proposed Change Evaluator */}
-            <div style={{ background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '20px' }}>
-              <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Sliders size={16} style={{ color: '#2563EB' }} />
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-medium)', borderRadius: '8px', padding: '20px' }}>
+              <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Sliders size={16} style={{ color: 'var(--accent-primary)' }} />
                 Interactive Change Boundary Evaluator (510(k) vs AMP)
               </h3>
 
               <form onSubmit={handleEvaluatePccp} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '14px', alignItems: 'flex-end' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                     Modification Category
                   </label>
                   <select
@@ -443,7 +443,7 @@ export const RegulatoryComplianceView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                     Proposed Change Description
                   </label>
                   <input
@@ -466,18 +466,18 @@ export const RegulatoryComplianceView: React.FC = () => {
                     marginTop: '14px',
                     padding: '12px 16px',
                     borderRadius: '6px',
-                    background: evalResult.requires510k ? '#FEF2F2' : '#F0FDF4',
-                    border: `1px solid ${evalResult.requires510k ? '#FECACA' : '#BBF7D0'}`,
+                    background: evalResult.requires510k ? 'var(--danger-subtle)' : 'var(--success-subtle)',
+                    border: `1px solid ${evalResult.requires510k ? 'var(--danger-border)' : 'var(--success-border)'}`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                   }}
                 >
                   <div>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: evalResult.requires510k ? '#991B1B' : '#166534' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: evalResult.requires510k ? 'var(--status-danger)' : 'var(--status-success)' }}>
                       Result: {evalResult.boundary.replace(/_/g, ' ')}
                     </div>
-                    <div style={{ fontSize: '11px', color: evalResult.requires510k ? '#B91C1C' : '#15803D', marginTop: '2px' }}>
+                    <div style={{ fontSize: '11px', color: evalResult.requires510k ? 'var(--status-danger)' : 'var(--status-success)', marginTop: '2px' }}>
                       {evalResult.rationale}
                     </div>
                   </div>
@@ -492,7 +492,7 @@ export const RegulatoryComplianceView: React.FC = () => {
 
             {/* Authorized Protocols List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Authorized Modification Protocols (AMP)
               </div>
 
@@ -503,18 +503,18 @@ export const RegulatoryComplianceView: React.FC = () => {
                   <div
                     key={proto.protocolId}
                     style={{
-                      background: '#FFFFFF',
-                      border: '1px solid #E2E8F0',
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border-subtle)',
                       borderRadius: '6px',
                       padding: '16px 20px',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, color: '#0F172A', background: '#F1F5F9', padding: '2px 8px', borderRadius: '4px' }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', background: 'var(--bg-subtle)', padding: '2px 8px', borderRadius: '4px' }}>
                           {proto.protocolId}
                         </span>
-                        <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                        <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                           {proto.modificationType.replace(/_/g, ' ')}
                         </h4>
                       </div>
@@ -525,25 +525,25 @@ export const RegulatoryComplianceView: React.FC = () => {
                           fontWeight: 700,
                           padding: '3px 8px',
                           borderRadius: '4px',
-                          background: isApproved ? '#ECFDF5' : isRejected ? '#FEF2F2' : '#FFFBEB',
-                          color: isApproved ? '#065F46' : isRejected ? '#991B1B' : '#92400E',
+                          background: isApproved ? 'var(--success-subtle)' : isRejected ? 'var(--danger-subtle)' : 'var(--warning-subtle)',
+                          color: isApproved ? 'var(--status-success)' : isRejected ? 'var(--status-danger)' : 'var(--status-warning)',
                         }}
                       >
                         {proto.boundaryEvaluation.replace(/_/g, ' ')}
                       </span>
                     </div>
 
-                    <div style={{ fontSize: '12px', color: '#475569', marginBottom: '6px' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
                       <strong>Authorized Variance Range: </strong>
                       {proto.allowedVarianceRange}
                     </div>
 
-                    <div style={{ background: '#F8FAFC', padding: '8px 12px', borderRadius: '4px', fontSize: '11px', color: '#1E293B', marginBottom: '6px' }}>
+                    <div style={{ background: 'var(--bg-subtle)', padding: '8px 12px', borderRadius: '4px', fontSize: '11px', color: 'var(--text-primary)', marginBottom: '6px' }}>
                       <strong>Verification Method & Acceptance Criteria: </strong>
                       {proto.verificationMethod} — {proto.acceptanceCriteria}
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', color: '#64748B' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
                       <span>
                         <strong>Sign-Off: </strong>
                         {proto.reviewedBy || 'Pending Review Committee'}
@@ -565,7 +565,7 @@ export const RegulatoryComplianceView: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '1200px' }}>
             {/* Jurisdiction Picker Cards */}
             <div>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '10px' }}>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '10px' }}>
                 Regional Sovereignty & Jurisdiction Config
               </div>
 
@@ -578,8 +578,8 @@ export const RegulatoryComplianceView: React.FC = () => {
                       key={jur}
                       onClick={() => setSelectedJurisdiction(jur)}
                       style={{
-                        background: '#FFFFFF',
-                        border: `2px solid ${isSelected ? '#2563EB' : '#E2E8F0'}`,
+                        background: 'var(--bg-surface)',
+                        border: `2px solid ${isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
                         borderRadius: '6px',
                         padding: '14px',
                         cursor: 'pointer',
@@ -587,21 +587,21 @@ export const RegulatoryComplianceView: React.FC = () => {
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#2563EB', fontFamily: 'var(--font-mono)' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-primary)', fontFamily: 'var(--font-mono)' }}>
                           {jur}
                         </span>
-                        {isSelected && <CheckCircle2 size={15} style={{ color: '#2563EB' }} />}
+                        {isSelected && <CheckCircle2 size={15} style={{ color: 'var(--accent-primary)' }} />}
                       </div>
 
-                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
                         {cfg.jurisdictionLabel}
                       </div>
 
-                      <div style={{ fontSize: '11px', color: '#64748B', lineHeight: 1.3 }}>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.3 }}>
                         Region: {cfg.primaryDataCenterRegion}
                       </div>
 
-                      <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid #F1F5F9', fontSize: '10px', color: '#059669', fontWeight: 600 }}>
+                      <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--bg-subtle)', fontSize: '10px', color: 'var(--status-success)', fontWeight: 600 }}>
                         {cfg.encryptionAtRest}
                       </div>
                     </div>
@@ -614,24 +614,24 @@ export const RegulatoryComplianceView: React.FC = () => {
             {(() => {
               const activeCfg = JURISDICTION_CONFIGS[selectedJurisdiction];
               return (
-                <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '6px', padding: '16px 20px' }}>
-                  <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>
+                <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '16px 20px' }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
                     Active Sovereignty Policy: {activeCfg.jurisdictionLabel}
                   </h3>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', fontSize: '12px' }}>
                     <div>
-                      <div style={{ color: '#64748B', fontSize: '11px', fontWeight: 600 }}>Legal Basis for Processing</div>
-                      <div style={{ color: '#0F172A', marginTop: '2px' }}>{activeCfg.legalBasis}</div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '11px', fontWeight: 600 }}>Legal Basis for Processing</div>
+                      <div style={{ color: 'var(--text-primary)', marginTop: '2px' }}>{activeCfg.legalBasis}</div>
                     </div>
                     <div>
-                      <div style={{ color: '#64748B', fontSize: '11px', fontWeight: 600 }}>Cross-Border Data Transfer</div>
-                      <div style={{ color: activeCfg.crossBorderTransferAllowed ? '#D97706' : '#16A34A', fontWeight: 600, marginTop: '2px' }}>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '11px', fontWeight: 600 }}>Cross-Border Data Transfer</div>
+                      <div style={{ color: activeCfg.crossBorderTransferAllowed ? 'var(--status-warning)' : 'var(--status-success)', fontWeight: 600, marginTop: '2px' }}>
                         {activeCfg.crossBorderTransferAllowed ? 'Permitted with BAA' : 'Strictly Prohibited (In-Country Only)'}
                       </div>
                     </div>
                     <div>
-                      <div style={{ color: '#64748B', fontSize: '11px', fontWeight: 600 }}>Statutory DPO Contact</div>
-                      <div style={{ color: '#0F172A', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>{activeCfg.statutoryDpoContact}</div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '11px', fontWeight: 600 }}>Statutory DPO Contact</div>
+                      <div style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>{activeCfg.statutoryDpoContact}</div>
                     </div>
                   </div>
                 </div>
@@ -639,13 +639,13 @@ export const RegulatoryComplianceView: React.FC = () => {
             })()}
 
             {/* Patient Consent & DSR Requests */}
-            <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '20px' }}>
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
                 <div>
-                  <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                     Data Subject Rights (DSR) & Patient AI Consent Ledger
                   </h3>
-                  <p style={{ fontSize: '11px', color: '#64748B', margin: '2px 0 0 0' }}>
+                  <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
                     Fulfillment tracking for GDPR Articles 15-18 & POPIA Section 23/24 requests.
                   </p>
                 </div>
@@ -660,8 +660,8 @@ export const RegulatoryComplianceView: React.FC = () => {
                   <div
                     key={req.id}
                     style={{
-                      background: '#F8FAFC',
-                      border: '1px solid #E2E8F0',
+                      background: 'var(--bg-subtle)',
+                      border: '1px solid var(--border-subtle)',
                       borderRadius: '6px',
                       padding: '12px 16px',
                       display: 'flex',
@@ -671,17 +671,17 @@ export const RegulatoryComplianceView: React.FC = () => {
                   >
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, color: '#0F172A' }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)' }}>
                           {req.id}
                         </span>
                         <span className="badge badge-neutral" style={{ fontSize: '10px' }}>
                           {req.requestType.replace(/_/g, ' ')}
                         </span>
-                        <span style={{ fontSize: '12px', fontWeight: 600, color: '#1E293B' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>
                           {req.patientName} ({req.patientId})
                         </span>
                       </div>
-                      <div style={{ fontSize: '11px', color: '#475569', marginTop: '4px' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
                         {req.requestDetails}
                       </div>
                     </div>
@@ -722,13 +722,13 @@ export const RegulatoryComplianceView: React.FC = () => {
                   zIndex: 999,
                 }}
               >
-                <div style={{ background: '#FFFFFF', borderRadius: '8px', padding: '24px', width: '480px', maxWidth: '90%' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', marginBottom: '14px' }}>
+                <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', padding: '24px', width: '480px', maxWidth: '90%' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px' }}>
                     Log Patient Data Subject Request (DSR)
                   </h3>
                   <form onSubmit={handleCreateDsr} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div>
-                      <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
                         Patient ID
                       </label>
                       <input
@@ -740,7 +740,7 @@ export const RegulatoryComplianceView: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
                         Request Type
                       </label>
                       <select
@@ -756,7 +756,7 @@ export const RegulatoryComplianceView: React.FC = () => {
                       </select>
                     </div>
                     <div>
-                      <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
                         Specific Request Scope & Details
                       </label>
                       <textarea
@@ -786,13 +786,13 @@ export const RegulatoryComplianceView: React.FC = () => {
         {/* TAB 4: REGULATORY FHIR AUDIT EXPORTER */}
         {activeTab === 'audit-export' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '1200px' }}>
-            <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '20px 24px' }}>
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '20px 24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                  <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                     Regulatory FHIR R4 AuditEvent Package Generator
                   </h2>
-                  <p style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 0 0' }}>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
                     Compiles immutable clinical audit events into a standardized FHIR R4 Bundle with cryptographic SHA-256 seal.
                   </p>
                 </div>
@@ -828,8 +828,8 @@ export const RegulatoryComplianceView: React.FC = () => {
                 {/* Manifest Metadata Card */}
                 <div
                   style={{
-                    background: '#FFFFFF',
-                    border: '1px solid #CBD5E1',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-medium)',
                     borderRadius: '6px',
                     padding: '16px 20px',
                     display: 'grid',
@@ -838,30 +838,30 @@ export const RegulatoryComplianceView: React.FC = () => {
                   }}
                 >
                   <div>
-                    <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Export Package ID</div>
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A', fontFamily: 'var(--font-mono)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>Export Package ID</div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
                       {exportManifest.exportId}
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Total Audit Events</div>
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#2563EB' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>Total Audit Events</div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent-primary)' }}>
                       {exportManifest.totalEventCount} AuditEvent Resources
                     </div>
                   </div>
                   <div style={{ gridColumn: 'span 2' }}>
-                    <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>SHA-256 Cryptographic Hash Checksum</div>
-                    <div style={{ fontSize: '11px', fontWeight: 600, color: '#059669', fontFamily: 'var(--font-mono)', wordBreak: 'break-all' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>SHA-256 Cryptographic Hash Checksum</div>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--status-success)', fontFamily: 'var(--font-mono)', wordBreak: 'break-all' }}>
                       {exportManifest.sha256Checksum}
                     </div>
                   </div>
                 </div>
 
                 {/* JSON Preview & Action Controls */}
-                <div style={{ background: '#0F172A', borderRadius: '8px', padding: '16px 20px', color: '#E2E8F0' }}>
+                <div style={{ background: 'var(--bg-app)', borderRadius: '8px', padding: '16px 20px', color: 'var(--border-subtle)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <FileCode2 size={16} style={{ color: '#38BDF8' }} />
+                      <FileCode2 size={16} style={{ color: 'var(--accent-primary)' }} />
                       <span style={{ fontSize: '12px', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
                         FHIR R4 Bundle (type: collection) · {exportManifest.totalEventCount} entries
                       </span>
@@ -871,7 +871,7 @@ export const RegulatoryComplianceView: React.FC = () => {
                       <button
                         onClick={handleCopyJson}
                         className="btn btn-xs btn-outline"
-                        style={{ color: '#E2E8F0', borderColor: '#475569', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        style={{ color: 'var(--border-subtle)', borderColor: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}
                       >
                         {copied ? <Check size={12} style={{ color: '#4ADE80' }} /> : <Copy size={12} />}
                         {copied ? 'Copied' : 'Copy JSON'}
@@ -893,11 +893,11 @@ export const RegulatoryComplianceView: React.FC = () => {
                       overflowY: 'auto',
                       fontSize: '11px',
                       fontFamily: 'var(--font-mono)',
-                      background: '#1E293B',
+                      background: 'var(--bg-app)',
                       padding: '12px',
                       borderRadius: '4px',
                       lineHeight: 1.4,
-                      color: '#CBD5E1',
+                      color: 'var(--border-medium)',
                     }}
                   >
                     {JSON.stringify(exportManifest.fhirBundlePayload, null, 2)}
@@ -907,18 +907,18 @@ export const RegulatoryComplianceView: React.FC = () => {
             ) : (
               <div
                 style={{
-                  background: '#FFFFFF',
-                  border: '2px dashed #CBD5E1',
+                  background: 'var(--bg-surface)',
+                  border: '2px dashed var(--border-medium)',
                   borderRadius: '8px',
                   padding: '48px',
                   textAlign: 'center',
                 }}
               >
-                <FileCode2 size={36} style={{ color: '#94A3B8', margin: '0 auto 12px auto' }} />
-                <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#334155' }}>
+                <FileCode2 size={36} style={{ color: 'var(--text-muted)', margin: '0 auto 12px auto' }} />
+                <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-secondary)' }}>
                   No Regulatory Package Compiled Yet
                 </h3>
-                <p style={{ fontSize: '12px', color: '#64748B', maxWidth: '460px', margin: '4px auto 16px auto' }}>
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)', maxWidth: '460px', margin: '4px auto 16px auto' }}>
                   Select the receiving authority and click "Generate Sealed Audit Bundle" to produce a signed, tamper-evident FHIR R4 AuditEvent bundle.
                 </p>
                 <button onClick={handleGenerateExport} className="btn btn-sm btn-primary">

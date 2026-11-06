@@ -35,10 +35,10 @@ export const RejectionReasonModal: React.FC<RejectionReasonModalProps> = ({ find
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#DC2626', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--status-danger)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               <AlertTriangle size={14} /> Review Audit
             </div>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', marginTop: '2px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
               Reject Finding: {finding.label}
             </h3>
           </div>
@@ -48,7 +48,7 @@ export const RejectionReasonModal: React.FC<RejectionReasonModalProps> = ({ find
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              color: '#64748B',
+              color: 'var(--text-muted)',
               padding: '4px',
             }}
           >
@@ -56,13 +56,13 @@ export const RejectionReasonModal: React.FC<RejectionReasonModalProps> = ({ find
           </button>
         </div>
 
-        <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '16px', lineHeight: 1.4 }}>
+        <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: 1.4 }}>
           Please specify the clinical rationale for rejecting this AI-extracted finding. This reason will be permanently attached to the case audit timeline.
         </p>
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#475569', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '6px' }}>
               Primary Rejection Reason
             </label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -76,8 +76,8 @@ export const RejectionReasonModal: React.FC<RejectionReasonModalProps> = ({ find
                     padding: '8px 10px',
                     borderRadius: '4px',
                     border: '1px solid',
-                    borderColor: selectedReason === opt ? '#0F172A' : '#E2E8F0',
-                    background: selectedReason === opt ? '#F8FAFC' : '#FFFFFF',
+                    borderColor: selectedReason === opt ? 'var(--text-primary)' : 'var(--border-subtle)',
+                    background: selectedReason === opt ? 'var(--bg-subtle)' : 'var(--bg-surface)',
                     cursor: 'pointer',
                     fontSize: '13px',
                   }}
@@ -96,7 +96,7 @@ export const RejectionReasonModal: React.FC<RejectionReasonModalProps> = ({ find
           </div>
 
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#475569', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '6px' }}>
               Optional Clinical Note
             </label>
             <textarea
@@ -108,7 +108,7 @@ export const RejectionReasonModal: React.FC<RejectionReasonModalProps> = ({ find
                 width: '100%',
                 padding: '8px 10px',
                 borderRadius: '4px',
-                border: '1px solid #CBD5E1',
+                border: '1px solid var(--border-medium)',
                 fontSize: '12px',
                 fontFamily: 'inherit',
               }}

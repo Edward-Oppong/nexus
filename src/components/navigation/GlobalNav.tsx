@@ -2,20 +2,19 @@ import React, { useState } from 'react';
 import { useCase, MainView } from '../../app/providers/CaseContext';
 import { useDrawer } from '../../app/providers/DrawerContext';
 import { useAuth } from '../../features/authentication/AuthProvider';
+import { ThemeToggle } from '../ui/ThemeToggle';
 import {
   LayoutDashboard,
   FolderKanban,
   Users,
-  FlaskConical,
   BookOpen,
   CheckSquare,
   Sliders,
   HelpCircle,
   FileCheck2,
-  BrainCircuit,
-  ShieldCheck,
   AlertCircle,
   LogOut,
+  Sparkles,
 } from 'lucide-react';
 
 interface NavItemConfig {
@@ -27,7 +26,7 @@ interface NavItemConfig {
 }
 
 export const GlobalNav: React.FC = () => {
-  const { activeView, setActiveView, pendingReviewCount, tasks, activeCase, casesList } = useCase();
+  const { activeView, setActiveView, pendingReviewCount, tasks, casesList } = useCase();
   const { openShortcuts } = useDrawer();
   const { role, profile, signOut } = useAuth();
   const isAdmin = role === 'organization_admin' || role === 'platform_admin';
@@ -43,7 +42,7 @@ export const GlobalNav: React.FC = () => {
 
   const openTasksCount = tasks.filter((t) => t.status !== 'COMPLETED').length;
   const [collapsed, setCollapsed] = useState(false);
-  const W = collapsed ? 48 : 240;
+  const W = collapsed ? 56 : 240;
 
   // Group 1: Shift-Critical Clinical Work
   const clinicalWorkGroup: NavItemConfig[] = [
@@ -86,22 +85,34 @@ export const GlobalNav: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: collapsed ? 'center' : 'space-between',
-            padding: collapsed ? '8px 0' : '7px 10px',
-            marginLeft: collapsed ? '4px' : '0',
-            marginRight: collapsed ? '4px' : '0',
-            width: collapsed ? '40px' : '100%',
-            borderRadius: '6px',
+            padding: collapsed ? '9px 0' : '8px 12px',
+            marginLeft: collapsed ? '6px' : '0',
+            marginRight: collapsed ? '6px' : '0',
+            width: collapsed ? '44px' : '100%',
+            borderRadius: 'var(--radius-md)',
             fontSize: '13px',
             fontWeight: isActive ? 600 : 500,
-            color: isActive ? '#0F172A' : '#475569',
-            backgroundColor: isActive ? '#F1F5F9' : 'transparent',
-            border: 'none',
+            color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+            backgroundColor: isActive ? 'var(--bg-hover)' : 'transparent',
+            border: isActive ? '1px solid var(--border-subtle)' : '1px solid transparent',
             cursor: 'pointer',
             textAlign: 'left',
-            transition: 'background-color 0.12s ease',
+            transition: 'all 0.15s ease',
             position: 'relative',
             flexShrink: 0,
             fontFamily: 'inherit',
+          }}
+          onMouseEnter={(e) => {
+            if (!isActive) {
+              e.currentTarget.style.backgroundColor = 'var(--bg-subtle)';
+              e.currentTarget.style.color = 'var(--text-primary)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isActive) {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = 'var(--text-secondary)';
+            }
           }}
         >
           <div
@@ -113,16 +124,17 @@ export const GlobalNav: React.FC = () => {
           >
             <span
               style={{
-                color: isActive ? '#0F172A' : '#64748B',
+                color: isActive ? 'var(--accent-primary)' : 'var(--text-muted)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0,
+                transition: 'color 0.15s ease',
               }}
             >
               {item.icon}
             </span>
-            {!collapsed && item.label}
+            {!collapsed && <span>{item.label}</span>}
           </div>
 
           {/* Differentiated Badge System */}
@@ -136,15 +148,15 @@ export const GlobalNav: React.FC = () => {
                   gap: '3px',
                   fontSize: '11px',
                   fontWeight: 700,
-                  backgroundColor: '#FEF2F2',
-                  color: '#991B1B',
-                  border: '1px solid #FCA5A5',
+                  backgroundColor: 'var(--status-safety-bg)',
+                  color: 'var(--status-safety-text)',
+                  border: '1px solid var(--status-safety-border)',
                   padding: '1px 6px',
-                  borderRadius: '4px',
+                  borderRadius: 'var(--radius-sm)',
                   fontVariantNumeric: 'tabular-nums',
                 }}
               >
-                <AlertCircle size={10} color="#B91C1C" />
+                <AlertCircle size={10} />
                 <span>{item.count}</span>
               </span>
             ) : (
@@ -153,10 +165,11 @@ export const GlobalNav: React.FC = () => {
                 style={{
                   fontSize: '11px',
                   fontWeight: 500,
-                  backgroundColor: isActive ? '#E2E8F0' : '#F1F5F9',
-                  color: '#475569',
+                  backgroundColor: isActive ? 'var(--bg-surface)' : 'var(--bg-subtle)',
+                  color: 'var(--text-muted)',
+                  border: '1px solid var(--border-subtle)',
                   padding: '1px 6px',
-                  borderRadius: '10px',
+                  borderRadius: '9999px',
                   fontVariantNumeric: 'tabular-nums',
                 }}
               >
@@ -173,11 +186,11 @@ export const GlobalNav: React.FC = () => {
                 position: 'absolute',
                 top: '5px',
                 right: '5px',
-                width: '7px',
-                height: '7px',
+                width: '8px',
+                height: '8px',
                 borderRadius: '50%',
-                backgroundColor: '#DC2626',
-                border: '1.5px solid #FFFFFF',
+                backgroundColor: 'var(--status-danger)',
+                border: '1.5px solid var(--bg-surface)',
               }}
             />
           )}
@@ -192,44 +205,46 @@ export const GlobalNav: React.FC = () => {
       style={{
         width: `${W}px`,
         minWidth: `${W}px`,
-        backgroundColor: '#FFFFFF',
-        borderRight: '1px solid #E2E8F0',
+        backgroundColor: 'var(--bg-surface)',
+        borderRight: '1px solid var(--border-subtle)',
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
         flexShrink: 0,
-        transition: 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.22s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease',
         overflow: 'hidden',
+        zIndex: 50,
       }}
     >
-      {/* ── Brand Header (No monospace tagline) ───────────── */}
+      {/* ── Brand Header ───────────────────────────────────── */}
       <div
         style={{
           padding: collapsed ? '16px 0' : '16px 18px',
-          borderBottom: '1px solid #F1F5F9',
+          borderBottom: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: collapsed ? 'center' : 'space-between',
           flexShrink: 0,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {/* Hexagonal Logo Mark */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+          {/* Logo Mark with subtle glow */}
           <div
             title={collapsed ? 'Click to expand sidebar' : 'Nexus Workstation'}
             onClick={collapsed ? () => setCollapsed(false) : undefined}
             style={{
-              width: '24px',
-              height: '24px',
-              backgroundColor: '#0F172A',
-              color: '#FFFFFF',
-              borderRadius: '5px',
+              width: '26px',
+              height: '26px',
+              background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%)',
+              color: 'var(--bg-surface)',
+              borderRadius: '6px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '13px',
               fontWeight: 700,
               flexShrink: 0,
+              boxShadow: 'var(--shadow-sm)',
               cursor: collapsed ? 'pointer' : 'default',
             }}
           >
@@ -243,19 +258,49 @@ export const GlobalNav: React.FC = () => {
               title="Return to Nexus Landing Page"
               style={{
                 cursor: 'pointer',
-                fontFamily: 'inherit',
-                fontWeight: 700,
-                fontSize: '15px',
-                letterSpacing: '-0.02em',
-                color: '#0F172A',
+                display: 'flex',
+                flexDirection: 'column',
               }}
             >
-              Nexus
+              <div
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontWeight: 700,
+                  fontSize: '15px',
+                  letterSpacing: '-0.02em',
+                  color: 'var(--text-primary)',
+                  lineHeight: 1.1,
+                }}
+              >
+                Nexus
+              </div>
+              <div
+                style={{
+                  fontSize: '10px',
+                  color: 'var(--accent-primary)',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  letterSpacing: '0.02em',
+                }}
+              >
+                <span
+                  style={{
+                    width: '5px',
+                    height: '5px',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--accent-primary)',
+                    display: 'inline-block',
+                  }}
+                />
+                Clinical Station
+              </div>
             </div>
           )}
         </div>
 
-        {/* Collapse Button (Double-chevron left) */}
+        {/* Collapse Button */}
         {!collapsed && (
           <button
             onClick={() => setCollapsed(true)}
@@ -267,18 +312,18 @@ export const GlobalNav: React.FC = () => {
               cursor: 'pointer',
               padding: '4px',
               borderRadius: '4px',
-              color: '#94A3B8',
+              color: 'var(--text-muted)',
               display: 'flex',
               alignItems: 'center',
               flexShrink: 0,
-              transition: 'color 0.15s ease',
+              transition: 'all 0.15s ease',
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.color = '#475569';
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#F1F5F9';
+              (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary)';
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--bg-hover)';
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.color = '#94A3B8';
+              (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)';
               (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent';
             }}
           >
@@ -305,11 +350,11 @@ export const GlobalNav: React.FC = () => {
         {/* Group 1: Shift-Critical Clinical Work */}
         {renderNavGroup(clinicalWorkGroup)}
 
-        {/* Quiet Hairline Separator */}
+        {/* Hairline Separator */}
         <div
           style={{
             height: '1px',
-            backgroundColor: '#F1F5F9',
+            backgroundColor: 'var(--border-subtle)',
             margin: collapsed ? '8px 6px' : '8px 4px',
           }}
         />
@@ -320,11 +365,10 @@ export const GlobalNav: React.FC = () => {
         {/* Group 3: Governance & Operations (Admin Only) */}
         {isAdmin && (
           <>
-            {/* Quiet Hairline Separator */}
             <div
               style={{
                 height: '1px',
-                backgroundColor: '#F1F5F9',
+                backgroundColor: 'var(--border-subtle)',
                 margin: collapsed ? '8px 6px' : '8px 4px',
               }}
             />
@@ -341,9 +385,9 @@ export const GlobalNav: React.FC = () => {
             title="Expand sidebar"
             aria-label="Expand sidebar"
             style={{
-              width: '40px',
+              width: '44px',
               padding: '8px 0',
-              marginLeft: '4px',
+              marginLeft: '6px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -351,15 +395,15 @@ export const GlobalNav: React.FC = () => {
               border: 'none',
               borderRadius: '6px',
               cursor: 'pointer',
-              color: '#94A3B8',
+              color: 'var(--text-muted)',
               transition: 'all 0.15s ease',
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.color = '#475569';
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#F1F5F9';
+              (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary)';
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--bg-hover)';
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.color = '#94A3B8';
+              (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)';
               (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent';
             }}
           >
@@ -371,8 +415,13 @@ export const GlobalNav: React.FC = () => {
         </div>
       )}
 
-      {/* ── Shortcuts Button (Low-emphasis utility) ──────── */}
-      <div style={{ padding: collapsed ? '4px 4px' : '6px 10px', flexShrink: 0 }}>
+      {/* ── Theme Switcher Section ────────────────────────── */}
+      <div style={{ padding: collapsed ? '4px 6px' : '8px 12px', flexShrink: 0 }}>
+        <ThemeToggle collapsed={collapsed} />
+      </div>
+
+      {/* ── Shortcuts Button ──────────────────────────────── */}
+      <div style={{ padding: collapsed ? '4px 6px' : '4px 12px', flexShrink: 0 }}>
         {!collapsed ? (
           <button
             onClick={openShortcuts}
@@ -382,23 +431,33 @@ export const GlobalNav: React.FC = () => {
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '6px 10px',
-              backgroundColor: '#F8FAFC',
-              border: '1px solid #E2E8F0',
-              borderRadius: '6px',
+              backgroundColor: 'var(--bg-subtle)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
               fontSize: '11px',
-              color: '#64748B',
+              color: 'var(--text-secondary)',
               cursor: 'pointer',
               fontFamily: 'inherit',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
+              e.currentTarget.style.color = 'var(--text-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--bg-subtle)';
+              e.currentTarget.style.color = 'var(--text-secondary)';
             }}
           >
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <HelpCircle size={13} />
-              <span>Shortcuts</span>
+              <span>Keyboard Shortcuts</span>
             </span>
             <kbd
               style={{
-                backgroundColor: '#FFFFFF',
-                border: '1px solid #CBD5E1',
+                backgroundColor: 'var(--bg-surface)',
+                border: '1px solid var(--border-medium)',
+                color: 'var(--text-muted)',
                 padding: '1px 5px',
                 borderRadius: '3px',
                 fontFamily: 'var(--font-mono, monospace)',
@@ -414,17 +473,17 @@ export const GlobalNav: React.FC = () => {
             title="Keyboard shortcuts (?)"
             aria-label="Keyboard shortcuts"
             style={{
-              width: '40px',
+              width: '44px',
               padding: '7px 0',
-              marginLeft: '4px',
+              marginLeft: '6px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: '#F8FAFC',
-              border: '1px solid #E2E8F0',
-              borderRadius: '6px',
+              backgroundColor: 'var(--bg-subtle)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
               cursor: 'pointer',
-              color: '#64748B',
+              color: 'var(--text-muted)',
             }}
           >
             <HelpCircle size={13} />
@@ -435,9 +494,9 @@ export const GlobalNav: React.FC = () => {
       {/* ── Clinician Profile & Persona Footer ─────────────── */}
       <div
         style={{
-          padding: collapsed ? '10px 4px' : '12px 14px',
-          borderTop: '1px solid #E2E8F0',
-          backgroundColor: '#FAFAFA',
+          padding: collapsed ? '10px 6px' : '12px 14px',
+          borderTop: '1px solid var(--border-subtle)',
+          backgroundColor: 'var(--bg-subtle)',
           flexShrink: 0,
         }}
       >
@@ -450,14 +509,15 @@ export const GlobalNav: React.FC = () => {
                   width: '32px',
                   height: '32px',
                   borderRadius: '50%',
-                  backgroundColor: '#0F172A',
-                  color: '#FFFFFF',
+                  backgroundColor: 'var(--accent-primary)',
+                  color: 'var(--bg-surface)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '11px',
                   fontWeight: 600,
                   flexShrink: 0,
+                  boxShadow: 'var(--shadow-sm)',
                 }}
               >
                 {avatarInitials}
@@ -467,7 +527,7 @@ export const GlobalNav: React.FC = () => {
                   style={{
                     fontSize: '12px',
                     fontWeight: 600,
-                    color: '#0F172A',
+                    color: 'var(--text-primary)',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
@@ -478,7 +538,7 @@ export const GlobalNav: React.FC = () => {
                 <div
                   style={{
                     fontSize: '10px',
-                    color: '#64748B',
+                    color: 'var(--text-muted)',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
@@ -494,13 +554,14 @@ export const GlobalNav: React.FC = () => {
                   fontSize: '9px',
                   padding: '2px 5px',
                   borderRadius: '3px',
-                  backgroundColor: role === 'organization_admin' ? '#FEF3C7' : '#E0F2FE',
-                  color: role === 'organization_admin' ? '#92400E' : '#0369A1',
+                  backgroundColor: role === 'organization_admin' ? 'var(--status-review-bg)' : 'var(--accent-subtle)',
+                  color: role === 'organization_admin' ? 'var(--status-review-text)' : 'var(--accent-text)',
+                  border: role === 'organization_admin' ? '1px solid var(--status-review-border)' : '1px solid var(--accent-subtle)',
                   fontWeight: 600,
                   textTransform: 'uppercase',
                 }}
               >
-                {role === 'organization_admin' ? 'Admin' : role === 'reviewer' ? 'Reviewer' : role === 'nurse' ? 'Nurse' : role === 'laboratory' ? 'Laboratory' : 'Clinician'}
+                {role === 'organization_admin' ? 'Admin' : role === 'reviewer' ? 'Reviewer' : role === 'nurse' ? 'Nurse' : role === 'laboratory' ? 'Lab' : 'Clinician'}
               </span>
 
               {/* Sign Out Action Button */}
@@ -515,24 +576,24 @@ export const GlobalNav: React.FC = () => {
                   justifyContent: 'center',
                   width: '26px',
                   height: '26px',
-                  borderRadius: '5px',
-                  border: '1px solid #E2E8F0',
-                  backgroundColor: '#FFFFFF',
-                  color: '#64748B',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--border-subtle)',
+                  backgroundColor: 'var(--bg-surface)',
+                  color: 'var(--text-muted)',
                   cursor: 'pointer',
                   flexShrink: 0,
                   transition: 'all 0.15s ease',
                   padding: 0,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#FEF2F2';
-                  e.currentTarget.style.borderColor = '#FCA5A5';
-                  e.currentTarget.style.color = '#DC2626';
+                  e.currentTarget.style.backgroundColor = 'var(--status-safety-bg)';
+                  e.currentTarget.style.borderColor = 'var(--status-safety-border)';
+                  e.currentTarget.style.color = 'var(--status-safety-text)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#FFFFFF';
-                  e.currentTarget.style.borderColor = '#E2E8F0';
-                  e.currentTarget.style.color = '#64748B';
+                  e.currentTarget.style.backgroundColor = 'var(--bg-surface)';
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.color = 'var(--text-muted)';
                 }}
               >
                 <LogOut size={13} />
@@ -545,15 +606,15 @@ export const GlobalNav: React.FC = () => {
             <div
               title={`${displayName} — ${displayTitle}`}
               style={{
-                width: '28px',
-                height: '28px',
+                width: '30px',
+                height: '30px',
                 borderRadius: '50%',
-                backgroundColor: '#0F172A',
-                color: '#FFFFFF',
+                backgroundColor: 'var(--accent-primary)',
+                color: 'var(--bg-surface)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '10px',
+                fontSize: '11px',
                 fontWeight: 600,
               }}
             >
@@ -568,23 +629,23 @@ export const GlobalNav: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '28px',
-                height: '24px',
-                borderRadius: '5px',
+                width: '30px',
+                height: '26px',
+                borderRadius: 'var(--radius-sm)',
                 border: 'none',
                 backgroundColor: 'transparent',
-                color: '#94A3B8',
+                color: 'var(--text-muted)',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
                 padding: 0,
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#FEF2F2';
-                e.currentTarget.style.color = '#DC2626';
+                e.currentTarget.style.backgroundColor = 'var(--status-safety-bg)';
+                e.currentTarget.style.color = 'var(--status-safety-text)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = '#94A3B8';
+                e.currentTarget.style.color = 'var(--text-muted)';
               }}
             >
               <LogOut size={13} />

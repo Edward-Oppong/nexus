@@ -39,10 +39,10 @@ export const HypothesisRejectionModal: React.FC<HypothesisRejectionModalProps> =
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#DC2626', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--status-danger)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               <AlertTriangle size={14} /> Diagnostic Differential Adjudication
             </div>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', marginTop: '2px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
               Reject Hypothesis: {hypothesis.title}
             </h3>
           </div>
@@ -52,7 +52,7 @@ export const HypothesisRejectionModal: React.FC<HypothesisRejectionModalProps> =
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              color: '#64748B',
+              color: 'var(--text-muted)',
               padding: '4px',
             }}
           >
@@ -60,13 +60,13 @@ export const HypothesisRejectionModal: React.FC<HypothesisRejectionModalProps> =
           </button>
         </div>
 
-        <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '16px', lineHeight: 1.4 }}>
+        <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: 1.4 }}>
           Please specify the clinical rationale for rejecting this candidate diagnostic hypothesis. This reason will be permanently recorded in the case timeline and reasoning audit trail.
         </p>
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#475569', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '6px' }}>
               Clinical Rejection Rationale
             </label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -78,13 +78,13 @@ export const HypothesisRejectionModal: React.FC<HypothesisRejectionModalProps> =
                     alignItems: 'center',
                     gap: '8px',
                     fontSize: '12px',
-                    color: '#334155',
+                    color: 'var(--text-secondary)',
                     padding: '8px 10px',
-                    border: '1px solid #E2E8F0',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '4px',
                     cursor: 'pointer',
-                    background: selectedReason === opt ? '#FEF2F2' : '#FFFFFF',
-                    borderColor: selectedReason === opt ? '#FECACA' : '#E2E8F0',
+                    background: selectedReason === opt ? 'var(--danger-subtle)' : 'var(--bg-surface)',
+                    borderColor: selectedReason === opt ? 'var(--danger-border)' : 'var(--border-subtle)',
                   }}
                 >
                   <input
@@ -101,7 +101,7 @@ export const HypothesisRejectionModal: React.FC<HypothesisRejectionModalProps> =
           </div>
 
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#475569', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '6px' }}>
               Specific Clinical Note (Optional)
             </label>
             <textarea
@@ -112,7 +112,7 @@ export const HypothesisRejectionModal: React.FC<HypothesisRejectionModalProps> =
               style={{
                 width: '100%',
                 padding: '8px 10px',
-                border: '1px solid #CBD5E1',
+                border: '1px solid var(--border-medium)',
                 borderRadius: '4px',
                 fontSize: '12px',
                 fontFamily: 'inherit',

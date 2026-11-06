@@ -1,10 +1,17 @@
 :root {
-  /* Color Palette - Swiss/Nordic Clinical Restraint */
+  /* Color Palette - Swiss/Nordic Clinical Restraint (Light Mode Default) */
   --bg-app: #F8FAFC;
   --bg-surface: #FFFFFF;
   --bg-subtle: #F1F5F9;
   --bg-hover: #E2E8F0;
   --bg-elevated: #FFFFFF;
+
+  /* Primary Brand Accent - Clinical Cyan / Sky */
+  --accent-primary: #0284C7;
+  --accent-primary-hover: #0369A1;
+  --accent-subtle: #E0F2FE;
+  --accent-text: #0369A1;
+  --accent-glow: rgba(2, 132, 199, 0.15);
 
   /* Text & Hierarchy */
   --text-primary: #0F172A;
@@ -19,7 +26,7 @@
   --border-strong: #94A3B8;
   --border-focus: #0F172A;
 
-  /* Semantic Clinical Accents (Always combined with non-color icons/text) */
+  /* Semantic Clinical Accents (Always paired with text / icons for accessibility) */
   --status-review-bg: #FEF3C7;
   --status-review-text: #92400E;
   --status-review-border: #FCD34D;
@@ -40,9 +47,27 @@
   --status-neutral-text: #334155;
   --status-neutral-border: #CBD5E1;
 
-  /* Nexus Simulated AI Indicator */
+  /* Shorthand semantic aliases — component-friendly names */
+  --status-success: #059669;
+  --status-warning: #B45309;
+  --status-danger:  #DC2626;
+
+  --success-subtle: #ECFDF5;
+  --success-border: #A7F3D0;
+  --warning-subtle: #FEF3C7;
+  --warning-border: #FDE68A;
+  --danger-subtle:  #FEF2F2;
+  --danger-border:  #FECACA;
+
+  /* Accent contrast — text color on --accent-primary buttons */
+  --accent-contrast: #FFFFFF;
+
+  /* Nexus AI Indicators */
   --nexus-tag-bg: #0F172A;
   --nexus-tag-text: #F8FAFC;
+  --nexus-pill-bg: #F0FDF4;
+  --nexus-pill-text: #166534;
+  --nexus-pill-border: #BBF7D0;
 
   /* Typography */
   --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -50,14 +75,105 @@
   --font-mono: 'JetBrains Mono', monospace;
 
   /* Spacing */
+  --radius-xs: 3px;
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
   --radius-xl: 12px;
+  --radius-2xl: 16px;
 
   /* Shadows - Minimal diffused elevation */
   --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
   --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -1px rgba(15, 23, 42, 0.03);
   --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.07), 0 4px 6px -2px rgba(15, 23, 42, 0.04);
   --shadow-drawer: -4px 0 24px rgba(15, 23, 42, 0.08);
+
+  /* Scrollbars & transitions */
+  --scrollbar-thumb: #CBD5E1;
+  --scrollbar-track: #F1F5F9;
+  --theme-transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ──────────────────────────────────────────────────────────
+   DARK MODE PALETTE — High-End Clinical Flight Deck
+   Deep obsidian-slate backdrop with calibrated high-contrast typography
+   ────────────────────────────────────────────────────────── */
+[data-theme='dark'] {
+  --bg-app: #080D1A;
+  --bg-surface: #0F172A;
+  --bg-subtle: #182234;
+  --bg-hover: #1E293B;
+  --bg-elevated: #1E293B;
+
+  /* Primary Brand Accent in Dark Mode */
+  --accent-primary: #38BDF8;
+  --accent-primary-hover: #7DD3FC;
+  --accent-subtle: rgba(56, 189, 248, 0.12);
+  --accent-text: #7DD3FC;
+  --accent-glow: rgba(56, 189, 248, 0.25);
+
+  /* Text & Hierarchy */
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --text-dim: #64748B;
+  --text-inverse: #090D16;
+
+  /* Borders & Hairlines */
+  --border-subtle: #1E293B;
+  --border-medium: #334155;
+  --border-strong: #475569;
+  --border-focus: #38BDF8;
+
+  /* Semantic Clinical Accents - Dark Mode Calibrated */
+  --status-review-bg: rgba(245, 158, 11, 0.16);
+  --status-review-text: #FDE68A;
+  --status-review-border: rgba(245, 158, 11, 0.35);
+
+  --status-safety-bg: rgba(239, 68, 68, 0.18);
+  --status-safety-text: #FCA5A5;
+  --status-safety-border: rgba(239, 68, 68, 0.35);
+
+  --status-verified-bg: rgba(16, 185, 129, 0.16);
+  --status-verified-text: #6EE7B7;
+  --status-verified-border: rgba(16, 185, 129, 0.35);
+
+  --status-info-bg: rgba(56, 189, 248, 0.16);
+  --status-info-text: #BAE6FD;
+  --status-info-border: rgba(56, 189, 248, 0.35);
+
+  --status-neutral-bg: #182234;
+  --status-neutral-text: #94A3B8;
+  --status-neutral-border: #334155;
+
+  /* Shorthand semantic aliases — dark mode calibrated */
+  --status-success: #34D399;
+  --status-warning: #FBBF24;
+  --status-danger:  #F87171;
+
+  --success-subtle: rgba(16, 185, 129, 0.14);
+  --success-border: rgba(16, 185, 129, 0.35);
+  --warning-subtle: rgba(245, 158, 11, 0.14);
+  --warning-border: rgba(245, 158, 11, 0.35);
+  --danger-subtle:  rgba(239, 68, 68, 0.14);
+  --danger-border:  rgba(239, 68, 68, 0.35);
+
+  /* Accent contrast — text color on --accent-primary buttons in dark mode */
+  --accent-contrast: #090D16;
+
+  /* Nexus AI Indicators */
+  --nexus-tag-bg: #38BDF8;
+  --nexus-tag-text: #090D16;
+  --nexus-pill-bg: rgba(16, 185, 129, 0.15);
+  --nexus-pill-text: #6EE7B7;
+  --nexus-pill-border: rgba(16, 185, 129, 0.3);
+
+  /* Shadows in Dark Mode */
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.45), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.55), 0 4px 8px -2px rgba(0, 0, 0, 0.35);
+  --shadow-drawer: -6px 0 28px rgba(0, 0, 0, 0.65);
+
+  --scrollbar-thumb: #334155;
+  --scrollbar-track: #0F172A;
 }

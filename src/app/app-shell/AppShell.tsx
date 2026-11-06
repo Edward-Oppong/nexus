@@ -100,7 +100,7 @@ export const AppShell: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: '#05080f',
-          color: '#94a3b8',
+          color: 'var(--text-muted)',
           fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
         }}
       >
@@ -110,12 +110,12 @@ export const AppShell: React.FC = () => {
               width: '24px',
               height: '24px',
               border: '2px solid rgba(14, 165, 233, 0.3)',
-              borderTopColor: '#0ea5e9',
+              borderTopColor: 'var(--accent-primary)',
               borderRadius: '50%',
               animation: 'spin 0.8s linear infinite',
             }}
           />
-          <span style={{ fontSize: '14px', letterSpacing: '0.02em', color: '#cbd5e1' }}>
+          <span style={{ fontSize: '14px', letterSpacing: '0.02em', color: 'var(--border-medium)' }}>
             Initializing Nexus Workstation...
           </span>
         </div>
@@ -157,7 +157,7 @@ export const AppShell: React.FC = () => {
         return (
           <main
             aria-label="Clinical Review Queue"
-            style={{ flex: 1, padding: '32px 40px', overflowY: 'auto', background: '#F8FAFC' }}
+            style={{ flex: 1, padding: '32px 40px', overflowY: 'auto', background: 'var(--bg-app)' }}
           >
             <div style={{ maxWidth: '980px', margin: '0 auto' }}>
               <ReviewQueueView />
@@ -168,7 +168,7 @@ export const AppShell: React.FC = () => {
         return (
           <main
             aria-label="Clinical Evidence Catalog"
-            style={{ flex: 1, padding: '32px 40px', overflowY: 'auto', background: '#F8FAFC' }}
+            style={{ flex: 1, padding: '32px 40px', overflowY: 'auto', background: 'var(--bg-app)' }}
           >
             <div style={{ maxWidth: '980px', margin: '0 auto' }}>
               <EvidenceTab />

@@ -25,9 +25,9 @@ export const SafetyBanner: React.FC = () => {
         role="alert"
         aria-live="assertive"
         style={{
-          background: isCritical ? '#FEF2F2' : '#FFFBEB',
-          border: `1px solid ${isCritical ? '#FCA5A5' : '#FCD34D'}`,
-          borderLeft: `5px solid ${isCritical ? '#DC2626' : '#D97706'}`,
+          background: isCritical ? 'var(--danger-subtle)' : 'var(--warning-subtle)',
+          border: `1px solid ${isCritical ? 'var(--danger-border)' : 'var(--warning-border)'}`,
+          borderLeft: `5px solid ${isCritical ? 'var(--status-danger)' : 'var(--status-warning)'}`,
           borderRadius: '8px',
           padding: '16px 20px',
           marginBottom: '20px',
@@ -53,8 +53,8 @@ export const SafetyBanner: React.FC = () => {
                 width: '28px',
                 height: '28px',
                 borderRadius: '6px',
-                background: isCritical ? '#FEE2E2' : '#FEF3C7',
-                color: isCritical ? '#DC2626' : '#D97706',
+                background: isCritical ? 'var(--danger-subtle)' : 'var(--warning-subtle)',
+                color: isCritical ? 'var(--status-danger)' : 'var(--status-warning)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -69,7 +69,7 @@ export const SafetyBanner: React.FC = () => {
                 fontWeight: 700,
                 letterSpacing: '0.03em',
                 textTransform: 'uppercase',
-                color: isCritical ? '#991B1B' : '#92400E',
+                color: isCritical ? 'var(--status-danger)' : 'var(--status-warning)',
                 whiteSpace: 'nowrap',
               }}
             >
@@ -81,8 +81,8 @@ export const SafetyBanner: React.FC = () => {
                 fontWeight: 700,
                 padding: '2px 8px',
                 borderRadius: '10px',
-                background: isCritical ? '#DC2626' : '#D97706',
-                color: '#FFFFFF',
+                background: isCritical ? 'var(--status-danger)' : 'var(--status-warning)',
+                color: 'var(--bg-surface)',
                 letterSpacing: '0.04em',
                 whiteSpace: 'nowrap',
               }}
@@ -91,16 +91,16 @@ export const SafetyBanner: React.FC = () => {
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '11px', color: '#64748B' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '11px', color: 'var(--text-muted)' }}>
             <span style={{ whiteSpace: 'nowrap' }}>
-              Status: <strong style={{ color: isCritical ? '#991B1B' : '#0F172A' }}>{displayConcern.status}</strong>
+              Status: <strong style={{ color: isCritical ? 'var(--status-danger)' : 'var(--text-primary)' }}>{displayConcern.status}</strong>
             </span>
             <button
               onClick={() => setActiveCaseSubTab('safety')}
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#475569',
+                color: 'var(--text-secondary)',
                 fontSize: '11px',
                 cursor: 'pointer',
                 padding: '0',
@@ -121,7 +121,7 @@ export const SafetyBanner: React.FC = () => {
               margin: 0,
               fontSize: '13px',
               fontWeight: 500,
-              color: '#1E293B',
+              color: 'var(--text-primary)',
               lineHeight: 1.55,
             }}
           >
@@ -132,7 +132,7 @@ export const SafetyBanner: React.FC = () => {
             <div
               style={{
                 fontSize: '12px',
-                color: '#B91C1C',
+                color: 'var(--status-danger)',
                 marginTop: '6px',
                 fontWeight: 600,
                 display: 'flex',
@@ -167,9 +167,9 @@ export const SafetyBanner: React.FC = () => {
               style={{
                 padding: '7px 14px',
                 borderRadius: '5px',
-                border: '1px solid #CBD5E1',
-                background: '#FFFFFF',
-                color: '#334155',
+                border: '1px solid var(--border-medium)',
+                background: 'var(--bg-surface)',
+                color: 'var(--text-secondary)',
                 fontSize: '12px',
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -190,8 +190,8 @@ export const SafetyBanner: React.FC = () => {
               padding: '7px 16px',
               borderRadius: '5px',
               border: 'none',
-              background: isCritical ? '#DC2626' : '#0F172A',
-              color: '#FFFFFF',
+              background: isCritical ? 'var(--status-danger)' : 'var(--text-primary)',
+              color: 'var(--bg-surface)',
               fontSize: '12px',
               fontWeight: 600,
               cursor: 'pointer',

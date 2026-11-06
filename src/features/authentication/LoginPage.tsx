@@ -66,8 +66,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#F8FAFC',
-        color: '#0F172A',
+        backgroundColor: 'var(--bg-subtle)',
+        color: 'var(--text-primary)',
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         padding: '24px 16px',
         boxSizing: 'border-box',
@@ -87,8 +87,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
             style={{
               width: '28px',
               height: '28px',
-              backgroundColor: '#0F172A',
-              color: '#FFFFFF',
+              backgroundColor: 'var(--bg-app)',
+              color: 'var(--bg-surface)',
               borderRadius: '6px',
               display: 'flex',
               alignItems: 'center',
@@ -104,7 +104,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
               fontSize: '22px',
               fontWeight: 800,
               letterSpacing: '0.04em',
-              color: '#0F172A',
+              color: 'var(--text-primary)',
             }}
           >
             NEXUS
@@ -114,7 +114,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
           style={{
             fontSize: '13px',
             fontWeight: 500,
-            color: '#64748B',
+            color: 'var(--text-muted)',
             letterSpacing: '0.02em',
           }}
         >
@@ -127,8 +127,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
         style={{
           width: '100%',
           maxWidth: '420px',
-          backgroundColor: '#FFFFFF',
-          border: '1px solid #E2E8F0',
+          backgroundColor: 'var(--bg-surface)',
+          border: '1px solid var(--border-subtle)',
           borderRadius: '8px',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03)',
           padding: '36px 32px',
@@ -139,7 +139,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
           style={{
             fontSize: '18px',
             fontWeight: 600,
-            color: '#0F172A',
+            color: 'var(--text-primary)',
             margin: '0 0 6px 0',
             textAlign: 'left',
           }}
@@ -149,7 +149,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
         <p
           style={{
             fontSize: '13px',
-            color: '#64748B',
+            color: 'var(--text-muted)',
             margin: '0 0 24px 0',
             lineHeight: 1.4,
           }}
@@ -167,9 +167,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
               padding: '10px 12px',
               borderRadius: '6px',
               marginBottom: '20px',
-              backgroundColor: '#FEF2F2',
-              border: '1px solid #FCA5A5',
-              color: '#991B1B',
+              backgroundColor: 'var(--danger-subtle)',
+              border: '1px solid var(--danger-border)',
+              color: 'var(--status-danger)',
               fontSize: '12px',
               lineHeight: 1.4,
             }}
@@ -188,7 +188,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
                 display: 'block',
                 fontSize: '12px',
                 fontWeight: 600,
-                color: '#334155',
+                color: 'var(--text-secondary)',
                 marginBottom: '6px',
               }}
             >
@@ -206,19 +206,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
                 padding: '10px 12px',
                 borderRadius: '6px',
                 boxSizing: 'border-box',
-                backgroundColor: '#FFFFFF',
-                border: '1px solid #CBD5E1',
-                color: '#0F172A',
+                backgroundColor: 'var(--bg-surface)',
+                border: '1px solid var(--border-medium)',
+                color: 'var(--text-primary)',
                 fontSize: '13px',
                 outline: 'none',
                 transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = '#0284C7';
+                e.target.style.borderColor = 'var(--accent-primary)';
                 e.target.style.boxShadow = '0 0 0 3px rgba(2, 132, 199, 0.12)';
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = '#CBD5E1';
+                e.target.style.borderColor = 'var(--border-medium)';
                 e.target.style.boxShadow = 'none';
               }}
             />
@@ -231,7 +231,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
                 style={{
                   fontSize: '12px',
                   fontWeight: 600,
-                  color: '#334155',
+                  color: 'var(--text-secondary)',
                 }}
               >
                 Password
@@ -239,7 +239,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
               <span
                 style={{
                   fontSize: '12px',
-                  color: '#0284C7',
+                  color: 'var(--accent-primary)',
                   cursor: 'pointer',
                 }}
                 onClick={() =>
@@ -263,19 +263,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
                   padding: '10px 38px 10px 12px',
                   borderRadius: '6px',
                   boxSizing: 'border-box',
-                  backgroundColor: '#FFFFFF',
-                  border: '1px solid #CBD5E1',
-                  color: '#0F172A',
+                  backgroundColor: 'var(--bg-surface)',
+                  border: '1px solid var(--border-medium)',
+                  color: 'var(--text-primary)',
                   fontSize: '13px',
                   outline: 'none',
                   transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
                 }}
                 onFocus={(e) => {
-                  e.target.style.borderColor = '#0284C7';
+                  e.target.style.borderColor = 'var(--accent-primary)';
                   e.target.style.boxShadow = '0 0 0 3px rgba(2, 132, 199, 0.12)';
                 }}
                 onBlur={(e) => {
-                  e.target.style.borderColor = '#CBD5E1';
+                  e.target.style.borderColor = 'var(--border-medium)';
                   e.target.style.boxShadow = 'none';
                 }}
               />
@@ -290,7 +290,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  color: '#94A3B8',
+                  color: 'var(--text-muted)',
                   padding: '4px',
                   display: 'flex',
                   alignItems: 'center',
@@ -310,9 +310,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
               marginTop: '8px',
               padding: '10px 16px',
               borderRadius: '6px',
-              border: '1px solid #0F172A',
-              backgroundColor: '#0F172A',
-              color: '#FFFFFF',
+              border: '1px solid var(--text-primary)',
+              backgroundColor: 'var(--bg-app)',
+              color: 'var(--bg-surface)',
               fontSize: '13px',
               fontWeight: 600,
               cursor: isAuthenticating || loading ? 'not-allowed' : 'pointer',
@@ -323,10 +323,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
               transition: 'background-color 0.15s ease',
             }}
             onMouseEnter={(e) => {
-              if (!isAuthenticating) e.currentTarget.style.backgroundColor = '#1E293B';
+              if (!isAuthenticating) e.currentTarget.style.backgroundColor = 'var(--text-primary)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#0F172A';
+              e.currentTarget.style.backgroundColor = 'var(--text-primary)';
             }}
           >
             {isAuthenticating || loading ? (
@@ -345,14 +345,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
           style={{
             marginTop: '28px',
             paddingTop: '20px',
-            borderTop: '1px solid #F1F5F9',
+            borderTop: '1px solid var(--bg-subtle)',
           }}
         >
           <div
             style={{
               fontSize: '11px',
               fontWeight: 600,
-              color: '#94A3B8',
+              color: 'var(--text-muted)',
               letterSpacing: '0.04em',
               textTransform: 'uppercase',
               marginBottom: '10px',
@@ -369,17 +369,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
                 flex: 1,
                 padding: '7px 8px',
                 borderRadius: '5px',
-                border: '1px solid #E2E8F0',
-                backgroundColor: '#F8FAFC',
-                color: '#334155',
+                border: '1px solid var(--border-subtle)',
+                backgroundColor: 'var(--bg-subtle)',
+                color: 'var(--text-secondary)',
                 fontSize: '11px',
                 fontWeight: 500,
                 cursor: 'pointer',
                 textAlign: 'center',
                 transition: 'background-color 0.12s ease',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F1F5F9')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#F8FAFC')}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-subtle)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-subtle)')}
             >
               Dr. Sarah Chen (Clinician)
             </button>
@@ -390,17 +390,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
                 flex: 1,
                 padding: '7px 8px',
                 borderRadius: '5px',
-                border: '1px solid #E2E8F0',
-                backgroundColor: '#F8FAFC',
-                color: '#334155',
+                border: '1px solid var(--border-subtle)',
+                backgroundColor: 'var(--bg-subtle)',
+                color: 'var(--text-secondary)',
                 fontSize: '11px',
                 fontWeight: 500,
                 cursor: 'pointer',
                 textAlign: 'center',
                 transition: 'background-color 0.12s ease',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F1F5F9')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#F8FAFC')}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-subtle)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-subtle)')}
             >
               System Admin (Org Admin)
             </button>
@@ -416,10 +416,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
           alignItems: 'center',
           gap: '6px',
           fontSize: '12px',
-          color: '#64748B',
+          color: 'var(--text-muted)',
         }}
       >
-        <Lock size={13} color="#64748B" />
+        <Lock size={13} color="var(--text-muted)" />
         <span>Secure clinical environment · Organization RLS & audit logging active</span>
       </div>
 

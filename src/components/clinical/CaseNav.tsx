@@ -25,12 +25,12 @@ export const CaseNav: React.FC = () => {
     { id: 'reasoning', label: 'Reasoning', icon: <GitBranch size={15} />, badge: `${activeCase.hypotheses.length}` },
     { id: 'evidence', label: 'Evidence', icon: <BookOpen size={15} /> },
     { id: 'documents', label: 'Documents & FHIR', icon: <FolderOpen size={15} /> },
-    { id: 'rules', label: 'Rules & CDS', icon: <Cpu size={15} />, badge: 'Deterministic', badgeColor: '#0284C7' },
+    { id: 'rules', label: 'Rules & CDS', icon: <Cpu size={15} />, badge: 'CDS', badgeColor: 'var(--accent-primary)' },
     { id: 'timeline', label: 'Timeline', icon: <Clock size={15} /> },
     { id: 'team', label: 'Team', icon: <Users2 size={15} /> },
-    { id: 'review', label: 'Nexus Review', icon: <CheckCircle size={15} />, badge: 'Action', badgeColor: '#D97706' },
+    { id: 'review', label: 'Nexus Review', icon: <CheckCircle size={15} />, badge: 'Review', badgeColor: 'var(--status-warning)' },
     { id: 'decision', label: 'Clinical Decision', icon: <FileCheck2 size={15} /> },
-    { id: 'safety', label: 'Safety Issues', icon: <ShieldAlert size={15} />, badge: `${activeCase.safetyIssues.length}`, badgeColor: '#DC2626' },
+    { id: 'safety', label: 'Safety Issues', icon: <ShieldAlert size={15} />, badge: `${activeCase.safetyIssues.length}`, badgeColor: 'var(--status-danger)' },
   ];
 
   return (
@@ -38,13 +38,15 @@ export const CaseNav: React.FC = () => {
       aria-label="Case navigation tabs"
       style={{
         width: '210px',
-        background: '#FAFAFA',
-        borderRight: '1px solid #E2E8F0',
+        minWidth: '210px',
+        background: 'var(--bg-surface)',
+        borderRight: '1px solid var(--border-subtle)',
         padding: '16px 10px',
         display: 'flex',
         flexDirection: 'column',
         gap: '3px',
         flexShrink: 0,
+        transition: 'background-color 0.2s ease, border-color 0.2s ease',
       }}
     >
       <div
@@ -53,7 +55,7 @@ export const CaseNav: React.FC = () => {
           fontWeight: 700,
           textTransform: 'uppercase',
           letterSpacing: '0.08em',
-          color: '#64748B',
+          color: 'var(--text-muted)',
           padding: '0 10px 8px',
           fontFamily: 'var(--font-mono)',
         }}
@@ -72,21 +74,35 @@ export const CaseNav: React.FC = () => {
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '8px 10px',
-              borderRadius: '5px',
+              borderRadius: 'var(--radius-md)',
               fontSize: '13px',
               fontWeight: isActive ? 600 : 400,
-              color: isActive ? '#0F172A' : '#475569',
-              background: isActive ? '#FFFFFF' : 'transparent',
-              border: isActive ? '1px solid #E2E8F0' : '1px solid transparent',
+              color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+              background: isActive ? 'var(--bg-hover)' : 'transparent',
+              border: isActive ? '1px solid var(--border-subtle)' : '1px solid transparent',
               boxShadow: isActive ? 'var(--shadow-sm)' : 'none',
               cursor: 'pointer',
               textAlign: 'left',
-              transition: 'all 0.1s ease',
+              transition: 'all 0.12s ease',
+            }}
+            onMouseEnter={(e) => {
+              if (!isActive) {
+                e.currentTarget.style.background = 'var(--bg-subtle)';
+                e.currentTarget.style.color = 'var(--text-primary)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isActive) {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = 'var(--text-secondary)';
+              }
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ color: isActive ? '#0F172A' : '#94A3B8' }}>{tab.icon}</span>
-              {tab.label}
+              <span style={{ color: isActive ? 'var(--accent-primary)' : 'var(--text-muted)' }}>
+                {tab.icon}
+              </span>
+              <span>{tab.label}</span>
             </div>
 
             {tab.badge && (
@@ -94,11 +110,11 @@ export const CaseNav: React.FC = () => {
                 style={{
                   fontSize: '10px',
                   fontWeight: 600,
-                  color: tab.badgeColor ? '#FFFFFF' : '#475569',
-                  background: tab.badgeColor || '#E2E8F0',
-                  padding: '1px 5px',
+                  color: tab.badgeColor ? 'var(--bg-surface)' : 'var(--text-muted)',
+                  background: tab.badgeColor || 'var(--bg-subtle)',
+                  padding: '1px 6px',
                   borderRadius: '10px',
-                  fontFamily: 'var(--font-mono)',
+                  fontVariantNumeric: 'tabular-nums',
                 }}
               >
                 {tab.badge}

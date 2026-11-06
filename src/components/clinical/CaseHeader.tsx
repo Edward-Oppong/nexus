@@ -1,7 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useCase } from '../../app/providers/CaseContext';
 import { usePersona } from '../../app/providers/PersonaContext';
-import { ArrowLeft, AlertTriangle, FileText, CheckCircle2, ShieldAlert, Wifi, WifiOff, Trash2, Printer, Download } from 'lucide-react';
+import {
+  ArrowLeft,
+  AlertTriangle,
+  FileText,
+  CheckCircle2,
+  ShieldAlert,
+  Wifi,
+  WifiOff,
+  Trash2,
+  Printer,
+  Download,
+  Activity,
+  Heart,
+  Thermometer,
+  Wind,
+} from 'lucide-react';
 import { offlineSyncEngine } from '../../lib/interoperability/advanced/offline-sync-engine';
 import { ACTIVE_COLLABORATIVE_REVIEWERS } from '../../lib/persistence/realtime-collaboration';
 import { exportCaseToPdf } from '../../features/cases/services/pdf-export-service';
@@ -45,52 +60,69 @@ export const CaseHeader: React.FC = () => {
     }
   };
 
+  // Quick vital stats preview
+  const vitals = activeCase.vitalSigns || [];
+  const hr = vitals.find((v) => /heart rate|pulse|hr/i.test(v.parameter));
+  const bp = vitals.find((v) => /blood pressure|bp/i.test(v.parameter));
+  const spo2 = vitals.find((v) => /spo2|oxygen/i.test(v.parameter));
+  const temp = vitals.find((v) => /temperature|temp/i.test(v.parameter));
+  const rr = vitals.find((v) => /respiratory rate|rr/i.test(v.parameter));
+
   return (
     <header
       aria-label="Clinical case header"
       style={{
-        background: '#FFFFFF',
-        borderBottom: '1px solid #E2E8F0',
+        background: 'var(--bg-surface)',
+        borderBottom: '1px solid var(--border-subtle)',
         padding: '12px 24px',
         flexShrink: 0,
+        transition: 'background-color 0.2s ease, border-color 0.2s ease',
       }}
     >
-      {/* Top Bar: Case breadcrumb & status */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      {/* Top Bar: Case breadcrumb, priority & action toolbar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <button
             onClick={() => setActiveView('cases')}
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
-              border: 'none',
-              background: 'transparent',
+              border: '1px solid var(--border-subtle)',
+              background: 'var(--bg-subtle)',
               fontSize: '12px',
-              color: '#64748B',
+              color: 'var(--text-secondary)',
               cursor: 'pointer',
-              padding: '2px 6px',
-              borderRadius: '4px',
+              padding: '4px 8px',
+              borderRadius: 'var(--radius-sm)',
+              transition: 'all 0.15s ease',
             }}
-            onMouseOver={(e) => (e.currentTarget.style.color = '#0F172A')}
-            onMouseOut={(e) => (e.currentTarget.style.color = '#64748B')}
+            onMouseOver={(e) => {
+              e.currentTarget.style.color = 'var(--text-primary)';
+              e.currentTarget.style.background = 'var(--bg-hover)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.color = 'var(--text-secondary)';
+              e.currentTarget.style.background = 'var(--bg-subtle)';
+            }}
           >
-            <ArrowLeft size={14} /> Cases
+            <ArrowLeft size={13} /> Cases
           </button>
-          <span style={{ color: '#CBD5E1' }}>/</span>
-          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: '14px', color: '#0F172A' }}>
+          <span style={{ color: 'var(--border-medium)' }}>/</span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)' }}>
             CASE {id}
           </span>
           <span
             style={{
               fontSize: '11px',
-              fontWeight: 600,
+              fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.04em',
-              color: priority === 'high' ? '#B91C1C' : '#334155',
-              background: priority === 'high' ? '#FEF2F2' : '#F1F5F9',
-              padding: '1px 6px',
-              borderRadius: '3px',
+              color: priority === 'high' ? 'var(--status-safety-text)' : 'var(--text-secondary)',
+              background: priority === 'high' ? 'var(--status-safety-bg)' : 'var(--bg-subtle)',
+              border: `1px solid ${priority === 'high' ? 'var(--status-safety-border)' : 'var(--border-subtle)'}`,
+              padding: '2px 7px',
+              borderRadius: 'var(--radius-sm)',
             }}
           >
             {priority} priority
@@ -99,30 +131,30 @@ export const CaseHeader: React.FC = () => {
         </div>
 
         {/* Action Buttons with Role Permission Checks */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {/* Phase 13 Collaborative Presence Avatars */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          {/* Real-time Collaborative Presence Avatars */}
           <div
             title="Active Clinicians in Collaborative Session: 3 reviewers online"
-            style={{ display: 'flex', alignItems: 'center', marginRight: '4px' }}
+            style={{ display: 'flex', alignItems: 'center', marginRight: '6px' }}
           >
             {ACTIVE_COLLABORATIVE_REVIEWERS.map((rev, idx) => (
               <div
                 key={rev.id}
                 title={`${rev.name} (${rev.role}) · Active in ${rev.currentTab}`}
                 style={{
-                  width: '24px',
-                  height: '24px',
+                  width: '26px',
+                  height: '26px',
                   borderRadius: '50%',
                   background: rev.avatarColor,
-                  color: '#FFFFFF',
+                  color: 'var(--bg-surface)',
                   fontSize: '10px',
                   fontWeight: 700,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginLeft: idx === 0 ? 0 : '-6px',
-                  border: '2px solid #FFFFFF',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.12)',
+                  marginLeft: idx === 0 ? 0 : '-7px',
+                  border: '2px solid var(--bg-surface)',
+                  boxShadow: 'var(--shadow-sm)',
                   cursor: 'default',
                 }}
               >
@@ -131,7 +163,7 @@ export const CaseHeader: React.FC = () => {
             ))}
           </div>
 
-          {/* Phase 10 Offline-First Network Status Badge */}
+          {/* Network Sync Status Badge */}
           <div
             onClick={() => {
               if (networkStatus.pendingMutationCount > 0) {
@@ -140,7 +172,7 @@ export const CaseHeader: React.FC = () => {
             }}
             title={
               networkStatus.isOnline
-                ? `Online (${networkStatus.connectionTier.toUpperCase()} · ${networkStatus.rttMs}ms RTT · ${networkStatus.downlinkMbps} Mbps)`
+                ? `Online (${networkStatus.connectionTier.toUpperCase()} · ${networkStatus.rttMs}ms RTT)`
                 : 'Offline mode — local mutations stored in Outbox'
             }
             style={{
@@ -150,22 +182,22 @@ export const CaseHeader: React.FC = () => {
               fontSize: '11px',
               fontWeight: 600,
               padding: '4px 8px',
-              borderRadius: '12px',
-              background: networkStatus.isOnline ? '#F0FDF4' : '#FEF2F2',
-              color: networkStatus.isOnline ? '#166534' : '#991B1B',
-              border: `1px solid ${networkStatus.isOnline ? '#BBF7D0' : '#FCA5A5'}`,
+              borderRadius: '9999px',
+              background: networkStatus.isOnline ? 'var(--status-verified-bg)' : 'var(--status-safety-bg)',
+              color: networkStatus.isOnline ? 'var(--status-verified-text)' : 'var(--status-safety-text)',
+              border: `1px solid ${networkStatus.isOnline ? 'var(--status-verified-border)' : 'var(--status-safety-border)'}`,
               cursor: 'pointer',
             }}
           >
-            {networkStatus.isOnline ? <Wifi size={12} color="#16A34A" /> : <WifiOff size={12} color="#DC2626" />}
-            <span>{networkStatus.isOnline ? `${networkStatus.connectionTier.toUpperCase()}` : 'Offline'}</span>
+            {networkStatus.isOnline ? <Wifi size={12} /> : <WifiOff size={12} />}
+            <span>{networkStatus.isOnline ? networkStatus.connectionTier.toUpperCase() : 'Offline'}</span>
             {networkStatus.pendingMutationCount > 0 && (
               <span
                 style={{
                   fontSize: '9px',
                   fontWeight: 700,
-                  background: '#DC2626',
-                  color: '#FFFFFF',
+                  background: 'var(--status-danger)',
+                  color: 'var(--bg-surface)',
                   padding: '1px 5px',
                   borderRadius: '10px',
                 }}
@@ -179,7 +211,6 @@ export const CaseHeader: React.FC = () => {
             <button
               onClick={() => setActiveCaseSubTab('review')}
               className="btn btn-sm btn-primary"
-              style={{ background: '#0F172A' }}
             >
               <CheckCircle2 size={13} /> Review Nexus
             </button>
@@ -199,22 +230,14 @@ export const CaseHeader: React.FC = () => {
             className="btn btn-sm"
             title="Export Case Input Data & Results to PDF Report"
             style={{
-              border: '1px solid #CBD5E1',
-              background: '#F8FAFC',
-              color: '#0F766E',
+              border: '1px solid var(--border-medium)',
+              background: 'var(--bg-subtle)',
+              color: 'var(--text-primary)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '5px',
               fontWeight: 600,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#F0FDFA';
-              e.currentTarget.style.borderColor = '#0F766E';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#F8FAFC';
-              e.currentTarget.style.borderColor = '#CBD5E1';
             }}
           >
             <Printer size={13} /> Export PDF
@@ -228,22 +251,14 @@ export const CaseHeader: React.FC = () => {
             className="btn btn-sm"
             title="Export full clinical record as HL7 FHIR R4 JSON Bundle"
             style={{
-              border: '1px solid #CBD5E1',
-              background: '#F8FAFC',
-              color: '#0284C7',
+              border: '1px solid var(--accent-primary)',
+              background: 'var(--accent-subtle)',
+              color: 'var(--accent-text)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '5px',
               fontWeight: 600,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#F0F9FF';
-              e.currentTarget.style.borderColor = '#0284C7';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#F8FAFC';
-              e.currentTarget.style.borderColor = '#CBD5E1';
             }}
           >
             <Download size={13} /> FHIR R4 Bundle
@@ -251,117 +266,188 @@ export const CaseHeader: React.FC = () => {
 
           <button
             onClick={() => setShowDeleteConfirm(true)}
-            className="btn btn-sm"
+            className="btn btn-sm btn-danger"
             title="Delete this clinical case"
-            style={{
-              border: '1px solid #FCA5A5',
-              background: '#FEF2F2',
-              color: '#DC2626',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#DC2626';
-              e.currentTarget.style.color = '#FFFFFF';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#FEF2F2';
-              e.currentTarget.style.color = '#DC2626';
-            }}
           >
             <Trash2 size={13} /> Delete Case
           </button>
         </div>
       </div>
 
-      {/* Patient Identity Strip: Persistent WHO / WHAT / WHERE */}
+      {/* Patient Identity & Telemetry Strip */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          background: '#F8FAFC',
-          border: '1px solid #E2E8F0',
-          borderRadius: '6px',
+          background: 'var(--bg-subtle)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: 'var(--radius-md)',
           padding: '8px 14px',
           fontSize: '12px',
+          flexWrap: 'wrap',
+          gap: '12px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        {/* Left: Demographics */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
           <div>
-            <span style={{ color: '#64748B' }}>Patient: </span>
-            <strong style={{ color: '#0F172A', fontSize: '13px' }}>{patient.syntheticIdentifier}</strong>
-            <span style={{ color: '#64748B', marginLeft: '6px' }}>
+            <span style={{ color: 'var(--text-muted)' }}>Patient: </span>
+            <strong style={{ color: 'var(--text-primary)', fontSize: '13px' }}>{patient.syntheticIdentifier}</strong>
+            <span style={{ color: 'var(--text-muted)', marginLeft: '6px' }}>
               · {patient.age} y/o · {patient.gender}
             </span>
           </div>
 
-          <div style={{ height: '14px', borderRight: '1px solid #CBD5E1' }} />
+          <div style={{ height: '14px', borderRight: '1px solid var(--border-medium)' }} />
 
           <div>
-            <span style={{ color: '#64748B' }}>Encounter: </span>
-            <strong style={{ color: '#334155' }}>{patient.encounterType}</strong>
-            <span style={{ color: '#64748B', marginLeft: '6px' }}>({patient.encounterDate})</span>
+            <span style={{ color: 'var(--text-muted)' }}>Encounter: </span>
+            <strong style={{ color: 'var(--text-secondary)' }}>{patient.encounterType}</strong>
+            <span style={{ color: 'var(--text-muted)', marginLeft: '6px' }}>({patient.encounterDate})</span>
           </div>
 
-          <div style={{ height: '14px', borderRight: '1px solid #CBD5E1' }} />
+          <div style={{ height: '14px', borderRight: '1px solid var(--border-medium)' }} />
 
           <div>
-            <span style={{ color: '#64748B' }}>Allergies: </span>
-            <strong style={{ color: '#B91C1C' }}>{patient.allergiesCount} recorded</strong>
+            <span style={{ color: 'var(--text-muted)' }}>Allergies: </span>
+            <strong style={{ color: patient.allergiesCount > 0 ? 'var(--status-danger)' : 'var(--text-muted)' }}>
+              {patient.allergiesCount} recorded
+            </strong>
           </div>
 
-          <div style={{ height: '14px', borderRight: '1px solid #CBD5E1' }} />
+          <div style={{ height: '14px', borderRight: '1px solid var(--border-medium)' }} />
 
           <div>
-            <span style={{ color: '#64748B' }}>Active Meds: </span>
-            <strong style={{ color: '#334155' }}>{patient.activeMedicationsCount}</strong>
+            <span style={{ color: 'var(--text-muted)' }}>Meds: </span>
+            <strong style={{ color: 'var(--text-secondary)' }}>{patient.activeMedicationsCount} active</strong>
           </div>
         </div>
 
-        <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'var(--font-mono)' }}>
-          Encounter {patient.encounterNumber}
+        {/* Right: Live Telemetry Vitals Chips */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          {hr && (
+            <div
+              title={`Heart Rate: ${hr.value} ${hr.unit}`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '2px 7px',
+                borderRadius: 'var(--radius-sm)',
+                background: hr.status === 'Elevated' || hr.status === 'Critical' ? 'var(--status-safety-bg)' : 'var(--bg-surface)',
+                border: '1px solid var(--border-subtle)',
+                color: hr.status === 'Elevated' || hr.status === 'Critical' ? 'var(--status-safety-text)' : 'var(--text-secondary)',
+                fontSize: '11px',
+                fontFamily: 'var(--font-mono)',
+              }}
+            >
+              <Heart size={11} color="var(--status-danger)" />
+              <span>{hr.value} bpm</span>
+            </div>
+          )}
+
+          {bp && (
+            <div
+              title={`Blood Pressure: ${bp.value} ${bp.unit}`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '2px 7px',
+                borderRadius: 'var(--radius-sm)',
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--text-secondary)',
+                fontSize: '11px',
+                fontFamily: 'var(--font-mono)',
+              }}
+            >
+              <Activity size={11} color="var(--accent-primary)" />
+              <span>{bp.value}</span>
+            </div>
+          )}
+
+          {spo2 && (
+            <div
+              title={`SpO2: ${spo2.value} ${spo2.unit}`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '2px 7px',
+                borderRadius: 'var(--radius-sm)',
+                background: parseFloat(spo2.value) < 95 ? 'var(--status-safety-bg)' : 'var(--bg-surface)',
+                border: '1px solid var(--border-subtle)',
+                color: parseFloat(spo2.value) < 95 ? 'var(--status-safety-text)' : 'var(--text-secondary)',
+                fontSize: '11px',
+                fontFamily: 'var(--font-mono)',
+              }}
+            >
+              <Wind size={11} color="var(--status-success)" />
+              <span>{spo2.value}%</span>
+            </div>
+          )}
+
+          {temp && (
+            <div
+              title={`Temperature: ${temp.value} ${temp.unit}`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '2px 7px',
+                borderRadius: 'var(--radius-sm)',
+                background: parseFloat(temp.value) >= 38.0 ? 'var(--status-safety-bg)' : 'var(--bg-surface)',
+                border: '1px solid var(--border-subtle)',
+                color: parseFloat(temp.value) >= 38.0 ? 'var(--status-safety-text)' : 'var(--text-secondary)',
+                fontSize: '11px',
+                fontFamily: 'var(--font-mono)',
+              }}
+            >
+              <Thermometer size={11} color="var(--status-warning)" />
+              <span>{temp.value}°C</span>
+            </div>
+          )}
+
+          <div style={{ fontSize: '11px', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)', marginLeft: '4px' }}>
+            Enc #{patient.encounterNumber}
+          </div>
         </div>
       </div>
 
       {/* Delete Case Confirmation Modal */}
       {showDeleteConfirm && (
         <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(15, 23, 42, 0.6)',
-            backdropFilter: 'blur(2px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-          }}
+          className="modal-overlay"
           onClick={() => setShowDeleteConfirm(false)}
         >
           <div
-            style={{
-              background: '#FFFFFF',
-              borderRadius: '8px',
-              padding: '24px',
-              maxWidth: '460px',
-              width: '100%',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-            }}
+            className="modal-card"
+            style={{ padding: '24px' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: '#DC2626' }}>
-              <AlertTriangle size={20} />
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+              <div
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  background: 'var(--status-safety-bg)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--status-safety-text)',
+                  flexShrink: 0,
+                }}
+              >
+                <AlertTriangle size={20} />
+              </div>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
                 Delete Case {id}?
               </h3>
             </div>
-            <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#64748B', lineHeight: '1.5' }}>
+            <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5' }}>
               Are you sure you want to delete this case? All associated clinical tasks, findings, and diagnostic orders will be permanently removed.
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
@@ -381,8 +467,7 @@ export const CaseHeader: React.FC = () => {
                   setIsDeleting(false);
                   setShowDeleteConfirm(false);
                 }}
-                className="btn btn-sm"
-                style={{ background: '#DC2626', color: '#FFFFFF', border: 'none' }}
+                className="btn btn-sm btn-danger"
                 disabled={isDeleting}
               >
                 {isDeleting ? 'Deleting...' : 'Delete Case & Tasks'}

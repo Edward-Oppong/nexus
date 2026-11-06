@@ -24,16 +24,16 @@ export const QuickReviewRailPanel: React.FC = () => {
     return (
       <section
         style={{
-          background: '#FFFFFF',
-          border: '1px solid #E2E8F0',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-subtle)',
           borderRadius: '6px',
           padding: '12px',
         }}
       >
-        <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#0F172A', marginBottom: '4px' }}>
+        <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-primary)', marginBottom: '4px' }}>
           Review Queue
         </div>
-        <div style={{ fontSize: '11px', color: '#059669', display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <div style={{ fontSize: '11px', color: 'var(--status-success)', display: 'flex', alignItems: 'center', gap: '4px' }}>
           <CheckCircle2 size={12} />
           All AI candidate findings verified
         </div>
@@ -46,8 +46,8 @@ export const QuickReviewRailPanel: React.FC = () => {
   return (
     <section
       style={{
-        background: '#FFFFFF',
-        border: '1px solid #E2E8F0',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-subtle)',
         borderRadius: '6px',
         padding: '12px',
         display: 'flex',
@@ -68,7 +68,7 @@ export const QuickReviewRailPanel: React.FC = () => {
             fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: '0.06em',
-            color: '#0F172A',
+            color: 'var(--text-primary)',
           }}
         >
           Review Required ({unreviewedFindings.length})
@@ -80,7 +80,7 @@ export const QuickReviewRailPanel: React.FC = () => {
             background: 'transparent',
             fontSize: '10px',
             fontWeight: 600,
-            color: '#2563EB',
+            color: 'var(--accent-primary)',
             cursor: 'pointer',
             padding: 0,
             display: 'flex',
@@ -96,8 +96,8 @@ export const QuickReviewRailPanel: React.FC = () => {
         style={{
           padding: '8px 10px',
           borderRadius: '5px',
-          background: '#FFFBEB',
-          border: '1px solid #FDE68A',
+          background: 'var(--warning-subtle)',
+          border: '1px solid var(--warning-border)',
           display: 'flex',
           flexDirection: 'column',
           gap: '6px',
@@ -108,14 +108,14 @@ export const QuickReviewRailPanel: React.FC = () => {
             style={{
               fontSize: '9px',
               fontWeight: 700,
-              color: '#B45309',
+              color: 'var(--status-warning)',
               textTransform: 'uppercase',
               letterSpacing: '0.04em',
             }}
           >
             AI-EXTRACTED CANDIDATE
           </span>
-          <span style={{ fontSize: '10px', color: '#78350F' }}>
+          <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
             {currentItem.provenance.sourceContext || 'Clinical Record'}
           </span>
         </div>
@@ -132,13 +132,15 @@ export const QuickReviewRailPanel: React.FC = () => {
                 padding: '4px 6px',
                 fontSize: '11px',
                 borderRadius: '3px',
-                border: '1px solid #3B82F6',
+                border: '1px solid var(--accent-primary)',
+                background: 'var(--bg-app)',
+                color: 'var(--text-primary)',
               }}
             />
             <div style={{ display: 'flex', gap: '4px', marginTop: '4px', justifyContent: 'flex-end' }}>
               <button
                 onClick={() => setEditingId(null)}
-                style={{ fontSize: '10px', padding: '2px 6px', border: '1px solid #CBD5E1', background: '#FFF' }}
+                style={{ fontSize: '10px', padding: '2px 6px', border: '1px solid var(--border-medium)', background: 'var(--bg-subtle)', color: 'var(--text-secondary)', cursor: 'pointer', borderRadius: '3px' }}
               >
                 Cancel
               </button>
@@ -147,14 +149,14 @@ export const QuickReviewRailPanel: React.FC = () => {
                   updateFindingStatus(currentItem.id, 'Verified');
                   setEditingId(null);
                 }}
-                style={{ fontSize: '10px', padding: '2px 6px', background: '#0284C7', color: '#FFF', border: 'none' }}
+                style={{ fontSize: '10px', padding: '2px 6px', background: 'var(--accent-primary)', color: 'var(--accent-contrast)', border: 'none', cursor: 'pointer', borderRadius: '3px' }}
               >
                 Save
               </button>
             </div>
           </div>
         ) : (
-          <div style={{ fontSize: '12px', fontWeight: 600, color: '#0F172A' }}>
+          <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>
             "{currentItem.label}"
           </div>
         )}
@@ -171,9 +173,9 @@ export const QuickReviewRailPanel: React.FC = () => {
               gap: '4px',
               padding: '4px 8px',
               borderRadius: '4px',
-              border: '1px solid #10B981',
-              background: '#FFFFFF',
-              color: '#059669',
+              border: '1px solid var(--status-success)',
+              background: 'var(--success-subtle)',
+              color: 'var(--status-success)',
               fontSize: '10px',
               fontWeight: 700,
               cursor: 'pointer',
@@ -194,9 +196,9 @@ export const QuickReviewRailPanel: React.FC = () => {
               gap: '4px',
               padding: '4px 8px',
               borderRadius: '4px',
-              border: '1px solid #3B82F6',
-              background: '#FFFFFF',
-              color: '#1D4ED8',
+              border: '1px solid var(--accent-primary)',
+              background: 'var(--accent-subtle)',
+              color: 'var(--accent-primary)',
               fontSize: '10px',
               fontWeight: 700,
               cursor: 'pointer',
@@ -214,9 +216,9 @@ export const QuickReviewRailPanel: React.FC = () => {
               gap: '4px',
               padding: '4px 8px',
               borderRadius: '4px',
-              border: '1px solid #EF4444',
-              background: '#FFFFFF',
-              color: '#DC2626',
+              border: '1px solid var(--status-danger)',
+              background: 'var(--danger-subtle)',
+              color: 'var(--status-danger)',
               fontSize: '10px',
               fontWeight: 700,
               cursor: 'pointer',

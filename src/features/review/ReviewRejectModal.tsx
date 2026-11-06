@@ -45,8 +45,8 @@ export const ReviewRejectModal: React.FC<ReviewRejectModalProps> = ({
                 width: '32px',
                 height: '32px',
                 borderRadius: '6px',
-                background: '#FEE2E2',
-                color: '#DC2626',
+                background: 'var(--danger-subtle)',
+                color: 'var(--status-danger)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -55,10 +55,10 @@ export const ReviewRejectModal: React.FC<ReviewRejectModalProps> = ({
               <XCircle size={18} />
             </div>
             <div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0F172A' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
                 Reject Machine-Generated Output
               </h3>
-              <div style={{ fontSize: '11px', color: '#64748B' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                 Item: {itemTitle}
               </div>
             </div>
@@ -69,7 +69,7 @@ export const ReviewRejectModal: React.FC<ReviewRejectModalProps> = ({
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              color: '#64748B',
+              color: 'var(--text-muted)',
               padding: '4px',
             }}
           >
@@ -80,13 +80,13 @@ export const ReviewRejectModal: React.FC<ReviewRejectModalProps> = ({
         {/* Regulatory explanation notice */}
         <div
           style={{
-            background: '#F8FAFC',
-            border: '1px solid #E2E8F0',
+            background: 'var(--bg-subtle)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: '6px',
             padding: '10px 12px',
             marginBottom: '16px',
             fontSize: '11px',
-            color: '#475569',
+            color: 'var(--text-secondary)',
             lineHeight: 1.4,
           }}
         >
@@ -96,7 +96,7 @@ export const ReviewRejectModal: React.FC<ReviewRejectModalProps> = ({
         <form onSubmit={handleSubmit}>
           {/* Reason Category */}
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0F172A', marginBottom: '8px' }}>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
               Select Rejection Category:
             </label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -108,11 +108,11 @@ export const ReviewRejectModal: React.FC<ReviewRejectModalProps> = ({
                     alignItems: 'center',
                     gap: '8px',
                     fontSize: '12px',
-                    color: '#1E293B',
+                    color: 'var(--text-primary)',
                     padding: '6px 10px',
                     borderRadius: '4px',
-                    background: category === cat ? '#EFF6FF' : '#FFFFFF',
-                    border: `1px solid ${category === cat ? '#3B82F6' : '#E2E8F0'}`,
+                    background: category === cat ? 'var(--accent-subtle)' : 'var(--bg-surface)',
+                    border: `1px solid ${category === cat ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
                     cursor: 'pointer',
                   }}
                 >
@@ -130,7 +130,7 @@ export const ReviewRejectModal: React.FC<ReviewRejectModalProps> = ({
 
           {/* Explanation Text */}
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0F172A', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
               Detailed Clinical Explanation (Mandatory):
             </label>
             <textarea
@@ -144,7 +144,7 @@ export const ReviewRejectModal: React.FC<ReviewRejectModalProps> = ({
                 boxSizing: 'border-box',
                 padding: '8px 10px',
                 borderRadius: '6px',
-                border: '1px solid #CBD5E1',
+                border: '1px solid var(--border-medium)',
                 fontSize: '13px',
                 fontFamily: 'inherit',
               }}
@@ -158,8 +158,8 @@ export const ReviewRejectModal: React.FC<ReviewRejectModalProps> = ({
               style={{
                 padding: '6px 14px',
                 borderRadius: '5px',
-                border: '1px solid #CBD5E1',
-                background: '#FFFFFF',
+                border: '1px solid var(--border-medium)',
+                background: 'var(--bg-surface)',
                 fontSize: '12px',
                 fontWeight: 500,
                 cursor: 'pointer',
@@ -173,8 +173,8 @@ export const ReviewRejectModal: React.FC<ReviewRejectModalProps> = ({
                 padding: '6px 16px',
                 borderRadius: '5px',
                 border: 'none',
-                background: '#DC2626',
-                color: '#FFFFFF',
+                background: 'var(--status-danger)',
+                color: 'var(--bg-surface)',
                 fontSize: '12px',
                 fontWeight: 600,
                 cursor: 'pointer',

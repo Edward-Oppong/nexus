@@ -1,21 +1,19 @@
 // ============================================================
 // src/components/intelligence/rail/HypothesesRailPanel.tsx
-// Core Rail Function 3: "Candidate Hypotheses"
-// Shows candidate explanations from Nexus Assessment (preferred)
-// or from case hypotheses if analysis not yet run.
-// Strictly prohibited from emitting % odds (Rule 10)
+// Core Rail Function 2: "Where the case is pointing"
+// Candidate differential diagnoses ranked by evidence
 // ============================================================
 
 import React from 'react';
 import { useCase } from '../../../app/providers/CaseContext';
-import { GitBranch, ArrowRight, CheckCircle, XCircle, Cpu, Sparkles } from 'lucide-react';
+import { GitBranch, ArrowRight, CheckCircle, Sparkles, Cpu } from 'lucide-react';
 
 export const HypothesesRailPanel: React.FC = () => {
-  const { activeCase, nexusAssessment, setActiveCaseSubTab } = useCase();
+  const { activeCase, setActiveCaseSubTab, nexusAssessment } = useCase();
   const { hypotheses } = activeCase;
 
-  // Prefer Nexus AI hypotheses if assessment available
-  const nexusHypothesisFindings = nexusAssessment?.nexusFindings.filter(
+  // Use live assessment hypotheses if available, otherwise case hypotheses
+  const nexusHypothesisFindings = nexusAssessment?.nexusFindings?.filter(
     (f) => f.findingType === 'SUPPORT'
   ) ?? [];
 
@@ -24,13 +22,15 @@ export const HypothesesRailPanel: React.FC = () => {
   return (
     <section
       style={{
-        background: '#FFFFFF',
-        border: '1px solid #E2E8F0',
-        borderRadius: '6px',
-        padding: '12px',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-subtle)',
+        borderRadius: 'var(--radius-lg)',
+        padding: '12px 14px',
         display: 'flex',
         flexDirection: 'column',
         gap: '10px',
+        boxShadow: 'var(--shadow-sm)',
+        transition: 'background-color 0.2s ease, border-color 0.2s ease',
       }}
     >
       <div
@@ -46,16 +46,16 @@ export const HypothesesRailPanel: React.FC = () => {
             fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: '0.06em',
-            color: '#0F172A',
+            color: 'var(--text-primary)',
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
           }}
         >
           {useNexusData ? (
-            <Sparkles size={13} color="#0284C7" />
+            <Sparkles size={13} color="var(--accent-primary)" />
           ) : (
-            <GitBranch size={13} color="#2563EB" />
+            <GitBranch size={13} color="var(--accent-primary)" />
           )}
           {useNexusData ? 'Nexus Differential' : 'Candidate Hypotheses'}
         </span>
@@ -66,7 +66,7 @@ export const HypothesesRailPanel: React.FC = () => {
             background: 'transparent',
             fontSize: '11px',
             fontWeight: 600,
-            color: '#2563EB',
+            color: 'var(--accent-primary)',
             cursor: 'pointer',
             padding: 0,
             display: 'flex',
@@ -91,24 +91,24 @@ export const HypothesesRailPanel: React.FC = () => {
                 key={f.id}
                 onClick={() => setActiveCaseSubTab('reasoning')}
                 style={{
-                  padding: '8px 10px',
-                  borderRadius: '5px',
-                  background: idx === 0 ? '#EFF6FF' : '#F8FAFC',
-                  border: idx === 0 ? '1px solid #BFDBFE' : '1px solid #F1F5F9',
+                  padding: '9px 11px',
+                  borderRadius: 'var(--radius-md)',
+                  background: idx === 0 ? 'var(--accent-subtle)' : 'var(--bg-subtle)',
+                  border: idx === 0 ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
                   cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '4px',
-                  transition: 'border-color 0.15s ease',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
                   <span
                     style={{
                       fontSize: '10px',
-                      fontFamily: 'monospace',
+                      fontFamily: 'var(--font-mono)',
                       fontWeight: 700,
-                      color: idx === 0 ? '#1D4ED8' : '#64748B',
+                      color: idx === 0 ? 'var(--accent-primary)' : 'var(--text-muted)',
                       flexShrink: 0,
                       marginTop: '1px',
                     }}
@@ -119,7 +119,7 @@ export const HypothesesRailPanel: React.FC = () => {
                     style={{
                       fontSize: '12px',
                       fontWeight: 600,
-                      color: '#0F172A',
+                      color: 'var(--text-primary)',
                       lineHeight: 1.3,
                     }}
                   >
@@ -130,7 +130,7 @@ export const HypothesesRailPanel: React.FC = () => {
                   <div
                     style={{
                       fontSize: '10px',
-                      color: '#64748B',
+                      color: 'var(--text-muted)',
                       lineHeight: 1.4,
                       paddingLeft: '16px',
                     }}
@@ -138,24 +138,25 @@ export const HypothesesRailPanel: React.FC = () => {
                     {rationale.slice(0, 90)}{rationale.length > 90 ? '...' : ''}
                   </div>
                 )}
-                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '2px' }}>
+                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '4px' }}>
                   <span style={{
                     display: 'inline-flex', alignItems: 'center', gap: '3px',
                     fontSize: '9px', fontWeight: 600,
-                    background: '#EFF6FF', color: '#1D4ED8',
-                    padding: '1px 5px', borderRadius: '8px',
-                    border: '1px solid #BFDBFE',
+                    background: 'var(--bg-surface)', color: 'var(--accent-primary)',
+                    padding: '1px 5px', borderRadius: '4px',
+                    border: '1px solid var(--border-subtle)',
                   }}>
                     <Cpu size={8} /> Nexus AI
                   </span>
                   {(f.findingIds?.length ?? 0) > 0 && (
                     <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '3px',
                       fontSize: '9px', fontWeight: 600,
-                      background: '#ECFDF5', color: '#065F46',
-                      padding: '1px 5px', borderRadius: '8px',
-                      border: '1px solid #A7F3D0',
+                      background: 'var(--status-verified-bg)', color: 'var(--status-verified-text)',
+                      padding: '1px 5px', borderRadius: '4px',
+                      border: '1px solid var(--status-verified-border)',
                     }}>
-                      <CheckCircle style={{ display: 'inline', verticalAlign: 'middle', width: '8px', height: '8px', marginRight: '2px' }} />
+                      <CheckCircle size={8} />
                       {f.findingIds?.length ?? 0} findings
                     </span>
                   )}
@@ -168,10 +169,10 @@ export const HypothesesRailPanel: React.FC = () => {
         // ── Case hypotheses fallback ───────────────────────────
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {hypotheses.length === 0 ? (
-            <div style={{ fontSize: '11px', color: '#94A3B8', textAlign: 'center', padding: '8px', background: '#F8FAFC', borderRadius: '4px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', padding: '12px 8px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)' }}>
               No candidate hypotheses yet.
               <br />
-              <span style={{ fontSize: '10px' }}>Run Nexus Analysis to generate grounded differential diagnoses.</span>
+              <span style={{ fontSize: '10px', color: 'var(--text-dim)' }}>Run Nexus Analysis to generate grounded differential diagnoses.</span>
             </div>
           ) : (
             hypotheses.slice(0, 3).map((h, idx) => (
@@ -180,9 +181,9 @@ export const HypothesesRailPanel: React.FC = () => {
                 onClick={() => setActiveCaseSubTab('reasoning')}
                 style={{
                   padding: '8px 10px',
-                  borderRadius: '5px',
-                  background: '#F8FAFC',
-                  border: '1px solid #F1F5F9',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border-subtle)',
                   cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
@@ -190,13 +191,15 @@ export const HypothesesRailPanel: React.FC = () => {
                   transition: 'border-color 0.15s ease',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
                   <span
                     style={{
                       fontSize: '10px',
-                      fontFamily: 'monospace',
+                      fontFamily: 'var(--font-mono)',
                       fontWeight: 700,
-                      color: '#64748B',
+                      color: 'var(--text-muted)',
+                      flexShrink: 0,
+                      marginTop: '1px',
                     }}
                   >
                     0{idx + 1}
@@ -205,36 +208,44 @@ export const HypothesesRailPanel: React.FC = () => {
                     style={{
                       fontSize: '12px',
                       fontWeight: 600,
-                      color: '#0F172A',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
+                      color: 'var(--text-primary)',
+                      lineHeight: 1.3,
                     }}
                   >
                     {h.title}
                   </span>
                 </div>
-
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: '8px',
-                    fontSize: '10px',
-                    color: '#64748B',
-                  }}
-                >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: '#059669' }}>
-                    <CheckCircle size={10} />
-                    {h.supportingFindingIds.length} support
+                <div style={{ display: 'flex', gap: '4px', marginTop: '2px' }}>
+                  <span
+                    style={{
+                      fontSize: '9px',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      padding: '1px 5px',
+                      borderRadius: '3px',
+                      background:
+                        h.status === 'Supported'
+                          ? 'var(--status-verified-bg)'
+                          : h.status === 'Contradicted'
+                          ? 'var(--status-safety-bg)'
+                          : 'var(--status-neutral-bg)',
+                      color:
+                        h.status === 'Supported'
+                          ? 'var(--status-verified-text)'
+                          : h.status === 'Contradicted'
+                          ? 'var(--status-safety-text)'
+                          : 'var(--status-neutral-text)',
+                      border: `1px solid ${
+                        h.status === 'Supported'
+                          ? 'var(--status-verified-border)'
+                          : h.status === 'Contradicted'
+                          ? 'var(--status-safety-border)'
+                          : 'var(--status-neutral-border)'
+                      }`,
+                    }}
+                  >
+                    {h.status}
                   </span>
-                  {h.contradictingFindingIds.length > 0 && (
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: '#DC2626' }}>
-                      <XCircle size={10} />
-                      {h.contradictingFindingIds.length} contradict
-                    </span>
-                  )}
                 </div>
               </div>
             ))

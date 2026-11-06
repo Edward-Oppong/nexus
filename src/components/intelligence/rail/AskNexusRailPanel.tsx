@@ -272,8 +272,8 @@ Answer:`;
   return (
     <section
       style={{
-        background: '#FFFFFF',
-        border: '1px solid #E2E8F0',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-subtle)',
         borderRadius: '6px',
         padding: '12px',
         display: 'flex',
@@ -296,12 +296,12 @@ Answer:`;
             gap: '6px',
             fontSize: '11px',
             fontWeight: 700,
-            color: '#0F172A',
+            color: 'var(--text-primary)',
             textTransform: 'uppercase',
             letterSpacing: '0.06em',
           }}
         >
-          <Sparkles size={12} color="#0284C7" />
+          <Sparkles size={12} color="var(--accent-primary)" />
           Ask Nexus
         </div>
         {response && (
@@ -319,7 +319,7 @@ Answer:`;
               background: 'transparent',
               cursor: 'pointer',
               padding: '2px',
-              color: '#94A3B8',
+              color: 'var(--text-muted)',
               display: 'flex',
               alignItems: 'center',
             }}
@@ -342,17 +342,18 @@ Answer:`;
             padding: '6px 8px',
             fontSize: '11px',
             borderRadius: '4px',
-            border: '1px solid #CBD5E1',
+            border: '1px solid var(--border-medium)',
+            background: 'var(--bg-app)',
             outline: 'none',
-            color: '#0F172A',
+            color: 'var(--text-primary)',
           }}
         />
         <button
           type="submit"
           disabled={isAnswering || !query.trim()}
           style={{
-            background: isAnswering || !query.trim() ? '#E2E8F0' : '#0F172A',
-            color: isAnswering || !query.trim() ? '#94A3B8' : '#FFFFFF',
+            background: isAnswering || !query.trim() ? 'var(--bg-subtle)' : 'var(--accent-primary)',
+            color: isAnswering || !query.trim() ? 'var(--text-muted)' : 'var(--accent-contrast)',
             border: 'none',
             borderRadius: '4px',
             padding: '6px 10px',
@@ -360,6 +361,7 @@ Answer:`;
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            fontWeight: 600,
           }}
         >
           <Send size={11} />
@@ -376,13 +378,13 @@ Answer:`;
               onClick={() => handleAsk(prompt)}
               style={{
                 fontSize: '10px',
-                padding: '2px 6px',
+                padding: '3px 7px',
                 borderRadius: '3px',
-                border: '1px solid #E2E8F0',
-                background: '#F8FAFC',
-                color: '#64748B',
+                border: '1px solid var(--border-subtle)',
+                background: 'var(--bg-subtle)',
+                color: 'var(--text-secondary)',
                 cursor: 'pointer',
-                transition: 'border-color 0.1s',
+                transition: 'all 0.15s ease',
               }}
             >
               {prompt}
@@ -397,10 +399,10 @@ Answer:`;
           style={{
             padding: '7px 9px',
             borderRadius: '4px',
-            background: '#F0F9FF',
-            border: '1px solid #BAE6FD',
+            background: 'var(--accent-subtle)',
+            border: '1px solid var(--border-medium)',
             fontSize: '11px',
-            color: '#0369A1',
+            color: 'var(--accent-primary)',
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
@@ -411,7 +413,7 @@ Answer:`;
               width: '10px',
               height: '10px',
               borderRadius: '50%',
-              border: '2px solid #0284C7',
+              border: '2px solid var(--accent-primary)',
               borderTopColor: 'transparent',
               animation: 'spin 0.8s linear infinite',
               flexShrink: 0,
@@ -428,10 +430,10 @@ Answer:`;
             marginTop: '2px',
             padding: '8px 10px',
             borderRadius: '5px',
-            background: answerSource === 'live' ? '#F0FDF4' : '#F0F9FF',
-            border: `1px solid ${answerSource === 'live' ? '#BBF7D0' : '#BAE6FD'}`,
+            background: answerSource === 'live' ? 'var(--success-subtle)' : 'var(--accent-subtle)',
+            border: `1px solid ${answerSource === 'live' ? 'var(--success-border)' : 'var(--border-medium)'}`,
             fontSize: '11px',
-            color: answerSource === 'live' ? '#14532D' : '#0369A1',
+            color: 'var(--text-primary)',
             lineHeight: 1.5,
           }}
         >
@@ -439,7 +441,7 @@ Answer:`;
             style={{
               fontWeight: 700,
               fontSize: '9px',
-              color: answerSource === 'live' ? '#16A34A' : '#0284C7',
+              color: answerSource === 'live' ? 'var(--status-success)' : 'var(--accent-primary)',
               letterSpacing: '0.06em',
               textTransform: 'uppercase',
               marginBottom: '4px',

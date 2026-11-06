@@ -65,10 +65,10 @@ export const FindingsTab: React.FC = () => {
       {/* Header & Controls */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
             Clinical Findings & Observations
           </h2>
-          <p style={{ fontSize: '12px', color: '#64748B', marginTop: '2px', marginBottom: 0 }}>
+          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px', marginBottom: 0 }}>
             Structured discrete findings with explicit provenance tracking. Click any item to inspect metadata.
           </p>
         </div>
@@ -90,8 +90,8 @@ export const FindingsTab: React.FC = () => {
         <div style={{
           position: 'fixed',
           inset: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.6)',
-          backdropFilter: 'blur(2px)',
+          backgroundColor: 'rgba(0, 0, 0, 0.65)',
+          backdropFilter: 'blur(3px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -101,28 +101,28 @@ export const FindingsTab: React.FC = () => {
           <div style={{
             width: '100%',
             maxWidth: '480px',
-            backgroundColor: '#FFFFFF',
+            backgroundColor: 'var(--bg-surface)',
             borderRadius: '8px',
             padding: '24px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #E2E8F0',
+            boxShadow: 'var(--shadow-lg)',
+            border: '1px solid var(--border-medium)',
           }}>
-            <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+            <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
               Add Clinical Finding
             </h3>
-            <p style={{ fontSize: '12px', color: '#64748B', margin: '0 0 16px 0' }}>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '0 0 16px 0' }}>
               Direct clinical entry. Provenance is automatically set to <strong>HUMAN_ENTERED</strong>.
             </p>
 
             <form onSubmit={handleAddFinding} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#475569', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '4px' }}>
                   Category
                 </label>
                 <select
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value as any)}
-                  style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '13px', background: '#FFF' }}
+                  style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '13px', background: 'var(--bg-app)', color: 'var(--text-primary)' }}
                 >
                   <option value="symptom">Symptom (Patient-reported)</option>
                   <option value="sign">Sign (Physical examination)</option>
@@ -133,7 +133,7 @@ export const FindingsTab: React.FC = () => {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#475569', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '4px' }}>
                   Finding Concept / Label *
                 </label>
                 <input
@@ -142,12 +142,12 @@ export const FindingsTab: React.FC = () => {
                   placeholder="e.g. Progressive exertional dyspnoea with nocturnal cough"
                   value={newLabel}
                   onChange={(e) => setNewLabel(e.target.value)}
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '13px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '13px', boxSizing: 'border-box', background: 'var(--bg-app)', color: 'var(--text-primary)' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#475569', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '4px' }}>
                   Clinical Description
                 </label>
                 <textarea
@@ -155,15 +155,15 @@ export const FindingsTab: React.FC = () => {
                   placeholder="Additional context or qualitative findings..."
                   value={newDescription}
                   onChange={(e) => setNewDescription(e.target.value)}
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '13px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '13px', boxSizing: 'border-box', background: 'var(--bg-app)', color: 'var(--text-primary)' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#475569', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '4px' }}>
                   Source Attribution
                 </label>
-                <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#334155' }}>
+                <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: 'var(--text-primary)' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                     <input
                       type="radio"
@@ -189,13 +189,13 @@ export const FindingsTab: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsAddOpen(false)}
-                  style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #CBD5E1', background: '#FFF', fontSize: '12px', cursor: 'pointer' }}
+                  style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid var(--border-medium)', background: 'var(--bg-subtle)', color: 'var(--text-secondary)', fontSize: '12px', cursor: 'pointer' }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  style={{ padding: '6px 14px', borderRadius: '4px', border: 'none', background: '#0284C7', color: '#FFF', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                  style={{ padding: '6px 14px', borderRadius: '4px', border: 'none', background: 'var(--accent-primary)', color: 'var(--accent-contrast)', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
                 >
                   Save Finding
                 </button>
@@ -213,17 +213,18 @@ export const FindingsTab: React.FC = () => {
             onClick={() => setFilterCategory(cat)}
             style={{
               border: 'none',
-              background: filterCategory === cat ? '#0F172A' : '#FFFFFF',
-              color: filterCategory === cat ? '#FFFFFF' : '#475569',
+              background: filterCategory === cat ? 'var(--accent-primary)' : 'var(--bg-surface)',
+              color: filterCategory === cat ? 'var(--accent-contrast)' : 'var(--text-secondary)',
               borderWidth: '1px',
               borderStyle: 'solid',
-              borderColor: filterCategory === cat ? '#0F172A' : '#E2E8F0',
+              borderColor: filterCategory === cat ? 'var(--accent-primary)' : 'var(--border-subtle)',
               padding: '4px 10px',
               borderRadius: '4px',
               fontSize: '11px',
-              fontWeight: filterCategory === cat ? 600 : 500,
+              fontWeight: filterCategory === cat ? 700 : 500,
               textTransform: 'capitalize',
               cursor: 'pointer',
+              transition: 'all 0.15s ease',
             }}
           >
             {cat === 'all' ? 'All Categories' : cat}
@@ -234,9 +235,9 @@ export const FindingsTab: React.FC = () => {
       {/* Findings Table */}
       <div
         style={{
-          background: '#FFFFFF',
-          border: '1px solid #E2E8F0',
-          borderRadius: '6px',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: '8px',
           overflow: 'hidden',
         }}
       >
@@ -254,7 +255,7 @@ export const FindingsTab: React.FC = () => {
           <tbody>
             {filteredFindings.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ textAlign: 'center', padding: '28px', color: '#94A3B8', fontSize: '13px' }}>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '28px', color: 'var(--text-muted)', fontSize: '13px' }}>
                   {filterCategory === 'all'
                     ? 'No clinical findings recorded yet. Use “+ Add Clinical Finding” or add observations during intake.'
                     : `No findings in the “${filterCategory}” category yet.`}
@@ -268,7 +269,7 @@ export const FindingsTab: React.FC = () => {
                   onClick={() => openFindingDrawer(f)}
                   style={{ cursor: 'pointer' }}
                 >
-                  <td style={{ fontWeight: 600, color: '#0F172A' }}>
+                  <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
                     {f.label}
                   </td>
                   <td>
@@ -276,14 +277,14 @@ export const FindingsTab: React.FC = () => {
                       style={{
                         fontSize: '11px',
                         textTransform: 'uppercase',
-                        color: '#64748B',
+                        color: 'var(--text-muted)',
                         fontFamily: 'var(--font-mono)',
                       }}
                     >
                       {f.category}
                     </span>
                   </td>
-                  <td style={{ color: '#334155' }}>
+                  <td style={{ color: 'var(--text-secondary)' }}>
                     {f.sourceDisplay}
                   </td>
                   <td>
@@ -291,8 +292,9 @@ export const FindingsTab: React.FC = () => {
                       style={{
                         fontSize: '11px',
                         fontFamily: 'var(--font-mono)',
-                        background: provenanceType === 'AI-extracted' ? '#0F172A' : '#F1F5F9',
-                        color: provenanceType === 'AI-extracted' ? '#38BDF8' : '#334155',
+                        background: provenanceType === 'AI-extracted' ? 'var(--accent-subtle)' : 'var(--bg-subtle)',
+                        color: provenanceType === 'AI-extracted' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                        border: '1px solid var(--border-subtle)',
                         padding: '2px 6px',
                         borderRadius: '3px',
                       }}

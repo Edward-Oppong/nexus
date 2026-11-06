@@ -4,6 +4,16 @@
   to { transform: rotate(360deg); }
 }
 
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.02); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
 /* CSS Reset & Global Standards */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -20,17 +30,39 @@ html, body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: var(--theme-transition);
 }
 
 #root {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+}
+
+/* Custom Scrollbar Styling for Clinical Monitors */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-subtle);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
 }
 
 /* Accessibility Focus States */
 :focus-visible {
-  outline: 2px solid var(--border-focus);
+  outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
 }
 
@@ -48,13 +80,13 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.01em;
 }
 
-/* Buttons */
+/* Clinical Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 8px 14px;
+  padding: 7px 14px;
   font-size: 13px;
   font-weight: 500;
   border-radius: var(--radius-md);
@@ -67,7 +99,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn:hover:not(:disabled) {
-  background: var(--bg-subtle);
+  background: var(--bg-hover);
   border-color: var(--border-medium);
 }
 
@@ -77,42 +109,43 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-primary {
-  background: var(--text-primary);
-  color: var(--text-inverse);
-  border-color: var(--text-primary);
+  background: var(--accent-primary);
+  color: #FFFFFF;
+  border-color: var(--accent-primary);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #1E293B;
-  border-color: #1E293B;
+  background: var(--accent-primary-hover);
+  border-color: var(--accent-primary-hover);
 }
 
 .btn-danger {
-  background: #FEF2F2;
-  color: #B91C1C;
-  border-color: #FCA5A5;
+  background: var(--status-safety-bg);
+  color: var(--status-safety-text);
+  border-color: var(--status-safety-border);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #FEE2E2;
+  filter: brightness(0.95);
 }
 
 .btn-success {
-  background: #ECFDF5;
-  color: #047857;
-  border-color: #6EE7B7;
+  background: var(--status-verified-bg);
+  color: var(--status-verified-text);
+  border-color: var(--status-verified-border);
 }
 
 .btn-success:hover:not(:disabled) {
-  background: #D1FAE5;
+  filter: brightness(0.95);
 }
 
 .btn-sm {
   padding: 4px 8px;
   font-size: 12px;
+  border-radius: var(--radius-sm);
 }
 
-/* Badges */
+/* Clinical Status Badges */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -153,10 +186,10 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--nexus-tag-bg);
   color: var(--nexus-tag-text);
   font-family: var(--font-mono);
-  font-weight: 500;
+  font-weight: 600;
 }
 
-/* Table Design */
+/* Clinical Data Tables */
 .clinical-table {
   width: 100%;
   border-collapse: collapse;
@@ -179,18 +212,23 @@ h1, h2, h3, h4, h5, h6 {
   padding: 12px 14px;
   border-bottom: 1px solid var(--border-subtle);
   vertical-align: middle;
+  color: var(--text-primary);
+}
+
+.clinical-table tbody tr {
+  transition: background-color 0.12s ease;
 }
 
 .clinical-table tbody tr:hover {
-  background: #F8FAFC;
+  background: var(--bg-hover);
 }
 
 /* Modal and Drawer Overlays */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(2px);
+  background: rgba(8, 13, 26, 0.65);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -200,11 +238,12 @@ h1, h2, h3, h4, h5, h6 {
 
 .modal-card {
   background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
   width: 100%;
-  max-width: 560px;
+  max-width: 580px;
   max-height: 90vh;
   overflow-y: auto;
   display: flex;
@@ -214,8 +253,8 @@ h1, h2, h3, h4, h5, h6 {
 .drawer-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.35);
-  backdrop-filter: blur(1px);
+  background: rgba(8, 13, 26, 0.5);
+  backdrop-filter: blur(2px);
   z-index: 900;
   display: flex;
   justify-content: flex-end;
@@ -225,9 +264,10 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   max-width: 480px;
   background: var(--bg-surface);
+  color: var(--text-primary);
   height: 100%;
   box-shadow: var(--shadow-drawer);
-  border-left: 1px solid var(--border-subtle);
+  border-left: 1px solid var(--border-medium);
   display: flex;
   flex-direction: column;
   overflow-y: auto;

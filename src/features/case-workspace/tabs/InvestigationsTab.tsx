@@ -58,10 +58,10 @@ export const InvestigationsTab: React.FC = () => {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
             Diagnostic Investigations & Laboratory Results
           </h2>
-          <p style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
+          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
             Diagnostic orders with integrated microbiological reporting and explicit reasoning impact tracking.
           </p>
         </div>
@@ -82,13 +82,13 @@ export const InvestigationsTab: React.FC = () => {
           {/* In-Progress Orders */}
           <div
             style={{
-              background: '#FFFFFF',
-              border: '1px solid #E2E8F0',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-subtle)',
               borderRadius: '6px',
               padding: '16px',
             }}
           >
-            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '10px' }}>
+            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '10px' }}>
               Pending & In-Progress ({inProgress.length})
             </div>
 
@@ -101,14 +101,14 @@ export const InvestigationsTab: React.FC = () => {
                     onClick={() => setSelectedOrder(order)}
                     style={{
                       padding: '10px 12px',
-                      background: isSelected ? '#F1F5F9' : '#F8FAFC',
-                      border: `1px solid ${isSelected ? '#0F172A' : '#E2E8F0'}`,
+                      background: isSelected ? 'var(--bg-subtle)' : 'var(--bg-subtle)',
+                      border: `1px solid ${isSelected ? 'var(--text-primary)' : 'var(--border-subtle)'}`,
                       borderRadius: '4px',
                       cursor: 'pointer',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <strong style={{ fontSize: '13px', color: '#0F172A' }}>{order.testName}</strong>
+                      <strong style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{order.testName}</strong>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span className="badge badge-review" style={{ fontSize: '10px' }}>
                           {order.status}
@@ -123,21 +123,21 @@ export const InvestigationsTab: React.FC = () => {
                           style={{
                             border: 'none',
                             background: 'transparent',
-                            color: '#94A3B8',
+                            color: 'var(--text-muted)',
                             cursor: 'pointer',
                             padding: '3px',
                             borderRadius: '4px',
                             display: 'flex',
                             alignItems: 'center',
                           }}
-                          onMouseEnter={(e) => (e.currentTarget.style.color = '#DC2626')}
-                          onMouseLeave={(e) => (e.currentTarget.style.color = '#94A3B8')}
+                          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--status-danger)')}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
                         >
                           <Trash2 size={13} />
                         </button>
                       </div>
                     </div>
-                    <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
                       Requested by {order.requestedBy} ({order.requestedAt})
                     </div>
                   </div>
@@ -149,13 +149,13 @@ export const InvestigationsTab: React.FC = () => {
           {/* Completed Orders */}
           <div
             style={{
-              background: '#FFFFFF',
-              border: '1px solid #E2E8F0',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-subtle)',
               borderRadius: '6px',
               padding: '16px',
             }}
           >
-            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '10px' }}>
+            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '10px' }}>
               Completed Results ({completed.length})
             </div>
 
@@ -168,14 +168,14 @@ export const InvestigationsTab: React.FC = () => {
                     onClick={() => setSelectedOrder(order)}
                     style={{
                       padding: '10px 12px',
-                      background: isSelected ? '#F1F5F9' : '#FFFFFF',
-                      border: `1px solid ${isSelected ? '#0F172A' : '#E2E8F0'}`,
+                      background: isSelected ? 'var(--bg-subtle)' : 'var(--bg-surface)',
+                      border: `1px solid ${isSelected ? 'var(--text-primary)' : 'var(--border-subtle)'}`,
                       borderRadius: '4px',
                       cursor: 'pointer',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <strong style={{ fontSize: '13px', color: '#0F172A' }}>{order.testName}</strong>
+                      <strong style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{order.testName}</strong>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span className="badge badge-verified" style={{ fontSize: '10px' }}>
                           Available
@@ -190,21 +190,21 @@ export const InvestigationsTab: React.FC = () => {
                           style={{
                             border: 'none',
                             background: 'transparent',
-                            color: '#94A3B8',
+                            color: 'var(--text-muted)',
                             cursor: 'pointer',
                             padding: '3px',
                             borderRadius: '4px',
                             display: 'flex',
                             alignItems: 'center',
                           }}
-                          onMouseEnter={(e) => (e.currentTarget.style.color = '#DC2626')}
-                          onMouseLeave={(e) => (e.currentTarget.style.color = '#94A3B8')}
+                          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--status-danger)')}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
                         >
                           <Trash2 size={13} />
                         </button>
                       </div>
                     </div>
-                    <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
                       Verified by {order.result?.laboratoryPersonnel} at {order.result?.completedAt}
                     </div>
                   </div>
@@ -219,18 +219,18 @@ export const InvestigationsTab: React.FC = () => {
           {selectedOrder ? (
             <div
               style={{
-                background: '#FFFFFF',
-                border: '1px solid #E2E8F0',
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-subtle)',
                 borderRadius: '6px',
                 padding: '20px',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <div>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#64748B' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)' }}>
                     ORDER ID: {selectedOrder.id} · {selectedOrder.category}
                   </span>
-                  <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', marginTop: '2px' }}>
+                  <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
                     {selectedOrder.testName}
                   </h3>
                 </div>
@@ -241,8 +241,8 @@ export const InvestigationsTab: React.FC = () => {
                       fontWeight: 600,
                       padding: '3px 8px',
                       borderRadius: '4px',
-                      background: selectedOrder.status === 'Result available' ? '#ECFDF5' : '#FFFBEB',
-                      color: selectedOrder.status === 'Result available' ? '#065F46' : '#92400E',
+                      background: selectedOrder.status === 'Result available' ? 'var(--success-subtle)' : 'var(--warning-subtle)',
+                      color: selectedOrder.status === 'Result available' ? 'var(--status-success)' : 'var(--status-warning)',
                     }}
                   >
                     {selectedOrder.status}
@@ -257,20 +257,20 @@ export const InvestigationsTab: React.FC = () => {
                       gap: '4px',
                       padding: '4px 8px',
                       borderRadius: '4px',
-                      border: '1px solid #FCA5A5',
-                      background: '#FEF2F2',
-                      color: '#DC2626',
+                      border: '1px solid var(--danger-border)',
+                      background: 'var(--danger-subtle)',
+                      color: 'var(--status-danger)',
                       fontSize: '11px',
                       fontWeight: 600,
                       cursor: 'pointer',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#DC2626';
-                      e.currentTarget.style.color = '#FFFFFF';
+                      e.currentTarget.style.background = 'var(--status-danger)';
+                      e.currentTarget.style.color = 'var(--bg-surface)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = '#FEF2F2';
-                      e.currentTarget.style.color = '#DC2626';
+                      e.currentTarget.style.background = 'var(--danger-subtle)';
+                      e.currentTarget.style.color = 'var(--status-danger)';
                     }}
                   >
                     <Trash2 size={12} /> Delete Order
@@ -281,14 +281,14 @@ export const InvestigationsTab: React.FC = () => {
               {selectedOrder.result ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {/* Raw Lab Parameter Values */}
-                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '6px', padding: '14px' }}>
-                    <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, marginBottom: '6px' }}>
+                  <div style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '14px' }}>
+                    <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '6px' }}>
                       Result Parameter
                     </div>
-                    <div style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+                    <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
                       {selectedOrder.result.value}
                     </div>
-                    <div style={{ display: 'flex', gap: '16px', fontSize: '11px', color: '#64748B', marginTop: '4px' }}>
+                    <div style={{ display: 'flex', gap: '16px', fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
                       <span><strong>Reference Range:</strong> {selectedOrder.result.referenceRange}</span>
                       <span><strong>Status:</strong> {selectedOrder.result.status}</span>
                     </div>
@@ -296,10 +296,10 @@ export const InvestigationsTab: React.FC = () => {
 
                   {/* Interpretation */}
                   <div>
-                    <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, marginBottom: '4px' }}>
+                    <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '4px' }}>
                       Laboratory Interpretation
                     </div>
-                    <p style={{ fontSize: '13px', color: '#334155', lineHeight: 1.5 }}>
+                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                       {selectedOrder.result.interpretation}
                     </p>
                   </div>
@@ -307,14 +307,14 @@ export const InvestigationsTab: React.FC = () => {
                   {/* Impact on Nexus Reasoning (Section 23 - Crucial) */}
                   <div
                     style={{
-                      background: '#F8FAFC',
-                      border: '1px solid #CBD5E1',
-                      borderLeft: '4px solid #2563EB',
+                      background: 'var(--bg-subtle)',
+                      border: '1px solid var(--border-medium)',
+                      borderLeft: '4px solid var(--accent-primary)',
                       borderRadius: '4px',
                       padding: '14px',
                     }}
                   >
-                    <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#1E40AF', fontWeight: 700, letterSpacing: '0.04em', marginBottom: '8px' }}>
+                    <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--accent-primary)', fontWeight: 700, letterSpacing: '0.04em', marginBottom: '8px' }}>
                       Impact on Nexus Reasoning
                     </div>
 
@@ -323,20 +323,20 @@ export const InvestigationsTab: React.FC = () => {
                         <div key={idx} style={{ fontSize: '12px', lineHeight: 1.4 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
                             {imp.impact === 'Strengthened' ? (
-                              <span style={{ color: '#047857', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                              <span style={{ color: 'var(--status-success)', display: 'flex', alignItems: 'center', gap: '2px' }}>
                                 <TrendingUp size={13} /> {imp.hypothesisTitle}: Strengthened
                               </span>
                             ) : imp.impact === 'Weakened' ? (
-                              <span style={{ color: '#B91C1C', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                              <span style={{ color: 'var(--status-danger)', display: 'flex', alignItems: 'center', gap: '2px' }}>
                                 <TrendingDown size={13} /> {imp.hypothesisTitle}: Weakened
                               </span>
                             ) : (
-                              <span style={{ color: '#64748B', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                              <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '2px' }}>
                                 <Minus size={13} /> {imp.hypothesisTitle}: Unchanged
                               </span>
                             )}
                           </div>
-                          <div style={{ color: '#475569', fontSize: '11px', marginTop: '2px', paddingLeft: '16px' }}>
+                          <div style={{ color: 'var(--text-secondary)', fontSize: '11px', marginTop: '2px', paddingLeft: '16px' }}>
                             {imp.detail}
                           </div>
                         </div>
@@ -345,8 +345,8 @@ export const InvestigationsTab: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div style={{ padding: '24px', textAlign: 'center', color: '#64748B', background: '#F8FAFC', borderRadius: '6px' }}>
-                  <Clock size={28} color="#94A3B8" style={{ margin: '0 auto 8px' }} />
+                <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', background: 'var(--bg-subtle)', borderRadius: '6px' }}>
+                  <Clock size={28} color="var(--text-muted)" style={{ margin: '0 auto 8px' }} />
                   <div style={{ fontSize: '13px', fontWeight: 600 }}>Investigation In Progress</div>
                   <div style={{ fontSize: '11px', marginTop: '4px', maxWidth: '340px', margin: '4px auto 14px' }}>
                     Results will automatically appear here with automated reasoning impact analysis upon laboratory sign-off.
@@ -379,13 +379,13 @@ export const InvestigationsTab: React.FC = () => {
       {showOrderModal && (
         <div className="modal-overlay" onClick={() => setShowOrderModal(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ padding: '24px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', marginBottom: '14px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px' }}>
               Request Diagnostic Investigation
             </h3>
 
             <form onSubmit={handleOrderSubmit}>
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                   Test / Procedure Name
                 </label>
                 <input
@@ -394,19 +394,19 @@ export const InvestigationsTab: React.FC = () => {
                   value={newTestName}
                   onChange={(e) => setNewTestName(e.target.value)}
                   placeholder="e.g. Transthoracic Echocardiogram (TTE), Serum Ferritin..."
-                  style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                  style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px' }}
                 />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                     Category
                   </label>
                   <select
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value as any)}
-                    style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px' }}
                   >
                     <option value="Laboratory">Laboratory</option>
                     <option value="Microbiology">Microbiology</option>
@@ -416,13 +416,13 @@ export const InvestigationsTab: React.FC = () => {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                     Priority
                   </label>
                   <select
                     value={newPriority}
                     onChange={(e) => setNewPriority(e.target.value as any)}
-                    style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px' }}
                   >
                     <option value="Stat">Stat (Immediate)</option>
                     <option value="Urgent">Urgent</option>
@@ -432,7 +432,7 @@ export const InvestigationsTab: React.FC = () => {
               </div>
 
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                   Clinical Indication
                 </label>
                 <textarea
@@ -441,7 +441,7 @@ export const InvestigationsTab: React.FC = () => {
                   value={newIndication}
                   onChange={(e) => setNewIndication(e.target.value)}
                   placeholder="Clinical reason for request..."
-                  style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                  style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px' }}
                 />
               </div>
 
@@ -462,10 +462,10 @@ export const InvestigationsTab: React.FC = () => {
       {showResultModal && resultOrder && (
         <div className="modal-overlay" onClick={() => setShowResultModal(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ padding: '24px', maxWidth: '480px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
               Record Diagnostic Result
             </h3>
-            <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '16px' }}>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px' }}>
               {resultOrder.testName} ({resultOrder.category})
             </p>
 
@@ -486,7 +486,7 @@ export const InvestigationsTab: React.FC = () => {
             >
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px', marginBottom: '12px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                     Result Value *
                   </label>
                   <input
@@ -495,11 +495,11 @@ export const InvestigationsTab: React.FC = () => {
                     value={resultValue}
                     onChange={(e) => setResultValue(e.target.value)}
                     placeholder="e.g. 2.4, Positive, Clear"
-                    style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px' }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                     Unit
                   </label>
                   <input
@@ -507,14 +507,14 @@ export const InvestigationsTab: React.FC = () => {
                     value={resultUnit}
                     onChange={(e) => setResultUnit(e.target.value)}
                     placeholder="ng/mL, mg/dL..."
-                    style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px' }}
                   />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                     Reference Range
                   </label>
                   <input
@@ -522,17 +522,17 @@ export const InvestigationsTab: React.FC = () => {
                     value={resultRefRange}
                     onChange={(e) => setResultRefRange(e.target.value)}
                     placeholder="e.g. < 0.04, Negative"
-                    style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px' }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                     Status Classification
                   </label>
                   <select
                     value={resultStatus}
                     onChange={(e) => setResultStatus(e.target.value as any)}
-                    style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px' }}
                   >
                     <option value="Normal">Normal</option>
                     <option value="Borderline">Borderline</option>
@@ -543,7 +543,7 @@ export const InvestigationsTab: React.FC = () => {
               </div>
 
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                   Clinical Interpretation *
                 </label>
                 <input
@@ -552,12 +552,12 @@ export const InvestigationsTab: React.FC = () => {
                   value={resultInterpretation}
                   onChange={(e) => setResultInterpretation(e.target.value)}
                   placeholder="e.g. Elevation consistent with cardiac ischemia"
-                  style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                  style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px' }}
                 />
               </div>
 
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                   Clinical Notes (Optional)
                 </label>
                 <textarea
@@ -565,7 +565,7 @@ export const InvestigationsTab: React.FC = () => {
                   value={resultNotes}
                   onChange={(e) => setResultNotes(e.target.value)}
                   placeholder="Technician or pathologist observations..."
-                  style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                  style={{ width: '100%', padding: '7px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px' }}
                 />
               </div>
 
@@ -591,7 +591,7 @@ export const InvestigationsTab: React.FC = () => {
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(15, 23, 42, 0.6)',
+            background: 'rgba(0,0,0,0.65)',
             backdropFilter: 'blur(2px)',
             display: 'flex',
             alignItems: 'center',
@@ -602,7 +602,7 @@ export const InvestigationsTab: React.FC = () => {
         >
           <div
             style={{
-              background: '#FFFFFF',
+              background: 'var(--bg-surface)',
               borderRadius: '8px',
               padding: '24px',
               maxWidth: '440px',
@@ -611,10 +611,10 @@ export const InvestigationsTab: React.FC = () => {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
               Delete Investigation Order?
             </h3>
-            <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748B', lineHeight: '1.5' }}>
+            <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5' }}>
               Are you sure you want to delete the order for <strong>{pendingDeleteOrder.testName}</strong>? This will remove the investigation and any associated laboratory reports.
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
@@ -630,7 +630,7 @@ export const InvestigationsTab: React.FC = () => {
                 type="button"
                 onClick={handleConfirmDeleteOrder}
                 className="btn btn-sm"
-                style={{ background: '#DC2626', color: '#FFFFFF', border: 'none' }}
+                style={{ background: 'var(--status-danger)', color: 'var(--bg-surface)', border: 'none' }}
                 disabled={isDeleting}
               >
                 {isDeleting ? 'Deleting...' : 'Delete Investigation'}

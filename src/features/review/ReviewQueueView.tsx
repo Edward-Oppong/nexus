@@ -63,11 +63,11 @@ export const ReviewQueueView: React.FC = () => {
   const getPriorityStyle = (priority: ReviewPriority) => {
     switch (priority) {
       case 'URGENT':
-        return { bg: '#FEE2E2', text: '#991B1B', border: '#FCA5A5' };
+        return { bg: 'var(--danger-subtle)', text: 'var(--status-danger)', border: 'var(--danger-border)' };
       case 'HIGH':
-        return { bg: '#FEF3C7', text: '#92400E', border: '#FCD34D' };
+        return { bg: 'var(--warning-subtle)', text: 'var(--status-warning)', border: 'var(--warning-border)' };
       default:
-        return { bg: '#EFF6FF', text: '#1E40AF', border: '#BFDBFE' };
+        return { bg: 'var(--accent-subtle)', text: 'var(--accent-primary)', border: 'var(--border-medium)' };
     }
   };
 
@@ -77,16 +77,16 @@ export const ReviewQueueView: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <FileCheck2 size={20} color="#0284C7" />
-            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#0F172A' }}>
+            <FileCheck2 size={20} color="var(--accent-primary)" />
+            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>
               Clinical Review Queue
             </h2>
             <span
               style={{
                 fontSize: '11px',
                 fontWeight: 700,
-                background: pendingCount > 0 ? '#F59E0B' : '#10B981',
-                color: '#FFFFFF',
+                background: pendingCount > 0 ? 'var(--status-warning)' : 'var(--status-success)',
+                color: 'var(--bg-surface)',
                 padding: '2px 8px',
                 borderRadius: '12px',
               }}
@@ -94,7 +94,7 @@ export const ReviewQueueView: React.FC = () => {
               {pendingCount} Items Require Attention
             </span>
           </div>
-          <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>
             Deliberative clinical adjudication workspace. Nexus proposes, clinical team reviews. Explicit Accept, Edit, or Reject required before clinical reliance.
           </p>
         </div>
@@ -102,7 +102,7 @@ export const ReviewQueueView: React.FC = () => {
         {/* Filter Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>Priority:</span>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>Priority:</span>
             <select
               value={selectedPriority}
               onChange={(e) => setSelectedPriority(e.target.value)}
@@ -110,8 +110,8 @@ export const ReviewQueueView: React.FC = () => {
                 fontSize: '12px',
                 padding: '4px 8px',
                 borderRadius: '4px',
-                border: '1px solid #CBD5E1',
-                background: '#FFFFFF',
+                border: '1px solid var(--border-medium)',
+                background: 'var(--bg-surface)',
               }}
             >
               <option value="ALL">All Priorities</option>
@@ -122,7 +122,7 @@ export const ReviewQueueView: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>Type:</span>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>Type:</span>
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
@@ -130,8 +130,8 @@ export const ReviewQueueView: React.FC = () => {
                 fontSize: '12px',
                 padding: '4px 8px',
                 borderRadius: '4px',
-                border: '1px solid #CBD5E1',
-                background: '#FFFFFF',
+                border: '1px solid var(--border-medium)',
+                background: 'var(--bg-surface)',
               }}
             >
               <option value="ALL">All Review Types</option>
@@ -151,18 +151,18 @@ export const ReviewQueueView: React.FC = () => {
         {filteredItems.length === 0 ? (
           <div
             style={{
-              background: '#FFFFFF',
-              border: '1px solid #E2E8F0',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-subtle)',
               borderRadius: '8px',
               padding: '48px 24px',
               textAlign: 'center',
             }}
           >
-            <CheckCircle2 size={40} color="#10B981" style={{ margin: '0 auto 12px' }} />
-            <h3 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 600, color: '#0F172A' }}>
+            <CheckCircle2 size={40} color="var(--status-success)" style={{ margin: '0 auto 12px' }} />
+            <h3 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>
               Review Queue is Clear
             </h3>
-            <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>
+            <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>
               All algorithmic findings, contradictions, and alerts have been reviewed by the clinical team.
             </p>
           </div>
@@ -176,9 +176,9 @@ export const ReviewQueueView: React.FC = () => {
               <div
                 key={item.id}
                 style={{
-                  background: isCompleted ? '#FAFAFA' : '#FFFFFF',
-                  border: `1px solid ${isCompleted ? '#CBD5E1' : '#E2E8F0'}`,
-                  borderLeft: `4px solid ${isCompleted ? '#94A3B8' : pStyle.text}`,
+                  background: isCompleted ? 'var(--bg-subtle)' : 'var(--bg-surface)',
+                  border: `1px solid ${isCompleted ? 'var(--border-medium)' : 'var(--border-subtle)'}`,
+                  borderLeft: `4px solid ${isCompleted ? 'var(--text-muted)' : pStyle.text}`,
                   borderRadius: '8px',
                   padding: '16px 20px',
                   boxShadow: isCompleted ? 'none' : '0 2px 6px rgba(0, 0, 0, 0.03)',
@@ -190,8 +190,8 @@ export const ReviewQueueView: React.FC = () => {
                   <button
                     onClick={() => openCaseById(item.caseId)}
                     style={{
-                      background: '#0F172A',
-                      color: '#FFFFFF',
+                      background: 'var(--bg-app)',
+                      color: 'var(--bg-surface)',
                       border: 'none',
                       borderRadius: '4px',
                       padding: '2px 8px',
@@ -225,8 +225,8 @@ export const ReviewQueueView: React.FC = () => {
                     style={{
                       fontSize: '11px',
                       fontWeight: 600,
-                      background: '#F1F5F9',
-                      color: '#334155',
+                      background: 'var(--bg-subtle)',
+                      color: 'var(--text-secondary)',
                       padding: '2px 8px',
                       borderRadius: '4px',
                     }}
@@ -234,7 +234,7 @@ export const ReviewQueueView: React.FC = () => {
                     {item.itemType.replace('_', ' ')}
                   </span>
 
-                  <span style={{ fontSize: '11px', color: '#64748B' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                     Patient: <strong>{item.patientIdentifier}</strong> · Source: {item.sourceContext}
                   </span>
                 </div>
@@ -250,9 +250,9 @@ export const ReviewQueueView: React.FC = () => {
                         gap: '4px',
                         padding: '5px 12px',
                         borderRadius: '4px',
-                        border: '1px solid #059669',
-                        background: '#10B981',
-                        color: '#FFFFFF',
+                        border: '1px solid var(--status-success)',
+                        background: 'var(--status-success)',
+                        color: 'var(--bg-surface)',
                         fontSize: '12px',
                         fontWeight: 600,
                         cursor: 'pointer',
@@ -269,9 +269,9 @@ export const ReviewQueueView: React.FC = () => {
                         gap: '4px',
                         padding: '5px 12px',
                         borderRadius: '4px',
-                        border: '1px solid #3B82F6',
-                        background: '#EFF6FF',
-                        color: '#1D4ED8',
+                        border: '1px solid var(--accent-primary)',
+                        background: 'var(--accent-subtle)',
+                        color: 'var(--accent-primary)',
                         fontSize: '12px',
                         fontWeight: 600,
                         cursor: 'pointer',
@@ -288,9 +288,9 @@ export const ReviewQueueView: React.FC = () => {
                         gap: '4px',
                         padding: '5px 12px',
                         borderRadius: '4px',
-                        border: '1px solid #EF4444',
-                        background: '#FEF2F2',
-                        color: '#DC2626',
+                        border: '1px solid var(--status-danger)',
+                        background: 'var(--danger-subtle)',
+                        color: 'var(--status-danger)',
                         fontSize: '12px',
                         fontWeight: 600,
                         cursor: 'pointer',
@@ -307,11 +307,11 @@ export const ReviewQueueView: React.FC = () => {
                     style={{
                       fontSize: '11px',
                       fontWeight: 600,
-                      color: item.payload?.action === 'REJECT' ? '#DC2626' : '#059669',
-                      background: item.payload?.action === 'REJECT' ? '#FEF2F2' : '#ECFDF5',
+                      color: item.payload?.action === 'REJECT' ? 'var(--status-danger)' : 'var(--status-success)',
+                      background: item.payload?.action === 'REJECT' ? 'var(--danger-subtle)' : 'var(--success-subtle)',
                       padding: '2px 8px',
                       borderRadius: '12px',
-                      border: `1px solid ${item.payload?.action === 'REJECT' ? '#FECACA' : '#A7F3D0'}`,
+                      border: `1px solid ${item.payload?.action === 'REJECT' ? 'var(--danger-border)' : 'var(--success-border)'}`,
                     }}
                   >
                     Reviewed: [{item.payload?.action || 'COMPLETED'}]
@@ -320,26 +320,26 @@ export const ReviewQueueView: React.FC = () => {
               </div>
 
               {/* Title */}
-              <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px 0' }}>
                 {item.title}
               </h3>
 
               {/* Edit Mode: Calm Side-by-side comparison */}
               {isEditing ? (
-                <div style={{ marginTop: '12px', background: '#F8FAFC', padding: '16px', borderRadius: '8px', border: '1px solid #CBD5E1' }}>
+                <div style={{ marginTop: '12px', background: 'var(--bg-subtle)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-medium)' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '12px' }}>
                     <div>
-                      <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
                         Original Nexus Output
                       </div>
                       <div
                         style={{
-                          background: '#FFFFFF',
+                          background: 'var(--bg-surface)',
                           padding: '10px 12px',
                           borderRadius: '4px',
-                          border: '1px solid #E2E8F0',
+                          border: '1px solid var(--border-subtle)',
                           fontSize: '12px',
-                          color: '#475569',
+                          color: 'var(--text-secondary)',
                           lineHeight: 1.5,
                         }}
                       >
@@ -348,7 +348,7 @@ export const ReviewQueueView: React.FC = () => {
                     </div>
 
                     <div>
-                      <div style={{ fontSize: '11px', fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase', marginBottom: '4px' }}>
                         Clinician Revision (Preserves Original)
                       </div>
                       <textarea
@@ -360,7 +360,7 @@ export const ReviewQueueView: React.FC = () => {
                           boxSizing: 'border-box',
                           padding: '10px',
                           borderRadius: '4px',
-                          border: '1px solid #3B82F6',
+                          border: '1px solid var(--accent-primary)',
                           fontSize: '12px',
                           fontFamily: 'inherit',
                           lineHeight: 1.5,
@@ -370,7 +370,7 @@ export const ReviewQueueView: React.FC = () => {
                   </div>
 
                   <div style={{ marginBottom: '12px' }}>
-                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                       Reason for Edit:
                     </label>
                     <input
@@ -383,7 +383,7 @@ export const ReviewQueueView: React.FC = () => {
                         boxSizing: 'border-box',
                         padding: '6px 10px',
                         borderRadius: '4px',
-                        border: '1px solid #CBD5E1',
+                        border: '1px solid var(--border-medium)',
                         fontSize: '12px',
                       }}
                     />
@@ -395,8 +395,8 @@ export const ReviewQueueView: React.FC = () => {
                       style={{
                         padding: '5px 12px',
                         borderRadius: '4px',
-                        border: '1px solid #CBD5E1',
-                        background: '#FFFFFF',
+                        border: '1px solid var(--border-medium)',
+                        background: 'var(--bg-surface)',
                         fontSize: '11px',
                         cursor: 'pointer',
                       }}
@@ -409,8 +409,8 @@ export const ReviewQueueView: React.FC = () => {
                         padding: '5px 14px',
                         borderRadius: '4px',
                         border: 'none',
-                        background: '#2563EB',
-                        color: '#FFFFFF',
+                        background: 'var(--accent-primary)',
+                        color: 'var(--bg-surface)',
                         fontSize: '11px',
                         fontWeight: 600,
                         cursor: 'pointer',
@@ -425,7 +425,7 @@ export const ReviewQueueView: React.FC = () => {
                   style={{
                     margin: 0,
                     fontSize: '13px',
-                    color: isCompleted ? '#64748B' : '#334155',
+                    color: isCompleted ? 'var(--text-muted)' : 'var(--text-secondary)',
                     lineHeight: 1.5,
                     textDecoration: item.payload?.action === 'REJECT' ? 'line-through' : 'none',
                   }}
@@ -436,7 +436,7 @@ export const ReviewQueueView: React.FC = () => {
 
               {/* Completed payload audit note */}
               {isCompleted && item.payload && (
-                <div style={{ marginTop: '8px', fontSize: '11px', color: '#64748B', fontStyle: 'italic' }}>
+                <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
                   Action recorded at {new Date(item.payload.reviewedAt).toLocaleTimeString()} by Dr. Edward Vance, MD.
                   {item.payload.reason && ` Note: ${item.payload.reason}`}
                 </div>

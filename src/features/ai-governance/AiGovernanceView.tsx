@@ -147,15 +147,15 @@ export const AiGovernanceView: React.FC = () => {
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto', background: '#F8FAFC', padding: '24px 32px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto', background: 'var(--bg-subtle)', padding: '24px 32px' }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Toast */}
         {toastMessage && (
           <div
             style={{
               padding: '12px 18px',
-              background: '#0F172A',
-              color: '#F8FAFC',
+              background: 'var(--bg-app)',
+              color: 'var(--text-primary)',
               borderRadius: '6px',
               fontSize: '13px',
               display: 'flex',
@@ -165,28 +165,28 @@ export const AiGovernanceView: React.FC = () => {
             }}
           >
             <span>{toastMessage}</span>
-            <button onClick={() => setToastMessage(null)} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer' }}>
+            <button onClick={() => setToastMessage(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
               ✕
             </button>
           </div>
         )}
 
         {/* Header Bar */}
-        <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                <div style={{ background: '#EEF2FF', color: '#4F46E5', padding: '6px', borderRadius: '6px', display: 'flex' }}>
+                <div style={{ background: 'var(--accent-subtle)', color: 'var(--accent-primary)', padding: '6px', borderRadius: '6px', display: 'flex' }}>
                   <BrainCircuit size={18} />
                 </div>
-                <h1 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0F172A' }}>
+                <h1 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
                   AI Governance & Model Management Console
                 </h1>
-                <span style={{ fontSize: '11px', fontWeight: 600, color: '#4F46E5', background: '#EEF2FF', padding: '2px 8px', borderRadius: '12px', border: '1px solid #C7D2FE' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--accent-primary)', background: 'var(--accent-subtle)', padding: '2px 8px', borderRadius: '12px', border: '1px solid var(--border-medium)' }}>
                   Phase 11 Enterprise
                 </span>
               </div>
-              <p style={{ margin: 0, fontSize: '13px', color: '#64748B', maxWidth: '820px' }}>
+              <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)', maxWidth: '820px' }}>
                 Regulated clinical AI lifecycle management: Central model version registry, side-by-side A/B assessment concordance evaluation, human feedback DPO dataset curation, and deep feature attribution explainability.
               </p>
             </div>
@@ -198,8 +198,8 @@ export const AiGovernanceView: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-                  color: '#FFFFFF',
+                  background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%)',
+                  color: 'var(--bg-surface)',
                   border: 'none',
                   borderRadius: '6px',
                   padding: '8px 14px',
@@ -218,8 +218,8 @@ export const AiGovernanceView: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: '#0F172A',
-                  color: '#FFFFFF',
+                  background: 'var(--bg-app)',
+                  color: 'var(--bg-surface)',
                   border: 'none',
                   borderRadius: '6px',
                   padding: '8px 14px',
@@ -234,7 +234,7 @@ export const AiGovernanceView: React.FC = () => {
           </div>
 
           {/* 4-Console Sub-Navigation Toolbar */}
-          <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid #F1F5F9', paddingTop: '12px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid var(--bg-subtle)', paddingTop: '12px', flexWrap: 'wrap' }}>
             {[
               { id: 'REGISTRY' as const, label: '1. Model Version Registry', icon: Award, count: CLINICAL_MODEL_REGISTRY.length },
               { id: 'AB_TEST' as const, label: '2. A/B Model Comparison', icon: GitCompare, count: 2 },
@@ -255,9 +255,9 @@ export const AiGovernanceView: React.FC = () => {
                     borderRadius: '6px',
                     fontSize: '12px',
                     fontWeight: isActive ? 600 : 500,
-                    color: isActive ? '#4F46E5' : '#475569',
-                    background: isActive ? '#EEF2FF' : '#FFFFFF',
-                    border: isActive ? '1px solid #C7D2FE' : '1px solid #E2E8F0',
+                    color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                    background: isActive ? 'var(--accent-subtle)' : 'var(--bg-surface)',
+                    border: isActive ? '1px solid var(--border-medium)' : '1px solid var(--border-subtle)',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                   }}
@@ -270,8 +270,8 @@ export const AiGovernanceView: React.FC = () => {
                       fontWeight: 700,
                       padding: '1px 6px',
                       borderRadius: '10px',
-                      background: isActive ? '#C7D2FE' : '#F1F5F9',
-                      color: isActive ? '#3730A3' : '#64748B',
+                      background: isActive ? 'var(--border-medium)' : 'var(--bg-subtle)',
+                      color: isActive ? 'var(--accent-primary)' : 'var(--text-muted)',
                     }}
                   >
                     {tab.count}
@@ -289,7 +289,7 @@ export const AiGovernanceView: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '20px' }}>
             {/* Model List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                 Registered Foundation Models ({CLINICAL_MODEL_REGISTRY.length})
               </div>
               {CLINICAL_MODEL_REGISTRY.map((model) => {
@@ -304,14 +304,14 @@ export const AiGovernanceView: React.FC = () => {
                       alignItems: 'flex-start',
                       padding: '12px 14px',
                       borderRadius: '6px',
-                      border: isSelected ? '1px solid #4F46E5' : '1px solid #E2E8F0',
-                      background: isSelected ? '#EEF2FF' : '#FFFFFF',
+                      border: isSelected ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                      background: isSelected ? 'var(--accent-subtle)' : 'var(--bg-surface)',
                       textAlign: 'left',
                       cursor: 'pointer',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
                         {model.name}
                       </span>
                       <span
@@ -320,14 +320,14 @@ export const AiGovernanceView: React.FC = () => {
                           fontWeight: 700,
                           padding: '1px 5px',
                           borderRadius: '4px',
-                          background: model.status === 'ACTIVE' ? '#DCFCE7' : '#FEF3C7',
-                          color: model.status === 'ACTIVE' ? '#15803D' : '#B45309',
+                          background: model.status === 'ACTIVE' ? 'var(--success-subtle)' : 'var(--warning-subtle)',
+                          color: model.status === 'ACTIVE' ? 'var(--status-success)' : 'var(--status-warning)',
                         }}
                       >
                         {model.status}
                       </span>
                     </div>
-                    <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
                       {model.provider} · v{model.version}
                     </div>
                   </button>
@@ -336,57 +336,57 @@ export const AiGovernanceView: React.FC = () => {
             </div>
 
             {/* Model Detail Card */}
-            <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '22px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '22px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                 <div>
-                  <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: '#0F172A' }}>
+                  <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)' }}>
                     {selectedModel.name}
                   </h2>
-                  <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B' }}>
+                  <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
                     {selectedModel.description}
                   </p>
                 </div>
-                <span style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '4px', background: '#F1F5F9', border: '1px solid #CBD5E1', color: '#475569' }}>
+                <span style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '4px', background: 'var(--bg-subtle)', border: '1px solid var(--border-medium)', color: 'var(--text-secondary)' }}>
                   Calibrated: {selectedModel.calibrationDate}
                 </span>
               </div>
 
               {/* Benchmark Metrics Grid */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
-                <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                  <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 700 }}>MEDQA USMLE</div>
-                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#4F46E5', marginTop: '2px' }}>
+                <div style={{ background: 'var(--bg-subtle)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700 }}>MEDQA USMLE</div>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--accent-primary)', marginTop: '2px' }}>
                     {selectedModel.benchmarks.medQaUsmlPercent}%
                   </div>
                 </div>
-                <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                  <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 700 }}>PUBMEDQA</div>
-                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
+                <div style={{ background: 'var(--bg-subtle)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700 }}>PUBMEDQA</div>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '2px' }}>
                     {selectedModel.benchmarks.pubmedQaPercent}%
                   </div>
                 </div>
-                <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                  <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 700 }}>MMLU CLINICAL</div>
-                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
+                <div style={{ background: 'var(--bg-subtle)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700 }}>MMLU CLINICAL</div>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '2px' }}>
                     {selectedModel.benchmarks.mmluClinicalPercent}%
                   </div>
                 </div>
-                <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                  <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 700 }}>HALLUCINATION RATE</div>
-                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#16A34A', marginTop: '2px' }}>
+                <div style={{ background: 'var(--bg-subtle)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700 }}>HALLUCINATION RATE</div>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--status-success)', marginTop: '2px' }}>
                     {selectedModel.benchmarks.hallucinationRatePercent}%
                   </div>
                 </div>
               </div>
 
               {/* Technical Specifications Strip */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', fontSize: '12px', color: '#334155' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', fontSize: '12px', color: 'var(--text-secondary)' }}>
                 <div><strong>Context Window:</strong> {selectedModel.contextWindowTokens.toLocaleString()} tokens</div>
                 <div><strong>Temperature Setting:</strong> {selectedModel.temperature}</div>
                 <div><strong>Safety Guardrail Tier:</strong> {selectedModel.safetyTier}</div>
               </div>
 
-              <div style={{ background: '#F8FAFC', padding: '12px 14px', borderRadius: '6px', border: '1px solid #E2E8F0', fontSize: '12px', color: '#0F172A' }}>
+              <div style={{ background: 'var(--bg-subtle)', padding: '12px 14px', borderRadius: '6px', border: '1px solid var(--border-subtle)', fontSize: '12px', color: 'var(--text-primary)' }}>
                 <strong>Intended Clinical Scope:</strong> {selectedModel.intendedClinicalScope}
               </div>
             </div>
@@ -399,24 +399,24 @@ export const AiGovernanceView: React.FC = () => {
         {activeConsole === 'AB_TEST' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             {/* Header & Concordance Strip */}
-            <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '20px' }}>
+            <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
                 <div>
-                  <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+                  <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
                     Head-to-Head Model Reasoning Comparison
                   </h2>
-                  <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B' }}>
+                  <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
                     Evaluating Case {activeCase.overview.id} against identical patient findings and clinical constraints.
                   </p>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#4F46E5', background: '#EEF2FF', padding: '4px 10px', borderRadius: '12px', border: '1px solid #C7D2FE' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-primary)', background: 'var(--accent-subtle)', padding: '4px 10px', borderRadius: '12px', border: '1px solid var(--border-medium)' }}>
                     Concordance: {abSession.concordance.overallConcordancePercent}% (High Agreement)
                   </div>
                   <button
                     onClick={() => setAbSession(createAbComparisonSession(activeCase, modelAId, modelBId))}
-                    style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', padding: '4px 8px', borderRadius: '4px', background: '#F1F5F9', border: '1px solid #CBD5E1', cursor: 'pointer' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', padding: '4px 8px', borderRadius: '4px', background: 'var(--bg-subtle)', border: '1px solid var(--border-medium)', cursor: 'pointer' }}
                   >
                     <RotateCcw size={12} /> Re-run A/B
                   </button>
@@ -426,42 +426,42 @@ export const AiGovernanceView: React.FC = () => {
               {/* Side-by-Side Comparison Columns */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                 {/* Model A Column */}
-                <div style={{ background: '#F8FAFC', borderRadius: '6px', border: '1px solid #E2E8F0', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ background: 'var(--bg-subtle)', borderRadius: '6px', border: '1px solid var(--border-subtle)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
                       Model A: {abSession.modelA.modelName}
                     </span>
-                    <span style={{ fontSize: '11px', color: '#64748B' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                       {abSession.modelA.generationLatencyMs} ms · {abSession.modelA.totalTokensUsed} tokens
                     </span>
                   </div>
-                  <div style={{ fontSize: '12px', color: '#334155', lineHeight: 1.4, background: '#FFFFFF', padding: '10px', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.4, background: 'var(--bg-surface)', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                     {abSession.modelA.assessment.summary}
                   </div>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#0F172A' }}>Findings Generated ({abSession.modelA.assessment.nexusFindings.length}):</div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)' }}>Findings Generated ({abSession.modelA.assessment.nexusFindings.length}):</div>
                   {abSession.modelA.assessment.nexusFindings.map((f) => (
-                    <div key={f.id} style={{ fontSize: '11px', color: '#475569', background: '#FFFFFF', padding: '6px 8px', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+                    <div key={f.id} style={{ fontSize: '11px', color: 'var(--text-secondary)', background: 'var(--bg-surface)', padding: '6px 8px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                       • {f.content}
                     </div>
                   ))}
                 </div>
 
                 {/* Model B Column */}
-                <div style={{ background: '#F8FAFC', borderRadius: '6px', border: '1px solid #E2E8F0', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ background: 'var(--bg-subtle)', borderRadius: '6px', border: '1px solid var(--border-subtle)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
                       Model B: {abSession.modelB.modelName}
                     </span>
-                    <span style={{ fontSize: '11px', color: '#64748B' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                       {abSession.modelB.generationLatencyMs} ms · {abSession.modelB.totalTokensUsed} tokens
                     </span>
                   </div>
-                  <div style={{ fontSize: '12px', color: '#334155', lineHeight: 1.4, background: '#FFFFFF', padding: '10px', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.4, background: 'var(--bg-surface)', padding: '10px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                     {abSession.modelB.assessment.summary}
                   </div>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#0F172A' }}>Findings Generated ({abSession.modelB.assessment.nexusFindings.length}):</div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)' }}>Findings Generated ({abSession.modelB.assessment.nexusFindings.length}):</div>
                   {abSession.modelB.assessment.nexusFindings.map((f) => (
-                    <div key={f.id} style={{ fontSize: '11px', color: '#475569', background: '#FFFFFF', padding: '6px 8px', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+                    <div key={f.id} style={{ fontSize: '11px', color: 'var(--text-secondary)', background: 'var(--bg-surface)', padding: '6px 8px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                       • {f.content}
                     </div>
                   ))}
@@ -469,8 +469,8 @@ export const AiGovernanceView: React.FC = () => {
               </div>
 
               {/* Clinician Adjudication Ballot Strip */}
-              <div style={{ marginTop: '18px', borderTop: '1px solid #E2E8F0', paddingTop: '16px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>
+              <div style={{ marginTop: '18px', borderTop: '1px solid var(--border-subtle)', paddingTop: '16px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
                   Clinician Adjudication Ballot (Direct Human Preference Feedback)
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -486,9 +486,9 @@ export const AiGovernanceView: React.FC = () => {
                       style={{
                         padding: '6px 12px',
                         borderRadius: '4px',
-                        border: ballot === opt.id ? '1px solid #4F46E5' : '1px solid #CBD5E1',
-                        background: ballot === opt.id ? '#4F46E5' : '#FFFFFF',
-                        color: ballot === opt.id ? '#FFFFFF' : '#0F172A',
+                        border: ballot === opt.id ? '1px solid var(--accent-primary)' : '1px solid var(--border-medium)',
+                        background: ballot === opt.id ? 'var(--accent-primary)' : 'var(--bg-surface)',
+                        color: ballot === opt.id ? 'var(--bg-surface)' : 'var(--text-primary)',
                         fontSize: '12px',
                         fontWeight: 600,
                         cursor: 'pointer',
@@ -498,7 +498,7 @@ export const AiGovernanceView: React.FC = () => {
                     </button>
                   ))}
                   {ballot && (
-                    <span style={{ fontSize: '11px', color: '#16A34A', fontWeight: 600, marginLeft: '8px' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--status-success)', fontWeight: 600, marginLeft: '8px' }}>
                       ✓ Preference logged for model fine-tuning
                     </span>
                   )}
@@ -514,13 +514,13 @@ export const AiGovernanceView: React.FC = () => {
         {activeConsole === 'FEEDBACK' && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '20px' }}>
             {/* Curated Feedback Ledger */}
-            <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>
+                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
                     Clinician Correction Ledger (DPO Training Pipeline)
                   </h3>
-                  <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B' }}>
+                  <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
                     Human-in-the-loop corrections feeding institutionally fine-tuned alignment datasets.
                   </p>
                 </div>
@@ -532,8 +532,8 @@ export const AiGovernanceView: React.FC = () => {
                     gap: '4px',
                     padding: '6px 12px',
                     borderRadius: '4px',
-                    background: '#0F172A',
-                    color: '#FFFFFF',
+                    background: 'var(--bg-app)',
+                    color: 'var(--bg-surface)',
                     border: 'none',
                     fontSize: '12px',
                     fontWeight: 600,
@@ -550,33 +550,33 @@ export const AiGovernanceView: React.FC = () => {
                   <div
                     key={fb.id}
                     style={{
-                      border: '1px solid #E2E8F0',
+                      border: '1px solid var(--border-subtle)',
                       borderRadius: '6px',
                       padding: '14px',
-                      background: '#F8FAFC',
+                      background: 'var(--bg-subtle)',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '8px',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: '#FEE2E2', color: '#991B1B' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: 'var(--danger-subtle)', color: 'var(--status-danger)' }}>
                         {fb.correctionType.replace(/_/g, ' ')}
                       </span>
-                      <span style={{ fontSize: '11px', color: '#64748B' }}>
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                         By {fb.submittedBy} · {new Date(fb.submittedAt).toLocaleDateString()}
                       </span>
                     </div>
 
-                    <div style={{ fontSize: '12px', color: '#991B1B', background: '#FEF2F2', padding: '8px 10px', borderRadius: '4px' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--status-danger)', background: 'var(--danger-subtle)', padding: '8px 10px', borderRadius: '4px' }}>
                       <strong>Original AI Output:</strong> {fb.originalAiContent}
                     </div>
 
-                    <div style={{ fontSize: '12px', color: '#166534', background: '#F0FDF4', padding: '8px 10px', borderRadius: '4px' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--status-success)', background: 'var(--success-subtle)', padding: '8px 10px', borderRadius: '4px' }}>
                       <strong>Clinician Correction:</strong> {fb.clinicianCorrection}
                     </div>
 
-                    <div style={{ fontSize: '11px', color: '#64748B' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                       <strong>Clinical Rationale:</strong> {fb.clinicalRationale}
                     </div>
                   </div>
@@ -585,14 +585,14 @@ export const AiGovernanceView: React.FC = () => {
 
               {/* Exported JSONL Preview */}
               {exportedJsonl && (
-                <div style={{ marginTop: '10px', borderTop: '1px solid #E2E8F0', paddingTop: '14px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B' }}>
+                <div style={{ marginTop: '10px', borderTop: '1px solid var(--border-subtle)', paddingTop: '14px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                     Exported DPO Dataset (JSONL Format)
                   </span>
                   <pre
                     style={{
-                      background: '#0F172A',
-                      color: '#38BDF8',
+                      background: 'var(--bg-app)',
+                      color: 'var(--accent-primary)',
                       padding: '10px',
                       borderRadius: '6px',
                       fontSize: '11px',
@@ -609,19 +609,19 @@ export const AiGovernanceView: React.FC = () => {
             </div>
 
             {/* Submit New Correction Form */}
-            <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '20px' }}>
-              <h4 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+            <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '20px' }}>
+              <h4 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                 Record Clinician Correction
               </h4>
               <form onSubmit={handleAddFeedback} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                     Error Classification
                   </label>
                   <select
                     value={newCorrectionType}
                     onChange={(e) => setNewCorrectionType(e.target.value as any)}
-                    style={{ width: '100%', padding: '6px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px', background: '#FFFFFF' }}
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px', background: 'var(--bg-surface)' }}
                   >
                     <option value="OVERCONFIDENCE">Overconfidence in Diagnosis</option>
                     <option value="HALLUCINATED_FINDING">Hallucinated Clinical Finding</option>
@@ -632,7 +632,7 @@ export const AiGovernanceView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                     Flawed AI Generation
                   </label>
                   <textarea
@@ -640,12 +640,12 @@ export const AiGovernanceView: React.FC = () => {
                     value={newOriginalAi}
                     onChange={(e) => setNewOriginalAi(e.target.value)}
                     placeholder="Paste the flawed AI finding or statement..."
-                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px' }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                     Clinician Correction (Target Truth)
                   </label>
                   <textarea
@@ -653,15 +653,15 @@ export const AiGovernanceView: React.FC = () => {
                     value={newClinicianFix}
                     onChange={(e) => setNewClinicianFix(e.target.value)}
                     placeholder="Enter the medically sound, corrected phrasing..."
-                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px' }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px' }}
                   />
                 </div>
 
                 <button
                   type="submit"
                   style={{
-                    background: '#4F46E5',
-                    color: '#FFFFFF',
+                    background: 'var(--accent-primary)',
+                    color: 'var(--bg-surface)',
                     border: 'none',
                     borderRadius: '4px',
                     padding: '8px',
@@ -683,17 +683,17 @@ export const AiGovernanceView: React.FC = () => {
         {activeConsole === 'EXPLAINABILITY' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             {/* Attribution Waterfall Header */}
-            <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '20px' }}>
+            <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
                 <div>
-                  <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+                  <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
                     Feature Attribution & Explainability for: {explainability.hypothesisLabel}
                   </h2>
-                  <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B' }}>
+                  <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
                     Shapley proxy weights and contribution percentages driving primary candidate hypothesis ranking.
                   </p>
                 </div>
-                <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '12px', background: '#DCFCE7', color: '#15803D' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '12px', background: 'var(--success-subtle)', color: 'var(--status-success)' }}>
                   {explainability.qualitativeLikelihood}
                 </span>
               </div>
@@ -703,26 +703,26 @@ export const AiGovernanceView: React.FC = () => {
                 {explainability.attributions.map((attr) => (
                   <div key={attr.findingId} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
-                      <span style={{ fontWeight: 600, color: '#0F172A' }}>
+                      <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
                         {attr.findingLabel} ({attr.category})
                       </span>
-                      <span style={{ fontWeight: 700, color: '#4F46E5' }}>
+                      <span style={{ fontWeight: 700, color: 'var(--accent-primary)' }}>
                         +{attr.attributionPercentage.toFixed(1)}%
                       </span>
                     </div>
 
-                    <div style={{ height: '8px', width: '100%', background: '#F1F5F9', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ height: '8px', width: '100%', background: 'var(--bg-subtle)', borderRadius: '4px', overflow: 'hidden' }}>
                       <div
                         style={{
                           height: '100%',
                           width: `${attr.attributionPercentage}%`,
-                          background: '#4F46E5',
+                          background: 'var(--accent-primary)',
                           borderRadius: '4px',
                         }}
                       />
                     </div>
 
-                    <div style={{ fontSize: '11px', color: '#64748B' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                       <strong>Counterfactual Impact:</strong> {attr.counterfactualImpact}
                     </div>
                   </div>
@@ -731,20 +731,20 @@ export const AiGovernanceView: React.FC = () => {
             </div>
 
             {/* Counterfactual Simulation Scenarios */}
-            <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '20px' }}>
-              <h3 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+            <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '20px' }}>
+              <h3 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                 Counterfactual Sensitivity Simulations
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 {explainability.counterfactuals.map((cf, i) => (
-                  <div key={i} style={{ background: '#F8FAFC', padding: '14px', borderRadius: '6px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>
+                  <div key={i} style={{ background: 'var(--bg-subtle)', padding: '14px', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>
                       Scenario: {cf.findingModified}
                     </span>
-                    <div style={{ fontSize: '11px', color: '#991B1B' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--status-danger)' }}>
                       <strong>Rank Shift:</strong> {cf.predictedHypothesisRankShift}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#475569' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
                       <strong>Clinical Rationale:</strong> {cf.clinicalRationale}
                     </div>
                   </div>

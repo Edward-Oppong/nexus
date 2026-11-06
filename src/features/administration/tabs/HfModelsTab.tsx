@@ -243,9 +243,9 @@ export const HfModelsTab: React.FC = () => {
       {/* Top Banner & Quick Controls */}
       <div
         style={{
-          background: '#FFFFFF',
+          background: 'var(--bg-surface)',
           borderRadius: '8px',
-          border: '1px solid #E2E8F0',
+          border: '1px solid var(--border-subtle)',
           padding: '20px 24px',
           display: 'flex',
           alignItems: 'center',
@@ -257,7 +257,7 @@ export const HfModelsTab: React.FC = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
             <span style={{ fontSize: '20px' }}>🤗</span>
-            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0F172A' }}>
+            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
               Hugging Face Model Fleet &amp; Serverless Inference
             </h2>
             <span
@@ -266,15 +266,15 @@ export const HfModelsTab: React.FC = () => {
                 fontWeight: 600,
                 padding: '2px 8px',
                 borderRadius: '12px',
-                background: isHfConfigured ? '#ECFDF5' : '#FFFBEB',
-                color: isHfConfigured ? '#059669' : '#D97706',
-                border: `1px solid ${isHfConfigured ? '#A7F3D0' : '#FDE68A'}`,
+                background: isHfConfigured ? 'var(--success-subtle)' : 'var(--warning-subtle)',
+                color: isHfConfigured ? 'var(--status-success)' : 'var(--status-warning)',
+                border: `1px solid ${isHfConfigured ? 'var(--success-border)' : 'var(--warning-border)'}`,
               }}
             >
               {isHfConfigured ? 'Live HF Token Active' : 'Offline / Heuristic Mode'}
             </span>
           </div>
-          <p style={{ margin: 0, fontSize: '13px', color: '#64748B', maxWidth: '720px' }}>
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)', maxWidth: '720px' }}>
             Multi-tenant AI inference router powered by Hugging Face Serverless Endpoints. All inference outputs are provenance-tagged and guarded by clinical deterministic safety envelopes.
           </p>
         </div>
@@ -287,8 +287,8 @@ export const HfModelsTab: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              background: '#0F172A',
-              color: '#FFFFFF',
+              background: 'var(--bg-app)',
+              color: 'var(--bg-surface)',
               border: 'none',
               borderRadius: '6px',
               padding: '8px 14px',
@@ -308,8 +308,8 @@ export const HfModelsTab: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-              color: '#FFFFFF',
+              background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%)',
+              color: 'var(--bg-surface)',
               border: 'none',
               borderRadius: '6px',
               padding: '8px 14px',
@@ -327,20 +327,20 @@ export const HfModelsTab: React.FC = () => {
       {/* API Key Configuration Card */}
       <div
         style={{
-          background: '#FFFFFF',
+          background: 'var(--bg-surface)',
           borderRadius: '8px',
-          border: '1px solid #E2E8F0',
+          border: '1px solid var(--border-subtle)',
           padding: '20px 24px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-          <Key size={16} color="#0284c7" />
-          <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#0F172A' }}>
+          <Key size={16} color="var(--accent-primary)" />
+          <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
             Hugging Face Access Token Configuration
           </h3>
         </div>
 
-        <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#64748B' }}>
+        <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: 'var(--text-muted)' }}>
           Enter a personal Hugging Face user access token (<code>hf_...</code>) with <em>Read</em> permissions. Tokens are securely stored in the local workstation vault and injected into the <code>https://router.huggingface.co/hf-inference</code> request authorization headers.
         </p>
 
@@ -355,11 +355,11 @@ export const HfModelsTab: React.FC = () => {
                 width: '100%',
                 padding: '9px 36px 9px 12px',
                 borderRadius: '6px',
-                border: '1px solid #CBD5E1',
+                border: '1px solid var(--border-medium)',
                 fontSize: '13px',
                 fontFamily: 'var(--font-mono, monospace)',
-                color: '#0F172A',
-                background: '#F8FAFC',
+                color: 'var(--text-primary)',
+                background: 'var(--bg-subtle)',
                 outline: 'none',
                 boxSizing: 'border-box',
               }}
@@ -375,7 +375,7 @@ export const HfModelsTab: React.FC = () => {
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                color: '#94A3B8',
+                color: 'var(--text-muted)',
                 padding: 0,
               }}
             >
@@ -388,8 +388,8 @@ export const HfModelsTab: React.FC = () => {
             style={{
               padding: '9px 16px',
               borderRadius: '6px',
-              background: '#0284c7',
-              color: '#FFFFFF',
+              background: 'var(--accent-primary)',
+              color: 'var(--bg-surface)',
               border: 'none',
               fontSize: '13px',
               fontWeight: 600,
@@ -409,9 +409,9 @@ export const HfModelsTab: React.FC = () => {
               style={{
                 padding: '9px 12px',
                 borderRadius: '6px',
-                background: '#F1F5F9',
-                color: '#64748B',
-                border: '1px solid #CBD5E1',
+                background: 'var(--bg-subtle)',
+                color: 'var(--text-muted)',
+                border: '1px solid var(--border-medium)',
                 fontSize: '13px',
                 fontWeight: 500,
                 cursor: 'pointer',
@@ -429,7 +429,7 @@ export const HfModelsTab: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              color: '#059669',
+              color: 'var(--status-success)',
               fontSize: '12px',
               fontWeight: 600,
             }}
@@ -442,20 +442,20 @@ export const HfModelsTab: React.FC = () => {
       {/* Model Fleet Inventory Matrix */}
       <div
         style={{
-          background: '#FFFFFF',
+          background: 'var(--bg-surface)',
           borderRadius: '8px',
-          border: '1px solid #E2E8F0',
+          border: '1px solid var(--border-subtle)',
           padding: '20px 24px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Cpu size={16} color="#0284c7" />
-            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#0F172A' }}>
+            <Cpu size={16} color="var(--accent-primary)" />
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
               Active Model Fleet &amp; Endpoint Health
             </h3>
           </div>
-          <span style={{ fontSize: '12px', color: '#64748B' }}>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
             {REGISTERED_MODELS.length} verified clinical AI models configured
           </span>
         </div>
@@ -463,12 +463,12 @@ export const HfModelsTab: React.FC = () => {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
             <thead>
-              <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', textAlign: 'left' }}>
-                <th style={{ padding: '10px 14px', fontWeight: 600, color: '#475569' }}>Model / Identifier</th>
-                <th style={{ padding: '10px 14px', fontWeight: 600, color: '#475569' }}>Category &amp; Task</th>
-                <th style={{ padding: '10px 14px', fontWeight: 600, color: '#475569' }}>Clinical Scope</th>
-                <th style={{ padding: '10px 14px', fontWeight: 600, color: '#475569' }}>Health Status</th>
-                <th style={{ padding: '10px 14px', fontWeight: 600, color: '#475569', textAlign: 'right' }}>Actions</th>
+              <tr style={{ background: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-subtle)', textAlign: 'left' }}>
+                <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-secondary)' }}>Model / Identifier</th>
+                <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-secondary)' }}>Category &amp; Task</th>
+                <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-secondary)' }}>Clinical Scope</th>
+                <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-secondary)' }}>Health Status</th>
+                <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-secondary)', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -485,9 +485,9 @@ export const HfModelsTab: React.FC = () => {
                       fontSize: '11px',
                       padding: '2px 8px',
                       borderRadius: '10px',
-                      background: '#F1F5F9',
-                      color: '#64748B',
-                      border: '1px solid #E2E8F0',
+                      background: 'var(--bg-subtle)',
+                      color: 'var(--text-muted)',
+                      border: '1px solid var(--border-subtle)',
                     }}
                   >
                     Not Checked
@@ -504,9 +504,9 @@ export const HfModelsTab: React.FC = () => {
                         fontSize: '11px',
                         padding: '2px 8px',
                         borderRadius: '10px',
-                        background: '#EFF6FF',
-                        color: '#2563EB',
-                        border: '1px solid #BFDBFE',
+                        background: 'var(--accent-subtle)',
+                        color: 'var(--accent-primary)',
+                        border: '1px solid var(--border-medium)',
                       }}
                     >
                       <RefreshCw size={11} className="animate-spin" /> Pinging...
@@ -523,9 +523,9 @@ export const HfModelsTab: React.FC = () => {
                           fontSize: '11px',
                           padding: '2px 8px',
                           borderRadius: '10px',
-                          background: '#ECFDF5',
-                          color: '#059669',
-                          border: '1px solid #A7F3D0',
+                          background: 'var(--success-subtle)',
+                          color: 'var(--status-success)',
+                          border: '1px solid var(--success-border)',
                           fontWeight: 600,
                         }}
                       >
@@ -542,9 +542,9 @@ export const HfModelsTab: React.FC = () => {
                           fontSize: '11px',
                           padding: '2px 8px',
                           borderRadius: '10px',
-                          background: '#FFFBEB',
-                          color: '#D97706',
-                          border: '1px solid #FDE68A',
+                          background: 'var(--warning-subtle)',
+                          color: 'var(--status-warning)',
+                          border: '1px solid var(--warning-border)',
                         }}
                       >
                         <Activity size={11} /> Warm-up (~{status.estimatedTimeSec || 15}s)
@@ -560,9 +560,9 @@ export const HfModelsTab: React.FC = () => {
                           fontSize: '11px',
                           padding: '2px 8px',
                           borderRadius: '10px',
-                          background: '#FEF2F2',
-                          color: '#DC2626',
-                          border: '1px solid #FECACA',
+                          background: 'var(--danger-subtle)',
+                          color: 'var(--status-danger)',
+                          border: '1px solid var(--danger-border)',
                         }}
                       >
                         <AlertTriangle size={11} /> {status.status}
@@ -572,10 +572,10 @@ export const HfModelsTab: React.FC = () => {
                 }
 
                 return (
-                  <tr key={model.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                  <tr key={model.id} style={{ borderBottom: '1px solid var(--bg-subtle)' }}>
                     <td style={{ padding: '12px 14px' }}>
-                      <div style={{ fontWeight: 600, color: '#0F172A' }}>{model.name}</div>
-                      <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'var(--font-mono)' }}>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{model.name}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
                         {model.id}
                       </div>
                     </td>
@@ -586,18 +586,18 @@ export const HfModelsTab: React.FC = () => {
                           fontWeight: 600,
                           padding: '2px 6px',
                           borderRadius: '4px',
-                          background: '#F1F5F9',
-                          color: '#334155',
+                          background: 'var(--bg-subtle)',
+                          color: 'var(--text-secondary)',
                         }}
                       >
                         {model.category}
                       </span>
-                      <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
                         task: {model.task}
                       </div>
                     </td>
                     <td style={{ padding: '12px 14px', maxWidth: '300px' }}>
-                      <div style={{ fontSize: '12px', color: '#475569', lineHeight: '1.4' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
                         {model.intendedClinicalScope}
                       </div>
                     </td>
@@ -609,9 +609,9 @@ export const HfModelsTab: React.FC = () => {
                         style={{
                           padding: '5px 10px',
                           borderRadius: '4px',
-                          background: '#F8FAFC',
-                          border: '1px solid #CBD5E1',
-                          color: '#0F172A',
+                          background: 'var(--bg-subtle)',
+                          border: '1px solid var(--border-medium)',
+                          color: 'var(--text-primary)',
                           fontSize: '11px',
                           fontWeight: 600,
                           cursor: isTesting ? 'not-allowed' : 'pointer',
@@ -631,16 +631,16 @@ export const HfModelsTab: React.FC = () => {
       {/* Quick Interactive Model Tester Console */}
       <div
         style={{
-          background: '#FFFFFF',
+          background: 'var(--bg-surface)',
           borderRadius: '8px',
-          border: '1px solid #E2E8F0',
+          border: '1px solid var(--border-subtle)',
           padding: '20px 24px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Zap size={16} color="#D97706" />
-            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#0F172A' }}>
+            <Zap size={16} color="var(--status-warning)" />
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
               Quick Interactive Model Tester
             </h3>
           </div>
@@ -654,8 +654,8 @@ export const HfModelsTab: React.FC = () => {
                 fontWeight: 600,
                 border: 'none',
                 cursor: 'pointer',
-                background: activeTestTab === 'NER' ? '#0F172A' : '#F1F5F9',
-                color: activeTestTab === 'NER' ? '#FFFFFF' : '#475569',
+                background: activeTestTab === 'NER' ? 'var(--text-primary)' : 'var(--bg-subtle)',
+                color: activeTestTab === 'NER' ? 'var(--bg-surface)' : 'var(--text-secondary)',
               }}
             >
               NER Extraction
@@ -669,8 +669,8 @@ export const HfModelsTab: React.FC = () => {
                 fontWeight: 600,
                 border: 'none',
                 cursor: 'pointer',
-                background: activeTestTab === 'DOC_CLF' ? '#0F172A' : '#F1F5F9',
-                color: activeTestTab === 'DOC_CLF' ? '#FFFFFF' : '#475569',
+                background: activeTestTab === 'DOC_CLF' ? 'var(--text-primary)' : 'var(--bg-subtle)',
+                color: activeTestTab === 'DOC_CLF' ? 'var(--bg-surface)' : 'var(--text-secondary)',
               }}
             >
               Document Classifier
@@ -684,8 +684,8 @@ export const HfModelsTab: React.FC = () => {
                 fontWeight: 600,
                 border: 'none',
                 cursor: 'pointer',
-                background: activeTestTab === 'SUMMARIZE' ? '#0F172A' : '#F1F5F9',
-                color: activeTestTab === 'SUMMARIZE' ? '#FFFFFF' : '#475569',
+                background: activeTestTab === 'SUMMARIZE' ? 'var(--text-primary)' : 'var(--bg-subtle)',
+                color: activeTestTab === 'SUMMARIZE' ? 'var(--bg-surface)' : 'var(--text-secondary)',
               }}
             >
               Clinical Synthesis
@@ -696,7 +696,7 @@ export const HfModelsTab: React.FC = () => {
         {/* Tab 1: NER */}
         {activeTestTab === 'NER' && (
           <div>
-            <div style={{ fontSize: '12px', color: '#64748B', marginBottom: '8px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' }}>
               Model: <code>d4data/biomedical-ner-all</code> · Token classification for clinical entities (Diseases, Medications, Findings, Symptoms)
             </div>
             <textarea
@@ -707,7 +707,7 @@ export const HfModelsTab: React.FC = () => {
                 width: '100%',
                 padding: '10px',
                 borderRadius: '6px',
-                border: '1px solid #CBD5E1',
+                border: '1px solid var(--border-medium)',
                 fontSize: '13px',
                 fontFamily: 'inherit',
                 marginBottom: '10px',
@@ -724,8 +724,8 @@ export const HfModelsTab: React.FC = () => {
                   gap: '6px',
                   padding: '7px 14px',
                   borderRadius: '6px',
-                  background: '#0284c7',
-                  color: '#FFFFFF',
+                  background: 'var(--accent-primary)',
+                  color: 'var(--bg-surface)',
                   border: 'none',
                   fontSize: '12px',
                   fontWeight: 600,
@@ -735,7 +735,7 @@ export const HfModelsTab: React.FC = () => {
                 <Play size={12} /> {isExecutingTest ? 'Extracting Entities...' : 'Run NER Extraction'}
               </button>
               {nerLatency !== null && (
-                <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
                   Latency: {nerLatency} ms
                 </span>
               )}
@@ -747,11 +747,11 @@ export const HfModelsTab: React.FC = () => {
                   marginTop: '14px',
                   padding: '12px',
                   borderRadius: '6px',
-                  background: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border-subtle)',
                 }}
               >
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '8px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
                   Extracted Clinical Tokens ({nerResults.length}):
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -782,7 +782,7 @@ export const HfModelsTab: React.FC = () => {
         {/* Tab 2: Document Classifier */}
         {activeTestTab === 'DOC_CLF' && (
           <div>
-            <div style={{ fontSize: '12px', color: '#64748B', marginBottom: '8px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' }}>
               Model: <code>facebook/bart-large-mnli</code> · Zero-shot document classification
             </div>
             <textarea
@@ -793,7 +793,7 @@ export const HfModelsTab: React.FC = () => {
                 width: '100%',
                 padding: '10px',
                 borderRadius: '6px',
-                border: '1px solid #CBD5E1',
+                border: '1px solid var(--border-medium)',
                 fontSize: '13px',
                 fontFamily: 'inherit',
                 marginBottom: '10px',
@@ -810,8 +810,8 @@ export const HfModelsTab: React.FC = () => {
                   gap: '6px',
                   padding: '7px 14px',
                   borderRadius: '6px',
-                  background: '#0284c7',
-                  color: '#FFFFFF',
+                  background: 'var(--accent-primary)',
+                  color: 'var(--bg-surface)',
                   border: 'none',
                   fontSize: '12px',
                   fontWeight: 600,
@@ -821,7 +821,7 @@ export const HfModelsTab: React.FC = () => {
                 <Play size={12} /> {isExecutingTest ? 'Classifying...' : 'Classify Document'}
               </button>
               {docLatency !== null && (
-                <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
                   Latency: {docLatency} ms
                 </span>
               )}
@@ -833,24 +833,24 @@ export const HfModelsTab: React.FC = () => {
                   marginTop: '14px',
                   padding: '12px',
                   borderRadius: '6px',
-                  background: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border-subtle)',
                 }}
               >
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '8px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
                   Document Classification Scores:
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {docResults.slice(0, 4).map((item, idx) => (
                     <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ width: '160px', fontSize: '12px', fontWeight: 500, color: '#0F172A' }}>
+                      <span style={{ width: '160px', fontSize: '12px', fontWeight: 500, color: 'var(--text-primary)' }}>
                         {item.label}
                       </span>
                       <div
                         style={{
                           flex: 1,
                           height: '8px',
-                          background: '#E2E8F0',
+                          background: 'var(--border-subtle)',
                           borderRadius: '4px',
                           overflow: 'hidden',
                         }}
@@ -859,11 +859,11 @@ export const HfModelsTab: React.FC = () => {
                           style={{
                             width: `${Math.round(item.score * 100)}%`,
                             height: '100%',
-                            background: idx === 0 ? '#059669' : '#0284c7',
+                            background: idx === 0 ? 'var(--status-success)' : 'var(--accent-primary)',
                           }}
                         />
                       </div>
-                      <span style={{ fontSize: '11px', fontWeight: 600, color: '#475569', width: '40px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', width: '40px' }}>
                         {Math.round(item.score * 100)}%
                       </span>
                     </div>
@@ -877,7 +877,7 @@ export const HfModelsTab: React.FC = () => {
         {/* Tab 3: Clinical Synthesis */}
         {activeTestTab === 'SUMMARIZE' && (
           <div>
-            <div style={{ fontSize: '12px', color: '#64748B', marginBottom: '8px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' }}>
               Model: <code>Falconsai/medical_summarization</code> · Longitudinal medical summarization
             </div>
             <textarea
@@ -888,7 +888,7 @@ export const HfModelsTab: React.FC = () => {
                 width: '100%',
                 padding: '10px',
                 borderRadius: '6px',
-                border: '1px solid #CBD5E1',
+                border: '1px solid var(--border-medium)',
                 fontSize: '13px',
                 fontFamily: 'inherit',
                 marginBottom: '10px',
@@ -905,8 +905,8 @@ export const HfModelsTab: React.FC = () => {
                   gap: '6px',
                   padding: '7px 14px',
                   borderRadius: '6px',
-                  background: '#0284c7',
-                  color: '#FFFFFF',
+                  background: 'var(--accent-primary)',
+                  color: 'var(--bg-surface)',
                   border: 'none',
                   fontSize: '12px',
                   fontWeight: 600,
@@ -916,7 +916,7 @@ export const HfModelsTab: React.FC = () => {
                 <Play size={12} /> {isExecutingTest ? 'Synthesizing...' : 'Synthesize Clinical Note'}
               </button>
               {summaryLatency !== null && (
-                <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
                   Latency: {summaryLatency} ms
                 </span>
               )}
@@ -928,14 +928,14 @@ export const HfModelsTab: React.FC = () => {
                   marginTop: '14px',
                   padding: '14px',
                   borderRadius: '6px',
-                  background: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border-subtle)',
                 }}
               >
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                   Synthesized Clinical Summary:
                 </div>
-                <div style={{ fontSize: '13px', color: '#0F172A', lineHeight: '1.5' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-primary)', lineHeight: '1.5' }}>
                   {summaryResult}
                 </div>
               </div>
@@ -947,21 +947,21 @@ export const HfModelsTab: React.FC = () => {
       {/* Safety & MDCG Governance Reference */}
       <div
         style={{
-          background: '#F8FAFC',
+          background: 'var(--bg-subtle)',
           borderRadius: '8px',
-          border: '1px solid #E2E8F0',
+          border: '1px solid var(--border-subtle)',
           padding: '16px 20px',
           display: 'flex',
           alignItems: 'flex-start',
           gap: '12px',
         }}
       >
-        <ShieldCheck size={20} color="#059669" style={{ marginTop: '2px', flexShrink: 0 }} />
+        <ShieldCheck size={20} color="var(--status-success)" style={{ marginTop: '2px', flexShrink: 0 }} />
         <div>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A', marginBottom: '2px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px' }}>
             EU MDR 2017/745 &amp; MDCG 2020-1 Annex I Inference Governance
           </div>
-          <div style={{ fontSize: '12px', color: '#64748B', lineHeight: '1.5' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.5' }}>
             All inferences generated by Hugging Face models are strictly advisory. Unverified findings require human clinician acceptance prior to entering medical records. In the event of network disconnection, rate limiting, or invalid credentials, the system automatically falls back to deterministic clinical heuristic parsers and notifies administrators without disrupting care delivery.
           </div>
         </div>

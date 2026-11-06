@@ -81,10 +81,10 @@ export const TeamTab: React.FC = () => {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
             Multidisciplinary Clinical Case Team
           </h2>
-          <p style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
             Collaborative team roles conforming to health workers' respective scopes of practice (WHO guidance).
           </p>
         </div>
@@ -103,8 +103,8 @@ export const TeamTab: React.FC = () => {
           <div
             key={idx}
             style={{
-              background: '#FFFFFF',
-              border: '1px solid #E2E8F0',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-subtle)',
               borderRadius: '6px',
               padding: '16px',
               display: 'flex',
@@ -119,8 +119,8 @@ export const TeamTab: React.FC = () => {
                     width: '36px',
                     height: '36px',
                     borderRadius: '50%',
-                    background: '#0F172A',
-                    color: '#FFFFFF',
+                    background: 'var(--bg-app)',
+                    color: 'var(--bg-surface)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -131,21 +131,21 @@ export const TeamTab: React.FC = () => {
                   {m.initials}
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>{m.name}</h3>
-                  <div style={{ fontSize: '11px', color: '#64748B' }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{m.name}</h3>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                     {m.role} · {m.department}
                   </div>
                 </div>
               </div>
 
-              <div style={{ fontSize: '12px', color: '#334155', marginBottom: '12px' }}>
-                <strong style={{ color: '#475569' }}>Scope:</strong> {m.scope}
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                <strong style={{ color: 'var(--text-secondary)' }}>Scope:</strong> {m.scope}
               </div>
             </div>
 
             <div
               style={{
-                borderTop: '1px solid #F1F5F9',
+                borderTop: '1px solid var(--bg-subtle)',
                 paddingTop: '8px',
                 fontSize: '11px',
                 display: 'flex',
@@ -153,8 +153,8 @@ export const TeamTab: React.FC = () => {
                 justifyContent: 'space-between',
               }}
             >
-              <span style={{ color: '#64748B' }}>Case Review Status:</span>
-              <strong style={{ color: '#0F172A' }}>{m.reviewStatus}</strong>
+              <span style={{ color: 'var(--text-muted)' }}>Case Review Status:</span>
+              <strong style={{ color: 'var(--text-primary)' }}>{m.reviewStatus}</strong>
             </div>
           </div>
         ))}
@@ -170,10 +170,10 @@ export const TeamTab: React.FC = () => {
           >
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#0284C7', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-primary)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   <UserPlus size={14} /> Care Team Coordination
                 </div>
-                <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', marginTop: '2px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
                   Add Multidisciplinary Collaborator
                 </h3>
               </div>
@@ -183,7 +183,7 @@ export const TeamTab: React.FC = () => {
                   background: 'transparent',
                   border: 'none',
                   cursor: 'pointer',
-                  color: '#64748B',
+                  color: 'var(--text-muted)',
                   padding: '4px',
                 }}
               >
@@ -191,13 +191,13 @@ export const TeamTab: React.FC = () => {
               </button>
             </div>
 
-            <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '16px', lineHeight: 1.4 }}>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: 1.4 }}>
               Invite a credentialed clinician or clinical specialist to review and co-manage this case.
             </p>
 
             <form onSubmit={handleAddCollaborator}>
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#475569', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '6px' }}>
                   Clinician / Specialist Name
                 </label>
                 <input
@@ -210,7 +210,7 @@ export const TeamTab: React.FC = () => {
                     width: '100%',
                     padding: '8px 10px',
                     borderRadius: '4px',
-                    border: '1px solid #CBD5E1',
+                    border: '1px solid var(--border-medium)',
                     fontSize: '13px',
                     boxSizing: 'border-box',
                   }}
@@ -219,7 +219,7 @@ export const TeamTab: React.FC = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#475569', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '6px' }}>
                     Role / Scope of Practice
                   </label>
                   <select
@@ -229,7 +229,7 @@ export const TeamTab: React.FC = () => {
                       width: '100%',
                       padding: '8px 10px',
                       borderRadius: '4px',
-                      border: '1px solid #CBD5E1',
+                      border: '1px solid var(--border-medium)',
                       fontSize: '12px',
                       boxSizing: 'border-box',
                     }}
@@ -244,7 +244,7 @@ export const TeamTab: React.FC = () => {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#475569', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '6px' }}>
                     Department
                   </label>
                   <input
@@ -256,7 +256,7 @@ export const TeamTab: React.FC = () => {
                       width: '100%',
                       padding: '8px 10px',
                       borderRadius: '4px',
-                      border: '1px solid #CBD5E1',
+                      border: '1px solid var(--border-medium)',
                       fontSize: '12px',
                       boxSizing: 'border-box',
                     }}
@@ -265,7 +265,7 @@ export const TeamTab: React.FC = () => {
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#475569', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '6px' }}>
                   Clinical Assignment Scope
                 </label>
                 <textarea
@@ -276,7 +276,7 @@ export const TeamTab: React.FC = () => {
                     width: '100%',
                     padding: '8px 10px',
                     borderRadius: '4px',
-                    border: '1px solid #CBD5E1',
+                    border: '1px solid var(--border-medium)',
                     fontSize: '12px',
                     boxSizing: 'border-box',
                     resize: 'vertical',

@@ -12,8 +12,6 @@ import { useCase } from '../../app/providers/CaseContext';
 import {
   ChevronRight,
   ChevronLeft,
-  Sparkles,
-  SlidersHorizontal,
 } from 'lucide-react';
 
 import { CaseSignalsPanel } from './rail/CaseSignalsPanel';
@@ -34,15 +32,16 @@ export const IntelligenceRail: React.FC = () => {
       <aside
         aria-label="Nexus intelligence rail (collapsed)"
         style={{
-          width: '36px',
-          background: '#FAFAFA',
-          borderLeft: '1px solid #E2E8F0',
+          width: '38px',
+          background: 'var(--bg-surface)',
+          borderLeft: '1px solid var(--border-subtle)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           padding: '12px 0',
           cursor: 'pointer',
           flexShrink: 0,
+          transition: 'background-color 0.2s ease, border-color 0.2s ease',
         }}
         onClick={() => setIsCollapsed(false)}
         title="Expand Nexus Intelligence Rail"
@@ -51,9 +50,10 @@ export const IntelligenceRail: React.FC = () => {
           style={{
             border: 'none',
             background: 'transparent',
-            color: '#64748B',
+            color: 'var(--text-muted)',
             cursor: 'pointer',
             padding: '4px',
+            borderRadius: 'var(--radius-sm)',
           }}
         >
           <ChevronLeft size={16} />
@@ -66,7 +66,7 @@ export const IntelligenceRail: React.FC = () => {
             fontSize: '11px',
             fontWeight: 700,
             letterSpacing: '0.08em',
-            color: '#0F172A',
+            color: 'var(--accent-primary)',
             marginTop: '20px',
             textTransform: 'uppercase',
           }}
@@ -183,24 +183,26 @@ export const IntelligenceRail: React.FC = () => {
       aria-label="Nexus intelligence rail"
       style={{
         width: '320px',
-        background: '#FAFAFA',
-        borderLeft: '1px solid #E2E8F0',
+        minWidth: '320px',
+        background: 'var(--bg-surface)',
+        borderLeft: '1px solid var(--border-subtle)',
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
         flexShrink: 0,
         overflowY: 'auto',
+        transition: 'background-color 0.2s ease, border-color 0.2s ease',
       }}
     >
       {/* Rail Header */}
       <div
         style={{
           padding: '12px 14px',
-          borderBottom: '1px solid #E2E8F0',
+          borderBottom: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          background: '#FFFFFF',
+          background: 'var(--bg-surface)',
           position: 'sticky',
           top: 0,
           zIndex: 10,
@@ -209,11 +211,11 @@ export const IntelligenceRail: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div
             style={{
-              width: '18px',
-              height: '18px',
-              borderRadius: '3px',
-              background: '#0F172A',
-              color: '#FFFFFF',
+              width: '20px',
+              height: '20px',
+              borderRadius: 'var(--radius-xs)',
+              background: 'var(--accent-primary)',
+              color: 'var(--bg-surface)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -230,13 +232,13 @@ export const IntelligenceRail: React.FC = () => {
                 fontWeight: 700,
                 letterSpacing: '0.06em',
                 textTransform: 'uppercase',
-                color: '#0F172A',
+                color: 'var(--text-primary)',
               }}
             >
               Nexus Rail
             </div>
-            <div style={{ fontSize: '10px', color: '#64748B' }}>
-              Context: <strong style={{ color: '#0F172A' }}>{activeCaseSubTab}</strong>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+              Context: <strong style={{ color: 'var(--accent-primary)' }}>{activeCaseSubTab}</strong>
             </div>
           </div>
         </div>
@@ -246,9 +248,12 @@ export const IntelligenceRail: React.FC = () => {
           style={{
             border: 'none',
             background: 'transparent',
-            color: '#94A3B8',
+            color: 'var(--text-muted)',
             cursor: 'pointer',
-            padding: '2px',
+            padding: '4px',
+            borderRadius: 'var(--radius-sm)',
+            display: 'flex',
+            alignItems: 'center',
           }}
           title="Collapse rail"
         >
@@ -260,33 +265,38 @@ export const IntelligenceRail: React.FC = () => {
       <div
         style={{
           display: 'flex',
-          background: '#F1F5F9',
-          padding: '4px',
+          background: 'var(--bg-subtle)',
+          padding: '3px',
           margin: '10px 14px 4px 14px',
-          borderRadius: '5px',
+          borderRadius: 'var(--radius-md)',
           gap: '2px',
+          border: '1px solid var(--border-subtle)',
         }}
       >
-        {(['AUTO', 'SIGNALS', 'REVIEW', 'EVIDENCE'] as const).map((mode) => (
-          <button
-            key={mode}
-            onClick={() => setOverrideFilter(mode)}
-            style={{
-              flex: 1,
-              padding: '3px 0',
-              fontSize: '9px',
-              fontWeight: overrideFilter === mode ? 700 : 500,
-              borderRadius: '3px',
-              border: 'none',
-              background: overrideFilter === mode ? '#FFFFFF' : 'transparent',
-              color: overrideFilter === mode ? '#0F172A' : '#64748B',
-              cursor: 'pointer',
-              boxShadow: overrideFilter === mode ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
-            }}
-          >
-            {mode}
-          </button>
-        ))}
+        {(['AUTO', 'SIGNALS', 'REVIEW', 'EVIDENCE'] as const).map((mode) => {
+          const isSelected = overrideFilter === mode;
+          return (
+            <button
+              key={mode}
+              onClick={() => setOverrideFilter(mode)}
+              style={{
+                flex: 1,
+                padding: '4px 0',
+                fontSize: '10px',
+                fontWeight: isSelected ? 700 : 500,
+                borderRadius: 'var(--radius-sm)',
+                border: isSelected ? '1px solid var(--border-subtle)' : '1px solid transparent',
+                background: isSelected ? 'var(--bg-surface)' : 'transparent',
+                color: isSelected ? 'var(--text-primary)' : 'var(--text-muted)',
+                cursor: 'pointer',
+                boxShadow: isSelected ? 'var(--shadow-sm)' : 'none',
+                transition: 'all 0.12s ease',
+              }}
+            >
+              {mode}
+            </button>
+          );
+        })}
       </div>
 
       {/* Dynamic Contextual Panels */}

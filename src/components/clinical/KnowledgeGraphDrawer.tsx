@@ -54,34 +54,34 @@ export const KnowledgeGraphDrawer: React.FC<KnowledgeGraphDrawerProps> = ({
         bottom: 0,
         width: '540px',
         maxWidth: '92vw',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: 'var(--bg-surface)',
         boxShadow: '-8px 0 24px rgba(0,0,0,0.15)',
         zIndex: 9999,
         display: 'flex',
         flexDirection: 'column',
-        borderLeft: '1px solid #E2E8F0',
+        borderLeft: '1px solid var(--border-subtle)',
       }}
     >
       {/* ── Drawer Header ─────────────────────────────────────── */}
       <div
         style={{
           padding: '20px 24px',
-          borderBottom: '1px solid #E2E8F0',
+          borderBottom: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          background: '#F8FAFC',
+          background: 'var(--bg-subtle)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ background: '#EFF6FF', padding: '8px', borderRadius: '6px', color: '#2563EB' }}>
+          <div style={{ background: 'var(--accent-subtle)', padding: '8px', borderRadius: '6px', color: 'var(--accent-primary)' }}>
             <Network size={18} />
           </div>
           <div>
-            <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
               Pathophysiological Knowledge Graph
             </h3>
-            <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'var(--font-mono)' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
               UMLS Metathesaurus &amp; SNOMED CT Ontology
             </span>
           </div>
@@ -93,10 +93,10 @@ export const KnowledgeGraphDrawer: React.FC<KnowledgeGraphDrawerProps> = ({
       </div>
 
       {/* ── Traversal Selector Controls ───────────────────────── */}
-      <div style={{ padding: '16px 24px', borderBottom: '1px solid #F1F5F9', background: '#FFFFFF' }}>
+      <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--bg-subtle)', background: 'var(--bg-surface)' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <div>
-            <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
               Source Finding
             </label>
             <select
@@ -114,7 +114,7 @@ export const KnowledgeGraphDrawer: React.FC<KnowledgeGraphDrawerProps> = ({
           </div>
 
           <div>
-            <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
               Target Hypothesis
             </label>
             <select
@@ -137,8 +137,8 @@ export const KnowledgeGraphDrawer: React.FC<KnowledgeGraphDrawerProps> = ({
             {/* Plausibility Banner */}
             <div
               style={{
-                background: '#F0FDF4',
-                border: '1px solid #BBF7D0',
+                background: 'var(--success-subtle)',
+                border: '1px solid var(--success-border)',
                 borderRadius: '6px',
                 padding: '12px 16px',
                 display: 'flex',
@@ -147,19 +147,19 @@ export const KnowledgeGraphDrawer: React.FC<KnowledgeGraphDrawerProps> = ({
               }}
             >
               <div>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: '#166534', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--status-success)', textTransform: 'uppercase' }}>
                   Semantic Path Plausibility: {path.overallPlausibility}
                 </div>
-                <div style={{ fontSize: '12px', color: '#15803D', marginTop: '2px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--status-success)', marginTop: '2px' }}>
                   {path.steps.length > 0 ? `${path.steps.length}-Hop Direct Causal Pathway Identified` : 'Correlation Established'}
                 </div>
               </div>
-              <Sparkles size={18} style={{ color: '#16A34A' }} />
+              <Sparkles size={18} style={{ color: 'var(--status-success)' }} />
             </div>
 
             {/* Step-by-Step Path Cards */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Biological Mechanism Steps
               </div>
 
@@ -167,35 +167,35 @@ export const KnowledgeGraphDrawer: React.FC<KnowledgeGraphDrawerProps> = ({
                 <div
                   key={idx}
                   style={{
-                    background: '#F8FAFC',
-                    border: '1px solid #E2E8F0',
+                    background: 'var(--bg-subtle)',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '6px',
                     padding: '14px 16px',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, background: '#0F172A', color: '#FFFFFF', padding: '2px 6px', borderRadius: '3px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, background: 'var(--bg-app)', color: 'var(--bg-surface)', padding: '2px 6px', borderRadius: '3px' }}>
                       Step 0{idx + 1}
                     </span>
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#1E293B' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>
                       {step.fromNode.preferredTerm}
                     </span>
-                    <ArrowRight size={13} style={{ color: '#64748B' }} />
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#2563EB' }}>
+                    <ArrowRight size={13} style={{ color: 'var(--text-muted)' }} />
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-primary)' }}>
                       {step.toNode.preferredTerm}
                     </span>
                   </div>
 
-                  <div style={{ fontSize: '12px', color: '#334155', lineHeight: 1.4, marginBottom: '8px' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.4, marginBottom: '8px' }}>
                     {step.stepExplanation}
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10px', color: '#64748B', paddingTop: '6px', borderTop: '1px solid #E2E8F0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-muted)', paddingTop: '6px', borderTop: '1px solid var(--border-subtle)' }}>
                     <span>
-                      Predicate: <code style={{ fontFamily: 'var(--font-mono)', color: '#0F172A' }}>{step.edge.predicate}</code>
+                      Predicate: <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>{step.edge.predicate}</code>
                     </span>
                     {step.edge.referencePmids.length > 0 && (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#2563EB' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--accent-primary)' }}>
                         <BookOpen size={11} /> PubMed: {step.edge.referencePmids.join(', ')}
                       </span>
                     )}
@@ -205,17 +205,17 @@ export const KnowledgeGraphDrawer: React.FC<KnowledgeGraphDrawerProps> = ({
             </div>
 
             {/* Narrative Explanation */}
-            <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '6px', padding: '16px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '16px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '6px' }}>
                 Clinical Synthesis Summary
               </div>
-              <p style={{ fontSize: '12px', color: '#1E293B', lineHeight: 1.5, margin: 0 }}>
+              <p style={{ fontSize: '12px', color: 'var(--text-primary)', lineHeight: 1.5, margin: 0 }}>
                 {path.narrativeSummary}
               </p>
             </div>
           </div>
         ) : (
-          <div style={{ textAlign: 'center', padding: '40px 0', color: '#64748B', fontSize: '13px' }}>
+          <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)', fontSize: '13px' }}>
             No direct pathophysiological link found between selected concepts.
           </div>
         )}

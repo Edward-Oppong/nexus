@@ -902,7 +902,7 @@ export function evaluateEsiTriage(input: EvaluateEsiInput): EsiTriageEvaluation 
     return {
       level: 1,
       levelName: 'ESI 1: Resuscitation',
-      badgeColor: '#DC2626', // Red
+      badgeColor: 'var(--status-danger)', // Red
       rationale:
         'Immediate life-saving intervention required: hemodynamic collapse or severe respiratory failure ' +
         `(SBP: ${sbp ?? 'critically low'}, SpO2: ${spo2 ?? 'critically low'}%, RR: ${rr ?? 'agonal/critical'}, status: ${isAgonal ? 'agonal respirations' : 'unresponsive/collapse'}).`,
@@ -982,7 +982,7 @@ export function evaluateEsiTriage(input: EvaluateEsiInput): EsiTriageEvaluation 
     return {
       level: 5,
       levelName: 'ESI 5: Non-Urgent',
-      badgeColor: '#10B981', // Green
+      badgeColor: 'var(--status-success)', // Green
       rationale: 'Non-urgent clinical encounter requiring zero diagnostic or therapeutic hospital resources (physician examination / prescription refill only).',
       isLifeSavingRequired: false,
       isHighRisk: false,
@@ -1003,7 +1003,7 @@ export function evaluateEsiTriage(input: EvaluateEsiInput): EsiTriageEvaluation 
     return {
       level: 4,
       levelName: 'ESI 4: Less Urgent',
-      badgeColor: '#3B82F6', // Blue
+      badgeColor: 'var(--accent-primary)', // Blue
       rationale: 'Stable clinical presentation anticipating exactly one diagnostic or therapeutic resource (e.g. plain radiography or simple wound care).',
       isLifeSavingRequired: false,
       isHighRisk: false,

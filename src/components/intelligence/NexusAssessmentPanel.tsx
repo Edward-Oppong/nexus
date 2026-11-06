@@ -44,10 +44,10 @@ export const NexusAssessmentPanel: React.FC = () => {
     return (
       <div
         style={{
-          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+          background: 'linear-gradient(135deg, var(--text-primary) 0%, var(--text-primary) 100%)',
           borderRadius: '10px',
           padding: '24px',
-          color: '#F8FAFC',
+          color: 'var(--text-primary)',
           marginBottom: '20px',
           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
         }}
@@ -55,12 +55,12 @@ export const NexusAssessmentPanel: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
           <div style={{ flex: '1 1 auto', minWidth: '260px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <Sparkles size={18} color="#38BDF8" />
+              <Sparkles size={18} color="var(--accent-primary)" />
               <span style={{ fontSize: '14px', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                 Nexus Clinical Intelligence Engine
               </span>
             </div>
-            <p style={{ margin: 0, fontSize: '13px', color: '#94A3B8' }}>
+            <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>
               Multi-layer deterministic checks, guideline retrieval, and grounded clinical synthesis.
             </p>
           </div>
@@ -75,7 +75,7 @@ export const NexusAssessmentPanel: React.FC = () => {
                 borderRadius: '6px',
                 border: '1px solid rgba(56, 189, 248, 0.4)',
                 background: 'rgba(56, 189, 248, 0.1)',
-                color: '#38BDF8',
+                color: 'var(--accent-primary)',
                 fontSize: '12px',
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -97,8 +97,8 @@ export const NexusAssessmentPanel: React.FC = () => {
                 padding: '10px 18px',
                 borderRadius: '6px',
                 border: 'none',
-                background: isRunningAnalysis ? '#475569' : '#0284C7',
-                color: '#FFFFFF',
+                background: isRunningAnalysis ? 'var(--text-secondary)' : 'var(--accent-primary)',
+                color: 'var(--bg-surface)',
                 fontSize: '13px',
                 fontWeight: 600,
                 cursor: isRunningAnalysis ? 'not-allowed' : 'pointer',
@@ -129,10 +129,10 @@ export const NexusAssessmentPanel: React.FC = () => {
     return (
       <div
         style={{
-          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+          background: 'linear-gradient(135deg, var(--text-primary) 0%, var(--text-primary) 100%)',
           borderRadius: '10px',
           padding: '24px 28px',
-          color: '#F8FAFC',
+          color: 'var(--text-primary)',
           marginBottom: '20px',
           boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
           border: '1px solid rgba(56,189,248,0.15)',
@@ -147,13 +147,13 @@ export const NexusAssessmentPanel: React.FC = () => {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             animation: 'pulse 1.6s ease-in-out infinite',
           }}>
-            <Sparkles size={16} color="#38BDF8" />
+            <Sparkles size={16} color="var(--accent-primary)" />
           </div>
           <div>
-            <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#F1F5F9' }}>
+            <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--text-primary)' }}>
               Nexus Clinical Intelligence Engine
             </div>
-            <div style={{ fontSize: '11px', color: '#64748B', marginTop: '1px' }}>Pipeline running&hellip;</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '1px' }}>Pipeline running&hellip;</div>
           </div>
         </div>
 
@@ -176,9 +176,9 @@ export const NexusAssessmentPanel: React.FC = () => {
                   width: 28, height: 28, borderRadius: '50%',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '11px', fontWeight: 700,
-                  background: done ? '#059669' : active ? '#0284C7' : 'rgba(255,255,255,0.06)',
-                  border: done ? '2px solid #059669' : active ? '2px solid #38BDF8' : '2px solid rgba(255,255,255,0.12)',
-                  color: done ? '#fff' : active ? '#fff' : '#475569',
+                  background: done ? 'var(--status-success)' : active ? 'var(--accent-primary)' : 'rgba(255,255,255,0.06)',
+                  border: done ? '2px solid var(--status-success)' : active ? '2px solid var(--accent-primary)' : '2px solid rgba(255,255,255,0.12)',
+                  color: done ? '#fff' : active ? '#fff' : 'var(--text-secondary)',
                   transition: 'all 0.3s ease',
                   boxShadow: active ? '0 0 12px rgba(56,189,248,0.5)' : 'none',
                   animation: active ? 'pulse 1.2s ease-in-out infinite' : 'none',
@@ -188,7 +188,7 @@ export const NexusAssessmentPanel: React.FC = () => {
                 {/* Label */}
                 <div style={{
                   fontSize: '10px', fontWeight: active ? 700 : 500,
-                  color: done ? '#34D399' : active ? '#38BDF8' : '#475569',
+                  color: done ? 'var(--status-success)' : active ? 'var(--accent-primary)' : 'var(--text-secondary)',
                   textAlign: 'center', lineHeight: '1.25',
                   maxWidth: '72px',
                   transition: 'color 0.3s ease',
@@ -208,10 +208,10 @@ export const NexusAssessmentPanel: React.FC = () => {
             borderRadius: '6px',
             padding: '10px 14px',
           }}>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: '#38BDF8', marginBottom: '3px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-primary)', marginBottom: '3px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
               Stage {analysisStage.stageIndex} / {analysisStage.totalStages} &mdash; {analysisStage.stageName}
             </div>
-            <div style={{ fontSize: '11px', color: '#94A3B8', lineHeight: '1.4' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
               {analysisStage.detail}
             </div>
           </div>
@@ -221,7 +221,7 @@ export const NexusAssessmentPanel: React.FC = () => {
         <div style={{ marginTop: '16px', height: '3px', borderRadius: '2px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
           <div style={{
             height: '100%', width: '40%',
-            background: 'linear-gradient(90deg, transparent, #38BDF8, transparent)',
+            background: 'linear-gradient(90deg, transparent, var(--accent-primary), transparent)',
             borderRadius: '2px',
             animation: 'shimmer 1.4s ease-in-out infinite',
           }} />
@@ -274,9 +274,9 @@ export const NexusAssessmentPanel: React.FC = () => {
   return (
     <div
       style={{
-        background: '#FFFFFF',
+        background: 'var(--bg-surface)',
         borderRadius: '10px',
-        border: '1px solid #E2E8F0',
+        border: '1px solid var(--border-subtle)',
         marginBottom: '24px',
         overflow: 'hidden',
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
@@ -285,9 +285,9 @@ export const NexusAssessmentPanel: React.FC = () => {
       {/* Header Banner */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+          background: 'linear-gradient(135deg, var(--text-primary) 0%, var(--text-primary) 100%)',
           padding: '16px 20px',
-          color: '#F8FAFC',
+          color: 'var(--text-primary)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -309,7 +309,7 @@ export const NexusAssessmentPanel: React.FC = () => {
               flexShrink: 0,
             }}
           >
-            <Sparkles size={18} color="#38BDF8" />
+            <Sparkles size={18} color="var(--accent-primary)" />
           </div>
           <div style={{ minWidth: '0', flex: '1 1 auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px 12px' }}>
@@ -319,7 +319,7 @@ export const NexusAssessmentPanel: React.FC = () => {
                   fontWeight: 700,
                   letterSpacing: '-0.01em',
                   whiteSpace: 'nowrap',
-                  color: '#FFFFFF',
+                  color: 'var(--bg-surface)',
                 }}
               >
                 Nexus Clinical Assessment
@@ -332,11 +332,11 @@ export const NexusAssessmentPanel: React.FC = () => {
                   borderRadius: '12px',
                   background:
                     nexusAssessment.status === 'REVIEW_REQUIRED'
-                      ? '#F59E0B'
+                      ? 'var(--status-warning)'
                       : nexusAssessment.status === 'REVIEWED'
-                      ? '#10B981'
-                      : '#64748B',
-                  color: '#FFFFFF',
+                      ? 'var(--status-success)'
+                      : 'var(--text-muted)',
+                  color: 'var(--bg-surface)',
                   letterSpacing: '0.04em',
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
@@ -364,9 +364,9 @@ export const NexusAssessmentPanel: React.FC = () => {
                     nexusAssessment.safetyBoundary === 'OK'
                       ? 'rgba(16, 185, 129, 0.2)'
                       : 'rgba(239, 68, 68, 0.2)',
-                  color: nexusAssessment.safetyBoundary === 'OK' ? '#34D399' : '#F87171',
+                  color: nexusAssessment.safetyBoundary === 'OK' ? 'var(--status-success)' : 'var(--danger-border)',
                   border: `1px solid ${
-                    nexusAssessment.safetyBoundary === 'OK' ? '#059669' : '#DC2626'
+                    nexusAssessment.safetyBoundary === 'OK' ? 'var(--status-success)' : 'var(--status-danger)'
                   }`,
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
@@ -386,7 +386,7 @@ export const NexusAssessmentPanel: React.FC = () => {
             <div
               style={{
                 fontSize: '11px',
-                color: '#94A3B8',
+                color: 'var(--text-muted)',
                 marginTop: '5px',
                 display: 'flex',
                 alignItems: 'center',
@@ -395,9 +395,9 @@ export const NexusAssessmentPanel: React.FC = () => {
               }}
             >
               <span style={{ whiteSpace: 'nowrap' }}>Model: {nexusAssessment.modelName}</span>
-              <span style={{ color: '#475569' }}>•</span>
+              <span style={{ color: 'var(--text-secondary)' }}>•</span>
               <span style={{ whiteSpace: 'nowrap' }}>Pipeline: v{nexusAssessment.pipelineVersion}</span>
-              <span style={{ color: '#475569' }}>•</span>
+              <span style={{ color: 'var(--text-secondary)' }}>•</span>
               <span style={{ whiteSpace: 'nowrap' }}>
                 Generated: {new Date(nexusAssessment.createdAt).toLocaleTimeString()}
               </span>
@@ -416,7 +416,7 @@ export const NexusAssessmentPanel: React.FC = () => {
               borderRadius: '6px',
               background: 'rgba(56, 189, 248, 0.15)',
               border: '1px solid rgba(56, 189, 248, 0.3)',
-              color: '#38BDF8',
+              color: 'var(--accent-primary)',
               fontSize: '12px',
               fontWeight: 600,
               cursor: 'pointer',
@@ -441,7 +441,7 @@ export const NexusAssessmentPanel: React.FC = () => {
               borderRadius: '6px',
               background: 'rgba(255, 255, 255, 0.1)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
-              color: '#FFFFFF',
+              color: 'var(--bg-surface)',
               fontSize: '12px',
               fontWeight: 600,
               cursor: isRunningAnalysis ? 'not-allowed' : 'pointer',
@@ -461,7 +461,7 @@ export const NexusAssessmentPanel: React.FC = () => {
               background: 'rgba(255, 255, 255, 0.05)',
               border: '1px solid rgba(255, 255, 255, 0.1)',
               borderRadius: '6px',
-              color: '#94A3B8',
+              color: 'var(--text-muted)',
               cursor: 'pointer',
               padding: '5px',
               display: 'flex',
@@ -481,23 +481,23 @@ export const NexusAssessmentPanel: React.FC = () => {
           {/* Summary Box */}
           <div
             style={{
-              background: '#F8FAFC',
-              border: '1px solid #E2E8F0',
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-subtle)',
               borderRadius: '8px',
               padding: '14px 16px',
               marginBottom: '18px',
             }}
           >
-            <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '6px' }}>
               Synthesis & Clinical Reasoning
             </div>
-            <p style={{ margin: 0, fontSize: '13px', lineHeight: 1.6, color: '#1E293B' }}>
+            <p style={{ margin: 0, fontSize: '13px', lineHeight: 1.6, color: 'var(--text-primary)' }}>
               {nexusAssessment.summary}
             </p>
             {nexusAssessment.limitations && nexusAssessment.limitations.length > 0 && (
-              <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid #E2E8F0' }}>
-                <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>Limitations & Missing Data: </span>
-                <span style={{ fontSize: '12px', color: '#475569' }}>
+              <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>Limitations & Missing Data: </span>
+                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
                   {nexusAssessment.limitations.join('; ')}
                 </span>
               </div>
@@ -508,19 +508,19 @@ export const NexusAssessmentPanel: React.FC = () => {
           {nexusAssessment.contradictions && nexusAssessment.contradictions.length > 0 && (
             <div
               style={{
-                background: '#FEF2F2',
-                border: '1px solid #FECACA',
+                background: 'var(--danger-subtle)',
+                border: '1px solid var(--danger-border)',
                 borderRadius: '8px',
                 padding: '12px 16px',
                 marginBottom: '18px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#991B1B', fontWeight: 600, fontSize: '13px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--status-danger)', fontWeight: 600, fontSize: '13px' }}>
                 <ShieldAlert size={16} />
                 <span>Deterministic Contradiction Alert</span>
               </div>
               {nexusAssessment.contradictions.map((c) => (
-                <div key={c.id} style={{ marginTop: '6px', fontSize: '12px', color: '#7F1D1D' }}>
+                <div key={c.id} style={{ marginTop: '6px', fontSize: '12px', color: 'var(--status-danger)' }}>
                   <strong>Conflict ({c.findingAId} vs {c.findingBId}):</strong> {c.explanation}
                 </div>
               ))}
@@ -530,10 +530,10 @@ export const NexusAssessmentPanel: React.FC = () => {
           {/* Section: Structured Nexus Findings with Adjudication Controls */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <div style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 AI Findings & Hypotheses Adjudication (Accept / Edit / Reject)
               </div>
-              <span style={{ fontSize: '11px', color: '#64748B' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                 WHO SMART & FDA CDS: AI outputs require explicit human validation
               </span>
             </div>
@@ -545,30 +545,30 @@ export const NexusAssessmentPanel: React.FC = () => {
 
                 const statusColor =
                   finding.status === 'ACCEPTED'
-                    ? '#059669'
+                    ? 'var(--status-success)'
                     : finding.status === 'EDITED'
-                    ? '#2563EB'
+                    ? 'var(--accent-primary)'
                     : finding.status === 'REJECTED'
-                    ? '#DC2626'
-                    : '#D97706';
+                    ? 'var(--status-danger)'
+                    : 'var(--status-warning)';
 
                 const badgeBg =
                   finding.status === 'ACCEPTED'
-                    ? '#ECFDF5'
+                    ? 'var(--success-subtle)'
                     : finding.status === 'EDITED'
-                    ? '#EFF6FF'
+                    ? 'var(--accent-subtle)'
                     : finding.status === 'REJECTED'
-                    ? '#FEF2F2'
-                    : '#FFFBEB';
+                    ? 'var(--danger-subtle)'
+                    : 'var(--warning-subtle)';
 
                 return (
                   <div
                     key={finding.id}
                     style={{
-                      border: `1px solid ${finding.status === 'UNREVIEWED' ? '#FDE68A' : '#E2E8F0'}`,
+                      border: `1px solid ${finding.status === 'UNREVIEWED' ? 'var(--warning-border)' : 'var(--border-subtle)'}`,
                       borderRadius: '8px',
                       padding: '12px 14px',
-                      background: finding.status === 'UNREVIEWED' ? '#FFFDF5' : '#FFFFFF',
+                      background: finding.status === 'UNREVIEWED' ? '#FFFDF5' : 'var(--bg-surface)',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -579,8 +579,8 @@ export const NexusAssessmentPanel: React.FC = () => {
                             fontWeight: 700,
                             padding: '2px 6px',
                             borderRadius: '4px',
-                            background: '#0F172A',
-                            color: '#FFFFFF',
+                            background: 'var(--bg-app)',
+                            color: 'var(--bg-surface)',
                           }}
                         >
                           {finding.findingType}
@@ -599,7 +599,7 @@ export const NexusAssessmentPanel: React.FC = () => {
                           {finding.status}
                         </span>
                         {finding.findingIds && finding.findingIds.length > 0 && (
-                          <span style={{ fontSize: '11px', color: '#64748B' }}>
+                          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                             Linked: {finding.findingIds.join(', ')}
                           </span>
                         )}
@@ -616,9 +616,9 @@ export const NexusAssessmentPanel: React.FC = () => {
                               gap: '4px',
                               padding: '4px 10px',
                               borderRadius: '4px',
-                              border: '1px solid #10B981',
-                              background: finding.status === 'ACCEPTED' ? '#10B981' : '#FFFFFF',
-                              color: finding.status === 'ACCEPTED' ? '#FFFFFF' : '#059669',
+                              border: '1px solid var(--status-success)',
+                              background: finding.status === 'ACCEPTED' ? 'var(--status-success)' : 'var(--bg-surface)',
+                              color: finding.status === 'ACCEPTED' ? 'var(--bg-surface)' : 'var(--status-success)',
                               fontSize: '11px',
                               fontWeight: 600,
                               cursor: 'pointer',
@@ -635,9 +635,9 @@ export const NexusAssessmentPanel: React.FC = () => {
                               gap: '4px',
                               padding: '4px 10px',
                               borderRadius: '4px',
-                              border: '1px solid #3B82F6',
-                              background: finding.status === 'EDITED' ? '#3B82F6' : '#FFFFFF',
-                              color: finding.status === 'EDITED' ? '#FFFFFF' : '#1D4ED8',
+                              border: '1px solid var(--accent-primary)',
+                              background: finding.status === 'EDITED' ? 'var(--accent-primary)' : 'var(--bg-surface)',
+                              color: finding.status === 'EDITED' ? 'var(--bg-surface)' : 'var(--accent-primary)',
                               fontSize: '11px',
                               fontWeight: 600,
                               cursor: 'pointer',
@@ -654,9 +654,9 @@ export const NexusAssessmentPanel: React.FC = () => {
                               gap: '4px',
                               padding: '4px 10px',
                               borderRadius: '4px',
-                              border: '1px solid #EF4444',
-                              background: finding.status === 'REJECTED' ? '#EF4444' : '#FFFFFF',
-                              color: finding.status === 'REJECTED' ? '#FFFFFF' : '#DC2626',
+                              border: '1px solid var(--status-danger)',
+                              background: finding.status === 'REJECTED' ? 'var(--status-danger)' : 'var(--bg-surface)',
+                              color: finding.status === 'REJECTED' ? 'var(--bg-surface)' : 'var(--status-danger)',
                               fontSize: '11px',
                               fontWeight: 600,
                               cursor: 'pointer',
@@ -681,7 +681,7 @@ export const NexusAssessmentPanel: React.FC = () => {
                             boxSizing: 'border-box',
                             padding: '8px',
                             borderRadius: '4px',
-                            border: '1px solid #3B82F6',
+                            border: '1px solid var(--accent-primary)',
                             fontSize: '12px',
                             fontFamily: 'inherit',
                           }}
@@ -692,8 +692,8 @@ export const NexusAssessmentPanel: React.FC = () => {
                             style={{
                               padding: '4px 10px',
                               borderRadius: '4px',
-                              border: '1px solid #CBD5E1',
-                              background: '#FFFFFF',
+                              border: '1px solid var(--border-medium)',
+                              background: 'var(--bg-surface)',
                               fontSize: '11px',
                               cursor: 'pointer',
                             }}
@@ -706,8 +706,8 @@ export const NexusAssessmentPanel: React.FC = () => {
                               padding: '4px 12px',
                               borderRadius: '4px',
                               border: 'none',
-                              background: '#2563EB',
-                              color: '#FFFFFF',
+                              background: 'var(--accent-primary)',
+                              color: 'var(--bg-surface)',
                               fontSize: '11px',
                               fontWeight: 600,
                               cursor: 'pointer',
@@ -718,8 +718,8 @@ export const NexusAssessmentPanel: React.FC = () => {
                         </div>
                       </div>
                     ) : isRejecting ? (
-                      <div style={{ marginTop: '8px', background: '#FEF2F2', padding: '10px', borderRadius: '6px' }}>
-                        <div style={{ fontSize: '11px', fontWeight: 600, color: '#991B1B', marginBottom: '4px' }}>
+                      <div style={{ marginTop: '8px', background: 'var(--danger-subtle)', padding: '10px', borderRadius: '6px' }}>
+                        <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--status-danger)', marginBottom: '4px' }}>
                           Mandatory Reason for Rejection:
                         </div>
                         <input
@@ -732,7 +732,7 @@ export const NexusAssessmentPanel: React.FC = () => {
                             boxSizing: 'border-box',
                             padding: '6px 8px',
                             borderRadius: '4px',
-                            border: '1px solid #F87171',
+                            border: '1px solid var(--danger-border)',
                             fontSize: '12px',
                           }}
                         />
@@ -742,8 +742,8 @@ export const NexusAssessmentPanel: React.FC = () => {
                             style={{
                               padding: '4px 10px',
                               borderRadius: '4px',
-                              border: '1px solid #CBD5E1',
-                              background: '#FFFFFF',
+                              border: '1px solid var(--border-medium)',
+                              background: 'var(--bg-surface)',
                               fontSize: '11px',
                               cursor: 'pointer',
                             }}
@@ -757,8 +757,8 @@ export const NexusAssessmentPanel: React.FC = () => {
                               padding: '4px 12px',
                               borderRadius: '4px',
                               border: 'none',
-                              background: rejectReason.trim() ? '#DC2626' : '#94A3B8',
-                              color: '#FFFFFF',
+                              background: rejectReason.trim() ? 'var(--status-danger)' : 'var(--text-muted)',
+                              color: 'var(--bg-surface)',
                               fontSize: '11px',
                               fontWeight: 600,
                               cursor: rejectReason.trim() ? 'pointer' : 'not-allowed',
@@ -774,7 +774,7 @@ export const NexusAssessmentPanel: React.FC = () => {
                           margin: 0,
                           fontSize: '13px',
                           lineHeight: 1.5,
-                          color: finding.status === 'REJECTED' ? '#94A3B8' : '#334155',
+                          color: finding.status === 'REJECTED' ? 'var(--text-muted)' : 'var(--text-secondary)',
                           textDecoration: finding.status === 'REJECTED' ? 'line-through' : 'none',
                         }}
                       >
@@ -790,7 +790,7 @@ export const NexusAssessmentPanel: React.FC = () => {
           {/* Section: Recommendations */}
           {nexusAssessment.recommendations && nexusAssessment.recommendations.length > 0 && (
             <div style={{ marginTop: '18px' }}>
-              <div style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A', textTransform: 'uppercase', marginBottom: '8px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', marginBottom: '8px' }}>
                 Advisory Recommendations (Deterministic Guidelines)
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -798,10 +798,10 @@ export const NexusAssessmentPanel: React.FC = () => {
                   <div
                     key={rec.id}
                     style={{
-                      border: '1px solid #E2E8F0',
+                      border: '1px solid var(--border-subtle)',
                       borderRadius: '6px',
                       padding: '10px 12px',
-                      background: '#F8FAFC',
+                      background: 'var(--bg-subtle)',
                       display: 'flex',
                       alignItems: 'flex-start',
                       gap: '10px',
@@ -813,17 +813,17 @@ export const NexusAssessmentPanel: React.FC = () => {
                         fontWeight: 700,
                         padding: '2px 6px',
                         borderRadius: '4px',
-                        background: rec.category === 'SAFETY' ? '#DC2626' : '#0284C7',
-                        color: '#FFFFFF',
+                        background: rec.category === 'SAFETY' ? 'var(--status-danger)' : 'var(--accent-primary)',
+                        color: 'var(--bg-surface)',
                         flexShrink: 0,
                       }}
                     >
                       {rec.category}
                     </span>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '12px', fontWeight: 600, color: '#1E293B' }}>{rec.content}</div>
+                      <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>{rec.content}</div>
                       {rec.rationale && (
-                        <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
                           Rationale: {rec.rationale}
                         </div>
                       )}

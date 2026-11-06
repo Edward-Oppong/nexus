@@ -80,29 +80,29 @@ export const CreatePatientDialog: React.FC<CreatePatientDialogProps> = ({
       <div style={{
         width: '100%',
         maxWidth: '520px',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: 'var(--bg-surface)',
         borderRadius: '12px',
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-        border: '1px solid #E2E8F0',
+        border: '1px solid var(--border-subtle)',
         overflow: 'hidden',
       }}>
         {/* Header */}
         <div style={{
           padding: '18px 24px',
-          borderBottom: '1px solid #F1F5F9',
+          borderBottom: '1px solid var(--bg-subtle)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '28px', height: '28px', borderRadius: '6px', backgroundColor: '#E0F2FE', color: '#0369A1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '28px', height: '28px', borderRadius: '6px', backgroundColor: 'var(--accent-subtle)', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <UserPlus size={16} />
             </div>
             <div>
-              <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+              <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
                 Register New Patient Record
               </h2>
-              <div style={{ fontSize: '11px', color: '#64748B' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                 Longitudinal patient identity scoped to {activeOrganization?.name || 'organization'}.
               </div>
             </div>
@@ -110,7 +110,7 @@ export const CreatePatientDialog: React.FC<CreatePatientDialogProps> = ({
           <button
             type="button"
             onClick={onClose}
-            style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', padding: '4px' }}
+            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
           >
             <X size={18} />
           </button>
@@ -120,10 +120,10 @@ export const CreatePatientDialog: React.FC<CreatePatientDialogProps> = ({
           {errorMessage && (
             <div style={{
               padding: '10px 14px',
-              backgroundColor: '#FEF2F2',
-              border: '1px solid #FECACA',
+              backgroundColor: 'var(--danger-subtle)',
+              border: '1px solid var(--danger-border)',
               borderRadius: '6px',
-              color: '#B91C1C',
+              color: 'var(--status-danger)',
               fontSize: '12px',
               marginBottom: '16px',
             }}>
@@ -134,10 +134,10 @@ export const CreatePatientDialog: React.FC<CreatePatientDialogProps> = ({
           {duplicateWarning && (
             <div style={{
               padding: '12px 14px',
-              backgroundColor: '#FFFBEB',
-              border: '1px solid #FDE68A',
+              backgroundColor: 'var(--warning-subtle)',
+              border: '1px solid var(--warning-border)',
               borderRadius: '6px',
-              color: '#92400E',
+              color: 'var(--status-warning)',
               fontSize: '12px',
               marginBottom: '16px',
               display: 'flex',
@@ -145,11 +145,11 @@ export const CreatePatientDialog: React.FC<CreatePatientDialogProps> = ({
               gap: '6px',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}>
-                <AlertTriangle size={15} style={{ color: '#D97706' }} />
+                <AlertTriangle size={15} style={{ color: 'var(--status-warning)' }} />
                 Deduplication Warning (Section 11)
               </div>
               <div>{duplicateWarning}</div>
-              <span style={{ fontSize: '11px', color: '#B45309' }}>
+              <span style={{ fontSize: '11px', color: 'var(--status-warning)' }}>
                 Nexus requires reviewing existing records rather than silently producing duplicate patient identities.
               </span>
             </div>
@@ -157,7 +157,7 @@ export const CreatePatientDialog: React.FC<CreatePatientDialogProps> = ({
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#475569', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '4px' }}>
                 Given Name *
               </label>
               <input
@@ -165,11 +165,11 @@ export const CreatePatientDialog: React.FC<CreatePatientDialogProps> = ({
                 required
                 value={givenName}
                 onChange={(e) => setGivenName(e.target.value)}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px', boxSizing: 'border-box' }}
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#475569', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '4px' }}>
                 Family Name
               </label>
               <input
@@ -177,31 +177,31 @@ export const CreatePatientDialog: React.FC<CreatePatientDialogProps> = ({
                 value={familyName}
                 onChange={(e) => setFamilyName(e.target.value)}
                 placeholder="(optional)"
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px', boxSizing: 'border-box' }}
               />
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#475569', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '4px' }}>
                 Date of Birth
               </label>
               <input
                 type="date"
                 value={dateOfBirth}
                 onChange={(e) => setDateOfBirth(e.target.value)}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px', boxSizing: 'border-box' }}
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#475569', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '4px' }}>
                 Biological Sex
               </label>
               <select
                 value={sex}
                 onChange={(e) => setSex(e.target.value as any)}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', boxSizing: 'border-box', background: '#FFF' }}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px', boxSizing: 'border-box', background: 'var(--bg-surface)' }}
               >
                 <option value="UNKNOWN">Unknown / Unspecified</option>
                 <option value="MALE">Male</option>
@@ -213,7 +213,7 @@ export const CreatePatientDialog: React.FC<CreatePatientDialogProps> = ({
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#475569', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '4px' }}>
                 External MRN / ID
               </label>
               <input
@@ -221,11 +221,11 @@ export const CreatePatientDialog: React.FC<CreatePatientDialogProps> = ({
                 placeholder="e.g. GH-1042"
                 value={externalId}
                 onChange={(e) => setExternalId(e.target.value)}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px', boxSizing: 'border-box' }}
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#475569', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '4px' }}>
                 Phone Contact
               </label>
               <input
@@ -233,7 +233,7 @@ export const CreatePatientDialog: React.FC<CreatePatientDialogProps> = ({
                 placeholder="+44 7700..."
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-medium)', fontSize: '13px', boxSizing: 'border-box' }}
               />
             </div>
           </div>
@@ -242,14 +242,14 @@ export const CreatePatientDialog: React.FC<CreatePatientDialogProps> = ({
             <button
               type="button"
               onClick={onClose}
-              style={{ padding: '8px 14px', borderRadius: '6px', border: '1px solid #CBD5E1', background: '#FFF', color: '#475569', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+              style={{ padding: '8px 14px', borderRadius: '6px', border: '1px solid var(--border-medium)', background: 'var(--bg-surface)', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              style={{ padding: '8px 18px', borderRadius: '6px', border: 'none', background: '#0284C7', color: '#FFF', fontSize: '13px', fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer' }}
+              style={{ padding: '8px 18px', borderRadius: '6px', border: 'none', background: 'var(--accent-primary)', color: 'var(--bg-surface)', fontSize: '13px', fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer' }}
             >
               {submitting ? 'Registering...' : 'Register Patient'}
             </button>

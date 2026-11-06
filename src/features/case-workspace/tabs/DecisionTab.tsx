@@ -163,8 +163,8 @@ export const DecisionTab: React.FC = () => {
       {/* Prominent Human Clinical Ownership Banner */}
       <div
         style={{
-          background: '#0F172A',
-          color: '#FFFFFF',
+          background: 'var(--bg-app)',
+          color: 'var(--accent-contrast)',
           borderRadius: '8px',
           padding: '18px 22px',
           display: 'flex',
@@ -179,24 +179,24 @@ export const DecisionTab: React.FC = () => {
               fontFamily: 'var(--font-mono)',
               textTransform: 'uppercase',
               letterSpacing: '0.06em',
-              color: '#38BDF8',
+              color: 'var(--accent-primary)',
               fontWeight: 600,
             }}
           >
             HUMAN CLINICAL OWNERSHIP ARCHITECTURE (WHO SMART / FDA CDS)
           </div>
-          <h2 style={{ fontSize: '18px', fontWeight: 700, marginTop: '2px', color: '#F8FAFC' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 700, marginTop: '2px', color: 'var(--text-primary)' }}>
             Official Clinical Decision & Therapeutic Record
           </h2>
-          <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
             Nexus proposes. The clinician owns and records the decision. Decisions are immutable and audit-traceable.
           </div>
         </div>
 
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: '11px', color: '#94A3B8' }}>Authorizing Clinician</div>
-          <strong style={{ fontSize: '14px', color: '#FFFFFF' }}>{authorizingClinicianName}</strong>
-          <div style={{ fontSize: '11px', color: '#38BDF8' }}>{authorizingClinicianRole}</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Authorizing Clinician</div>
+          <strong style={{ fontSize: '14px', color: 'var(--accent-contrast)' }}>{authorizingClinicianName}</strong>
+          <div style={{ fontSize: '11px', color: 'var(--accent-primary)' }}>{authorizingClinicianRole}</div>
         </div>
       </div>
 
@@ -204,22 +204,22 @@ export const DecisionTab: React.FC = () => {
       {activeCase.hypotheses && activeCase.hypotheses.length > 0 && (
         <div
           style={{
-            background: '#FFFFFF',
-            border: '1px solid #E2E8F0',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: '8px',
             padding: '18px 20px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <div>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#0284C7', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 DIAGNOSTIC ADJUDICATION (MDCG 2020-1)
               </div>
-              <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: '2px 0 0 0' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: '2px 0 0 0' }}>
                 Candidate Differential Hypotheses
               </h3>
             </div>
-            <span style={{ fontSize: '11px', color: '#64748B' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
               Adjudicate each hypothesis before signing final formulation
             </span>
           </div>
@@ -235,8 +235,8 @@ export const DecisionTab: React.FC = () => {
                   style={{
                     padding: '12px 14px',
                     borderRadius: '6px',
-                    border: `1px solid ${isAccepted ? '#A7F3D0' : isRejected ? '#FECACA' : '#E2E8F0'}`,
-                    background: isAccepted ? '#F0FDF4' : isRejected ? '#FEF2F2' : '#F8FAFC',
+                    border: `1px solid ${isAccepted ? 'var(--success-border)' : isRejected ? 'var(--danger-border)' : 'var(--border-subtle)'}`,
+                    background: isAccepted ? 'var(--success-subtle)' : isRejected ? 'var(--danger-subtle)' : 'var(--bg-subtle)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -245,21 +245,21 @@ export const DecisionTab: React.FC = () => {
                 >
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-                      <strong style={{ fontSize: '13px', color: '#0F172A' }}>{hyp.title}</strong>
+                      <strong style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{hyp.title}</strong>
                       <span
                         style={{
                           fontSize: '10px',
                           fontWeight: 700,
                           padding: '1px 6px',
                           borderRadius: '4px',
-                          background: isAccepted ? '#DCFCE7' : isRejected ? '#FEE2E2' : '#E2E8F0',
-                          color: isAccepted ? '#166534' : isRejected ? '#991B1B' : '#475569',
+                          background: isAccepted ? 'var(--success-subtle)' : isRejected ? 'var(--danger-subtle)' : 'var(--border-subtle)',
+                          color: isAccepted ? 'var(--status-success)' : isRejected ? 'var(--status-danger)' : 'var(--text-muted)',
                         }}
                       >
                         {isAccepted ? '✓ WORKING DIAGNOSIS' : isRejected ? '✗ EXCLUDED' : 'PENDING ADJUDICATION'}
                       </span>
                     </div>
-                    <div style={{ fontSize: '11px', color: '#475569' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
                       {hyp.rationale || hyp.statusDetail || 'Generated from verified case observations.'}
                     </div>
                   </div>
@@ -277,9 +277,9 @@ export const DecisionTab: React.FC = () => {
                       style={{
                         padding: '5px 10px',
                         borderRadius: '4px',
-                        border: '1px solid #10B981',
-                        background: isAccepted ? '#10B981' : '#FFFFFF',
-                        color: isAccepted ? '#FFFFFF' : '#047857',
+                        border: '1px solid var(--status-success)',
+                        background: isAccepted ? 'var(--status-success)' : 'var(--bg-surface)',
+                        color: isAccepted ? 'var(--bg-surface)' : 'var(--status-success)',
                         fontSize: '11px',
                         fontWeight: 600,
                         cursor: 'pointer',
@@ -298,9 +298,9 @@ export const DecisionTab: React.FC = () => {
                       style={{
                         padding: '5px 10px',
                         borderRadius: '4px',
-                        border: '1px solid #CBD5E1',
-                        background: isRejected ? '#EF4444' : '#FFFFFF',
-                        color: isRejected ? '#FFFFFF' : '#64748B',
+                        border: '1px solid var(--border-medium)',
+                        background: isRejected ? 'var(--status-danger)' : 'var(--bg-surface)',
+                        color: isRejected ? 'var(--bg-surface)' : 'var(--text-muted)',
                         fontSize: '11px',
                         fontWeight: 600,
                         cursor: 'pointer',
@@ -319,8 +319,8 @@ export const DecisionTab: React.FC = () => {
       {/* Phase 9 Deterministic CDS Pre-Flight Check Banner */}
       <div
         style={{
-          background: '#F0F9FF',
-          border: '1px solid #BAE6FD',
+          background: 'var(--accent-subtle)',
+          border: '1px solid var(--border-medium)',
           borderRadius: '8px',
           padding: '14px 18px',
           display: 'flex',
@@ -329,19 +329,19 @@ export const DecisionTab: React.FC = () => {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ background: '#0284C7', color: '#FFFFFF', padding: '6px', borderRadius: '6px', display: 'flex' }}>
+          <div style={{ background: 'var(--accent-primary)', color: 'var(--bg-surface)', padding: '6px', borderRadius: '6px', display: 'flex' }}>
             <Cpu size={16} />
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#0369A1' }}>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent-primary)' }}>
                 Deterministic CDS Pre-Flight Check
               </span>
-              <span style={{ fontSize: '10px', fontWeight: 700, background: '#E0F2FE', color: '#0369A1', padding: '1px 6px', borderRadius: '8px' }}>
+              <span style={{ fontSize: '10px', fontWeight: 700, background: 'var(--accent-subtle)', color: 'var(--accent-primary)', padding: '1px 6px', borderRadius: '8px' }}>
                 {cdsChecksVerified} Checks Verified
               </span>
             </div>
-            <div style={{ fontSize: '11px', color: '#475569', marginTop: '2px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
               {cdsPreFlightSummary}
             </div>
           </div>
@@ -354,9 +354,9 @@ export const DecisionTab: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             gap: '4px',
-            background: '#FFFFFF',
-            color: '#0284C7',
-            border: '1px solid #BAE6FD',
+            background: 'var(--bg-surface)',
+            color: 'var(--accent-primary)',
+            border: '1px solid var(--border-medium)',
             borderRadius: '4px',
             padding: '6px 12px',
             fontSize: '11px',
@@ -373,9 +373,9 @@ export const DecisionTab: React.FC = () => {
         <div
           role="alert"
           style={{
-            background: '#FEF2F2',
-            border: '1px solid #FECACA',
-            borderLeft: '5px solid #DC2626',
+            background: 'var(--danger-subtle)',
+            border: '1px solid var(--danger-border)',
+            borderLeft: '5px solid var(--status-danger)',
             borderRadius: '6px',
             padding: '14px 18px',
             display: 'flex',
@@ -384,12 +384,12 @@ export const DecisionTab: React.FC = () => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <ShieldAlert size={20} color="#DC2626" />
+            <ShieldAlert size={20} color="var(--status-danger)" />
             <div>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: '#991B1B' }}>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--status-danger)' }}>
                 Decision Recording Disabled: Unresolved Safety-Critical Concern
               </div>
-              <div style={{ fontSize: '12px', color: '#7F1D1D', marginTop: '2px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--status-danger)', marginTop: '2px' }}>
                 {canRecordDecision.reason || 'This case has an active SAFETY_CRITICAL issue requiring clinician review.'}
               </div>
             </div>
@@ -400,8 +400,8 @@ export const DecisionTab: React.FC = () => {
               padding: '6px 12px',
               borderRadius: '4px',
               border: 'none',
-              background: '#DC2626',
-              color: '#FFFFFF',
+              background: 'var(--status-danger)',
+              color: 'var(--bg-surface)',
               fontSize: '12px',
               fontWeight: 600,
               cursor: 'pointer',
@@ -419,8 +419,8 @@ export const DecisionTab: React.FC = () => {
       {activeDecision && !isAmending && (
         <div
           style={{
-            background: '#FFFFFF',
-            border: '1px solid #10B981',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--status-success)',
             borderRadius: '8px',
             padding: '22px',
             boxShadow: '0 2px 8px rgba(16, 185, 129, 0.08)',
@@ -432,9 +432,9 @@ export const DecisionTab: React.FC = () => {
                 style={{
                   fontSize: '11px',
                   fontWeight: 700,
-                  background: '#ECFDF5',
-                  color: '#065F46',
-                  border: '1px solid #A7F3D0',
+                  background: 'var(--success-subtle)',
+                  color: 'var(--status-success)',
+                  border: '1px solid var(--success-border)',
                   padding: '3px 8px',
                   borderRadius: '12px',
                 }}
@@ -445,15 +445,15 @@ export const DecisionTab: React.FC = () => {
                 style={{
                   fontSize: '11px',
                   fontWeight: 600,
-                  background: '#F1F5F9',
-                  color: '#0F172A',
+                  background: 'var(--bg-subtle)',
+                  color: 'var(--text-primary)',
                   padding: '3px 8px',
                   borderRadius: '4px',
                 }}
               >
                 {DECISION_TYPE_LABELS[activeDecision.decisionType]}
               </span>
-              <span style={{ fontSize: '11px', color: '#64748B' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
                 Recorded: {new Date(activeDecision.recordedAt).toLocaleString()} by {activeDecision.recordedBy}
               </span>
             </div>
@@ -463,9 +463,9 @@ export const DecisionTab: React.FC = () => {
               style={{
                 padding: '6px 14px',
                 borderRadius: '5px',
-                border: '1px solid #CBD5E1',
-                background: '#FFFFFF',
-                color: '#0F172A',
+                border: '1px solid var(--border-medium)',
+                background: 'var(--bg-surface)',
+                color: 'var(--text-primary)',
                 fontSize: '12px',
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -474,33 +474,33 @@ export const DecisionTab: React.FC = () => {
                 gap: '6px',
               }}
             >
-              <GitBranch size={13} color="#2563EB" />
+              <GitBranch size={13} color="var(--accent-primary)" />
               Amend Decision
             </button>
           </div>
 
           <div style={{ marginBottom: '14px' }}>
-            <strong style={{ display: 'block', fontSize: '11px', color: '#64748B', textTransform: 'uppercase', marginBottom: '4px' }}>
+            <strong style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
               Clinical Assessment & Formulation:
             </strong>
-            <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.5, color: '#0F172A', fontWeight: 500 }}>
+            <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.5, color: 'var(--text-primary)', fontWeight: 500 }}>
               {activeDecision.summary}
             </p>
           </div>
 
           {activeDecision.rationale && (
             <div style={{ marginBottom: '14px' }}>
-              <strong style={{ display: 'block', fontSize: '11px', color: '#64748B', textTransform: 'uppercase', marginBottom: '4px' }}>
+              <strong style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
                 Clinical Rationale:
               </strong>
-              <p style={{ margin: 0, fontSize: '13px', lineHeight: 1.5, color: '#334155' }}>
+              <p style={{ margin: 0, fontSize: '13px', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
                 {activeDecision.rationale}
               </p>
             </div>
           )}
 
           {activeDecision.amendedFrom && (
-            <div style={{ fontSize: '11px', color: '#2563EB', background: '#EFF6FF', padding: '6px 10px', borderRadius: '4px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--accent-primary)', background: 'var(--accent-subtle)', padding: '6px 10px', borderRadius: '4px' }}>
               🔗 Amended from predecessor Decision #{activeDecision.amendedFrom}. Reason: "{activeDecision.amendmentReason}"
             </div>
           )}
@@ -511,24 +511,24 @@ export const DecisionTab: React.FC = () => {
       {isAmending && (
         <div
           style={{
-            background: '#FFFFFF',
-            border: '2px solid #3B82F6',
+            background: 'var(--bg-surface)',
+            border: '2px solid var(--accent-primary)',
             borderRadius: '8px',
             padding: '22px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0F172A' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
                 Amend Clinical Decision (Immutable Chain)
               </h3>
-              <div style={{ fontSize: '11px', color: '#64748B' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                 The prior decision will become 'AMENDED' in the audit trail. Historical conclusions are never erased.
               </div>
             </div>
             <button
               onClick={() => setIsAmending(false)}
-              style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', fontSize: '12px' }}
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '12px' }}
             >
               Cancel Amendment
             </button>
@@ -536,13 +536,13 @@ export const DecisionTab: React.FC = () => {
 
           <form onSubmit={handleConfirmAmendment}>
             <div style={{ marginBottom: '14px' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0F172A', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
                 Decision Type:
               </label>
               <select
                 value={amendedType}
                 onChange={(e) => setAmendedType(e.target.value as DecisionType)}
-                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
               >
                 {(Object.keys(DECISION_TYPE_LABELS) as DecisionType[]).map((t) => (
                   <option key={t} value={t}>
@@ -553,7 +553,7 @@ export const DecisionTab: React.FC = () => {
             </div>
 
             <div style={{ marginBottom: '14px' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0F172A', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
                 Amended Clinical Formulation / Summary:
               </label>
               <textarea
@@ -561,24 +561,24 @@ export const DecisionTab: React.FC = () => {
                 required
                 value={amendedSummary}
                 onChange={(e) => setAmendedSummary(e.target.value)}
-                style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
               />
             </div>
 
             <div style={{ marginBottom: '14px' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0F172A', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
                 Amended Rationale:
               </label>
               <textarea
                 rows={2}
                 value={amendedRationale}
                 onChange={(e) => setAmendedRationale(e.target.value)}
-                style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
               />
             </div>
 
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#B91C1C', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--status-danger)', marginBottom: '4px' }}>
                 Mandatory Reason for Amendment:
               </label>
               <input
@@ -587,7 +587,7 @@ export const DecisionTab: React.FC = () => {
                 placeholder="e.g. New TEE imaging confirms 12mm vegetation; antimicrobial adjustment required..."
                 value={amendmentReason}
                 onChange={(e) => setAmendmentReason(e.target.value)}
-                style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '4px', border: '1px solid #F87171', fontSize: '13px' }}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '4px', border: '1px solid var(--danger-border)', fontSize: '13px' }}
               />
             </div>
 
@@ -595,7 +595,7 @@ export const DecisionTab: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsAmending(false)}
-                style={{ padding: '6px 14px', borderRadius: '4px', border: '1px solid #CBD5E1', background: '#FFFFFF', fontSize: '12px' }}
+                style={{ padding: '6px 14px', borderRadius: '4px', border: '1px solid var(--border-medium)', background: 'var(--bg-surface)', fontSize: '12px' }}
               >
                 Cancel
               </button>
@@ -605,8 +605,8 @@ export const DecisionTab: React.FC = () => {
                   padding: '6px 18px',
                   borderRadius: '4px',
                   border: 'none',
-                  background: '#2563EB',
-                  color: '#FFFFFF',
+                  background: 'var(--accent-primary)',
+                  color: 'var(--bg-surface)',
                   fontSize: '12px',
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -623,25 +623,25 @@ export const DecisionTab: React.FC = () => {
       {!activeDecision && !isAmending && (
         <div
           style={{
-            background: '#FFFFFF',
-            border: '1px solid #E2E8F0',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: '8px',
             padding: '22px',
           }}
         >
-          <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 16px 0', color: '#0F172A' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 16px 0', color: 'var(--text-primary)' }}>
             Record Clinical Decision
           </h3>
 
           <form onSubmit={handleCreateDecision}>
             <div style={{ marginBottom: '14px' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0F172A', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
                 Decision Type:
               </label>
               <select
                 value={decisionType}
                 onChange={(e) => setDecisionType(e.target.value as DecisionType)}
-                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
               >
                 {(Object.keys(DECISION_TYPE_LABELS) as DecisionType[]).map((t) => (
                   <option key={t} value={t}>
@@ -652,7 +652,7 @@ export const DecisionTab: React.FC = () => {
             </div>
 
             <div style={{ marginBottom: '14px' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0F172A', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
                 Diagnostic Assessment & Formulation:
               </label>
               <textarea
@@ -660,12 +660,12 @@ export const DecisionTab: React.FC = () => {
                 required
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
-                style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
               />
             </div>
 
             <div style={{ marginBottom: '14px' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0F172A', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
                 Clinical Rationale:
               </label>
               <textarea
@@ -673,13 +673,13 @@ export const DecisionTab: React.FC = () => {
                 required
                 value={rationale}
                 onChange={(e) => setRationale(e.target.value)}
-                style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '13px' }}
               />
             </div>
 
             {/* Acknowledgment Checkbox */}
-            <div style={{ marginBottom: '18px', background: '#F8FAFC', padding: '12px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '12px', color: '#1E293B', cursor: 'pointer' }}>
+            <div style={{ marginBottom: '18px', background: 'var(--bg-subtle)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '12px', color: 'var(--text-primary)', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   checked={hasAcknowledged}
@@ -699,8 +699,8 @@ export const DecisionTab: React.FC = () => {
                 padding: '8px 22px',
                 borderRadius: '6px',
                 border: 'none',
-                background: hasBlockingSafety || !hasAcknowledged ? '#94A3B8' : '#059669',
-                color: '#FFFFFF',
+                background: hasBlockingSafety || !hasAcknowledged ? 'var(--text-muted)' : 'var(--status-success)',
+                color: 'var(--bg-surface)',
                 fontSize: '13px',
                 fontWeight: 600,
                 cursor: hasBlockingSafety || !hasAcknowledged ? 'not-allowed' : 'pointer',
@@ -715,7 +715,7 @@ export const DecisionTab: React.FC = () => {
       {/* Decision History Chain */}
       {caseDecisions.length > 0 && (
         <div style={{ marginTop: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
             <History size={14} /> Immutable Decision Audit Chain ({caseDecisions.length})
           </div>
 
@@ -724,8 +724,8 @@ export const DecisionTab: React.FC = () => {
               <div
                 key={dec.id}
                 style={{
-                  background: dec.status === 'ACTIVE' ? '#FFFFFF' : '#F8FAFC',
-                  border: `1px solid ${dec.status === 'ACTIVE' ? '#10B981' : '#CBD5E1'}`,
+                  background: dec.status === 'ACTIVE' ? 'var(--bg-surface)' : 'var(--bg-subtle)',
+                  border: `1px solid ${dec.status === 'ACTIVE' ? 'var(--status-success)' : 'var(--border-medium)'}`,
                   borderRadius: '6px',
                   padding: '12px 16px',
                   fontSize: '12px',
@@ -733,27 +733,27 @@ export const DecisionTab: React.FC = () => {
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <strong style={{ color: '#0F172A' }}>Decision #{dec.id}</strong>
+                    <strong style={{ color: 'var(--text-primary)' }}>Decision #{dec.id}</strong>
                     <span
                       style={{
                         fontSize: '10px',
                         fontWeight: 700,
                         padding: '1px 6px',
                         borderRadius: '4px',
-                        background: dec.status === 'ACTIVE' ? '#ECFDF5' : '#F1F5F9',
-                        color: dec.status === 'ACTIVE' ? '#065F46' : '#64748B',
+                        background: dec.status === 'ACTIVE' ? 'var(--success-subtle)' : 'var(--bg-subtle)',
+                        color: dec.status === 'ACTIVE' ? 'var(--status-success)' : 'var(--text-muted)',
                       }}
                     >
                       {dec.status}
                     </span>
                   </div>
-                  <span style={{ color: '#64748B' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>
                     {new Date(dec.recordedAt).toLocaleString()} · {dec.recordedBy}
                   </span>
                 </div>
-                <div style={{ color: '#334155' }}>{dec.summary}</div>
+                <div style={{ color: 'var(--text-secondary)' }}>{dec.summary}</div>
                 {dec.amendmentReason && (
-                  <div style={{ marginTop: '4px', color: '#64748B', fontStyle: 'italic' }}>
+                  <div style={{ marginTop: '4px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
                     Amendment Reason: "{dec.amendmentReason}"
                   </div>
                 )}

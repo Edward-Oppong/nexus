@@ -26,7 +26,7 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({ compact = false }) =
         borderRadius: '6px',
         backgroundColor: 'rgba(239, 68, 68, 0.1)',
         border: '1px solid rgba(239, 68, 68, 0.25)',
-        color: '#f87171',
+        color: 'var(--danger-border)',
         fontSize: '12px',
         fontWeight: 600,
         cursor: 'pointer',

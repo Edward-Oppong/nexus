@@ -29,13 +29,15 @@ export const CaseSignalsPanel: React.FC = () => {
   return (
     <section
       style={{
-        background: '#FFFFFF',
-        border: '1px solid #E2E8F0',
-        borderRadius: '6px',
-        padding: '12px',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-subtle)',
+        borderRadius: 'var(--radius-lg)',
+        padding: '12px 14px',
         display: 'flex',
         flexDirection: 'column',
         gap: '10px',
+        boxShadow: 'var(--shadow-sm)',
+        transition: 'background-color 0.2s ease, border-color 0.2s ease',
       }}
     >
       <div
@@ -51,13 +53,13 @@ export const CaseSignalsPanel: React.FC = () => {
             fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: '0.06em',
-            color: '#0F172A',
+            color: 'var(--text-primary)',
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
           }}
         >
-          <AlertTriangle size={13} color="#D97706" />
+          <AlertTriangle size={13} color="var(--status-warning)" />
           Case Signals
         </span>
         <span
@@ -65,10 +67,11 @@ export const CaseSignalsPanel: React.FC = () => {
             fontSize: '10px',
             fontFamily: 'var(--font-mono)',
             fontWeight: 600,
-            color: '#64748B',
-            background: '#F1F5F9',
+            color: 'var(--text-muted)',
+            background: 'var(--bg-subtle)',
+            border: '1px solid var(--border-subtle)',
             padding: '2px 6px',
-            borderRadius: '4px',
+            borderRadius: 'var(--radius-sm)',
           }}
         >
           DETERMINISTIC
@@ -80,13 +83,13 @@ export const CaseSignalsPanel: React.FC = () => {
         <div
           onClick={() => setActiveCaseSubTab('safety')}
           style={{
-            background: '#FEF2F2',
-            border: '1px solid #FCA5A5',
-            borderRadius: '5px',
+            background: 'var(--status-safety-bg)',
+            border: '1px solid var(--status-safety-border)',
+            borderRadius: 'var(--radius-md)',
             padding: '8px 10px',
             cursor: 'pointer',
             fontSize: '11px',
-            color: '#991B1B',
+            color: 'var(--status-safety-text)',
             display: 'flex',
             alignItems: 'flex-start',
             gap: '8px',
@@ -97,78 +100,144 @@ export const CaseSignalsPanel: React.FC = () => {
             <div style={{ fontWeight: 700 }}>
               {(firstSafety.category ?? 'SAFETY').toUpperCase()} ALERT
             </div>
-            <div style={{ fontSize: '11px', color: '#7F1D1D', marginTop: '2px', lineHeight: 1.35 }}>
-              {firstSafety.description}
+            <div style={{ fontSize: '11px', marginTop: '2px', lineHeight: 1.35, opacity: 0.9 }}>
+              {firstSafety.details.slice(0, 70)}...
+            </div>
+            <div
+              style={{
+                fontSize: '10px',
+                fontWeight: 600,
+                marginTop: '4px',
+                textDecoration: 'underline',
+              }}
+            >
+              Review in Safety Tab &rarr;
             </div>
           </div>
         </div>
       )}
 
-      {/* Unverified Findings */}
-      {unreviewedFindingsCount > 0 && (
-        <div
-          onClick={() => setActiveCaseSubTab('findings')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '6px 8px',
-            background: '#FFFBEB',
-            borderRadius: '4px',
-            border: '1px solid #FDE68A',
-            fontSize: '11px',
-            color: '#92400E',
-            cursor: 'pointer',
-          }}
-        >
-          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <FileQuestion size={12} />
-            {unreviewedFindingsCount} unverified finding(s)
-          </span>
-          <span style={{ fontWeight: 700, fontSize: '10px' }}>Review ›</span>
-        </div>
-      )}
+      {/* Count Signals */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px',
+          fontSize: '12px',
+        }}
+      >
+        {unreviewedFindingsCount > 0 && (
+          <div
+            onClick={() => setActiveCaseSubTab('findings')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '6px 8px',
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-sm)',
+              cursor: 'pointer',
+            }}
+          >
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
+              <FileQuestion size={13} color="var(--status-warning)" />
+              <span>Unverified findings</span>
+            </span>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                background: 'var(--status-review-bg)',
+                color: 'var(--status-review-text)',
+                padding: '1px 6px',
+                borderRadius: '9999px',
+              }}
+            >
+              {unreviewedFindingsCount}
+            </span>
+          </div>
+        )}
 
-      {/* Pending Investigations */}
-      {pendingInvestigationsCount > 0 && (
-        <div
-          onClick={() => setActiveCaseSubTab('clinical')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '6px 8px',
-            background: '#F8FAFC',
-            borderRadius: '4px',
-            border: '1px solid #E2E8F0',
-            fontSize: '11px',
-            color: '#475569',
-            cursor: 'pointer',
-          }}
-        >
-          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Clock size={12} />
-            {pendingInvestigationsCount} test(s) pending
-          </span>
-          <span style={{ fontWeight: 600, fontSize: '10px' }}>View ›</span>
-        </div>
-      )}
+        {pendingInvestigationsCount > 0 && (
+          <div
+            onClick={() => setActiveCaseSubTab('clinical')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '6px 8px',
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-sm)',
+              cursor: 'pointer',
+            }}
+          >
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
+              <Clock size={13} color="var(--accent-primary)" />
+              <span>Pending investigations</span>
+            </span>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 600,
+                color: 'var(--text-muted)',
+              }}
+            >
+              {pendingInvestigationsCount}
+            </span>
+          </div>
+        )}
 
-      {/* High Priority Missing Information */}
-      {highPriorityGapsCount > 0 && (
-        <div
-          onClick={() => setActiveCaseSubTab('clinical')}
-          style={{
-            fontSize: '11px',
-            color: '#64748B',
-            lineHeight: 1.35,
-            paddingLeft: '4px',
-            cursor: 'pointer',
-          }}
-        >
-          • {highPriorityGapsCount} critical information gap(s) identified
-        </div>
-      )}
+        {highPriorityGapsCount > 0 && (
+          <div
+            onClick={() => setActiveCaseSubTab('summary')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '6px 8px',
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-sm)',
+              cursor: 'pointer',
+            }}
+          >
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
+              <AlertTriangle size={13} color="var(--status-danger)" />
+              <span>High priority gaps</span>
+            </span>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                background: 'var(--status-safety-bg)',
+                color: 'var(--status-safety-text)',
+                padding: '1px 6px',
+                borderRadius: '9999px',
+              }}
+            >
+              {highPriorityGapsCount}
+            </span>
+          </div>
+        )}
+
+        {unreviewedFindingsCount === 0 &&
+          pendingInvestigationsCount === 0 &&
+          highPriorityGapsCount === 0 &&
+          !firstSafety && (
+            <div
+              style={{
+                fontSize: '11px',
+                color: 'var(--text-muted)',
+                textAlign: 'center',
+                padding: '8px 0',
+              }}
+            >
+              No active acute signals flagged.
+            </div>
+          )}
+      </div>
     </section>
   );
 };

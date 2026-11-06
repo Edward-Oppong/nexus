@@ -55,13 +55,13 @@ export const SafetyTab: React.FC = () => {
   const getSeverityBadge = (severity: SafetyConcernSeverity) => {
     switch (severity) {
       case 'SAFETY_CRITICAL':
-        return { bg: '#FEE2E2', text: '#991B1B', border: '#FCA5A5' };
+        return { bg: 'var(--danger-subtle)', text: 'var(--status-danger)', border: 'var(--danger-border)' };
       case 'URGENT_REVIEW':
-        return { bg: '#FEF3C7', text: '#92400E', border: '#FCD34D' };
+        return { bg: 'var(--warning-subtle)', text: 'var(--status-warning)', border: 'var(--warning-border)' };
       case 'ATTENTION':
-        return { bg: '#E0F2FE', text: '#0369A1', border: '#BAE6FD' };
+        return { bg: 'var(--accent-subtle)', text: 'var(--accent-primary)', border: 'var(--border-medium)' };
       default:
-        return { bg: '#F1F5F9', text: '#475569', border: '#CBD5E1' };
+        return { bg: 'var(--bg-subtle)', text: 'var(--text-secondary)', border: 'var(--border-medium)' };
     }
   };
 
@@ -71,19 +71,19 @@ export const SafetyTab: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <ShieldAlert size={20} color="#DC2626" />
-            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0F172A' }}>
+            <ShieldAlert size={20} color="var(--status-danger)" />
+            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
               Clinical Safety Concerns & Guardrail Interrupts
             </h2>
           </div>
-          <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>
+          <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>
             Structured, non-transient clinical hazards. SAFETY_CRITICAL concerns halt clinical decision recording until formally adjudicated. Resolved concerns are permanently preserved in the clinical record.
           </p>
         </div>
 
         {/* Filter */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>Severity:</span>
+          <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Severity:</span>
           <select
             value={filterSeverity}
             onChange={(e) => setFilterSeverity(e.target.value)}
@@ -91,8 +91,9 @@ export const SafetyTab: React.FC = () => {
               fontSize: '12px',
               padding: '4px 8px',
               borderRadius: '4px',
-              border: '1px solid #CBD5E1',
-              background: '#FFFFFF',
+              border: '1px solid var(--border-medium)',
+              background: 'var(--bg-surface)',
+              color: 'var(--text-primary)',
             }}
           >
             <option value="ALL">All Severities</option>
@@ -108,8 +109,8 @@ export const SafetyTab: React.FC = () => {
       {hasRealCase && hasCdsAlerts && (
         <div
           style={{
-            background: '#F0F9FF',
-            border: '1px solid #BAE6FD',
+            background: 'var(--accent-subtle)',
+            border: '1px solid var(--border-medium)',
             borderRadius: '8px',
             padding: '14px 18px',
             display: 'flex',
@@ -118,19 +119,19 @@ export const SafetyTab: React.FC = () => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ background: '#0284C7', color: '#FFFFFF', padding: '6px', borderRadius: '6px', display: 'flex' }}>
+            <div style={{ background: 'var(--accent-primary)', color: 'var(--accent-contrast)', padding: '6px', borderRadius: '6px', display: 'flex' }}>
               <Cpu size={16} />
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#0369A1' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent-primary)' }}>
                   Deterministic CDS Rule Engine Alerts Active
                 </span>
-                <span style={{ fontSize: '10px', fontWeight: 700, background: '#FEF3C7', color: '#92400E', padding: '1px 6px', borderRadius: '8px', border: '1px solid #FCD34D' }}>
+                <span style={{ fontSize: '10px', fontWeight: 700, background: 'var(--warning-subtle)', color: 'var(--status-warning)', padding: '1px 6px', borderRadius: '8px', border: '1px solid var(--warning-border)' }}>
                   {penicillinAlert && vancGentAlert ? 'Allergy & DDI Active' : penicillinAlert ? 'Allergy Alert' : vancGentAlert ? 'DDI Alert' : 'Safety Concern'}
                 </span>
               </div>
-              <div style={{ fontSize: '11px', color: '#475569', marginTop: '2px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                 {alertTexts.join(' ')}
               </div>
             </div>
@@ -143,9 +144,9 @@ export const SafetyTab: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
-              background: '#FFFFFF',
-              color: '#0284C7',
-              border: '1px solid #BAE6FD',
+              background: 'var(--bg-surface)',
+              color: 'var(--accent-primary)',
+              border: '1px solid var(--border-medium)',
               borderRadius: '4px',
               padding: '6px 12px',
               fontSize: '11px',
@@ -165,10 +166,10 @@ export const SafetyTab: React.FC = () => {
             style={{
               padding: '36px',
               textAlign: 'center',
-              background: '#FFFFFF',
+              background: 'var(--bg-surface)',
               borderRadius: '8px',
-              border: '1px solid #E2E8F0',
-              color: '#64748B',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-muted)',
               fontSize: '13px',
             }}
           >
@@ -184,12 +185,12 @@ export const SafetyTab: React.FC = () => {
               <div
                 key={concern.id}
                 style={{
-                  background: isResolved ? '#FAFAFA' : '#FFFFFF',
-                  border: `1px solid ${isResolved ? '#CBD5E1' : badge.border}`,
-                  borderLeft: `5px solid ${isResolved ? '#059669' : badge.text}`,
+                  background: isResolved ? 'var(--bg-subtle)' : 'var(--bg-surface)',
+                  border: `1px solid ${isResolved ? 'var(--border-medium)' : badge.border}`,
+                  borderLeft: `5px solid ${isResolved ? 'var(--status-success)' : badge.text}`,
                   borderRadius: '8px',
                   padding: '18px 20px',
-                  boxShadow: isResolved ? 'none' : '0 2px 6px rgba(0, 0, 0, 0.03)',
+                  boxShadow: isResolved ? 'none' : '0 2px 6px rgba(0, 0, 0, 0.04)',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '10px' }}>
@@ -215,15 +216,15 @@ export const SafetyTab: React.FC = () => {
                         fontWeight: 600,
                         padding: '2px 8px',
                         borderRadius: '12px',
-                        background: isResolved ? '#ECFDF5' : isAcknowledged ? '#EFF6FF' : '#FEF2F2',
-                        color: isResolved ? '#059669' : isAcknowledged ? '#2563EB' : '#DC2626',
-                        border: `1px solid ${isResolved ? '#A7F3D0' : isAcknowledged ? '#BFDBFE' : '#FECACA'}`,
+                        background: isResolved ? 'var(--success-subtle)' : isAcknowledged ? 'var(--accent-subtle)' : 'var(--danger-subtle)',
+                        color: isResolved ? 'var(--status-success)' : isAcknowledged ? 'var(--accent-primary)' : 'var(--status-danger)',
+                        border: `1px solid ${isResolved ? 'var(--success-border)' : isAcknowledged ? 'var(--border-medium)' : 'var(--danger-border)'}`,
                       }}
                     >
                       Status: {concern.status}
                     </span>
 
-                    <span style={{ fontSize: '11px', color: '#64748B' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                       Trigger: <strong>{concern.triggerSource}</strong> · Detected: {new Date(concern.createdAt).toLocaleTimeString()}
                     </span>
                   </div>
@@ -239,9 +240,9 @@ export const SafetyTab: React.FC = () => {
                         style={{
                           padding: '4px 10px',
                           borderRadius: '4px',
-                          border: '1px solid #CBD5E1',
-                          background: '#FFFFFF',
-                          color: '#334155',
+                          border: '1px solid var(--border-medium)',
+                          background: 'var(--bg-subtle)',
+                          color: 'var(--text-secondary)',
                           fontSize: '11px',
                           fontWeight: 600,
                           cursor: 'pointer',
@@ -261,8 +262,8 @@ export const SafetyTab: React.FC = () => {
                           padding: '4px 12px',
                           borderRadius: '4px',
                           border: 'none',
-                          background: '#059669',
-                          color: '#FFFFFF',
+                          background: 'var(--status-success)',
+                          color: 'var(--bg-surface)',
                           fontSize: '11px',
                           fontWeight: 600,
                           cursor: 'pointer',
@@ -280,7 +281,7 @@ export const SafetyTab: React.FC = () => {
                       <span
                         style={{
                           fontSize: '11px',
-                          color: '#059669',
+                          color: 'var(--status-success)',
                           fontWeight: 600,
                           display: 'flex',
                           alignItems: 'center',
@@ -293,23 +294,23 @@ export const SafetyTab: React.FC = () => {
                   </div>
                 </div>
 
-                <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px 0' }}>
                   {concern.category}
                 </h3>
 
-                <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#334155', lineHeight: 1.5 }}>
+                <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   {concern.description}
                 </p>
 
                 {concern.recommendedAction && (
                   <div
                     style={{
-                      background: '#F8FAFC',
-                      border: '1px solid #E2E8F0',
+                      background: 'var(--bg-subtle)',
+                      border: '1px solid var(--border-subtle)',
                       padding: '10px 12px',
                       borderRadius: '6px',
                       fontSize: '12px',
-                      color: '#1E293B',
+                      color: 'var(--text-primary)',
                       marginBottom: '10px',
                     }}
                   >
@@ -322,12 +323,12 @@ export const SafetyTab: React.FC = () => {
                 {(concern.clinicalNote || concern.acknowledgedBy || concern.resolvedBy) && (
                   <div
                     style={{
-                      background: isResolved ? '#F0FDF4' : '#F1F5F9',
-                      border: `1px solid ${isResolved ? '#BBF7D0' : '#CBD5E1'}`,
+                      background: isResolved ? 'var(--success-subtle)' : 'var(--bg-subtle)',
+                      border: `1px solid ${isResolved ? 'var(--success-border)' : 'var(--border-medium)'}`,
                       padding: '8px 12px',
                       borderRadius: '6px',
                       fontSize: '11px',
-                      color: '#334155',
+                      color: 'var(--text-secondary)',
                     }}
                   >
                     {concern.acknowledgedBy && (
@@ -343,7 +344,7 @@ export const SafetyTab: React.FC = () => {
                       </div>
                     )}
                     {concern.clinicalNote && (
-                      <div style={{ marginTop: '4px', fontStyle: 'italic', color: '#0F172A' }}>
+                      <div style={{ marginTop: '4px', fontStyle: 'italic', color: 'var(--text-primary)' }}>
                         "{concern.clinicalNote}"
                       </div>
                     )}

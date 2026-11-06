@@ -115,10 +115,10 @@ export const TeamMembersTab: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <Users size={18} style={{ color: '#0284C7' }} />
-            <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Team Members</h2>
+            <Users size={18} style={{ color: 'var(--accent-primary)' }} />
+            <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>Team Members</h2>
           </div>
-          <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>
             {activeCount} active member{activeCount !== 1 ? 's' : ''}
             {inactiveCount > 0 && ` · ${inactiveCount} inactive`}
             {activeOrganization ? ` in ${activeOrganization.name}` : ''}
@@ -133,8 +133,8 @@ export const TeamMembersTab: React.FC = () => {
               gap: '6px',
               padding: '8px 16px',
               borderRadius: '6px',
-              background: '#0F172A',
-              color: '#FFFFFF',
+              background: 'var(--bg-app)',
+              color: 'var(--bg-surface)',
               border: 'none',
               fontSize: '13px',
               fontWeight: 600,
@@ -150,7 +150,7 @@ export const TeamMembersTab: React.FC = () => {
       {/* Toolbar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
         <div style={{ position: 'relative', flex: 1, maxWidth: '320px' }}>
-          <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+          <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
           <input
             type="text"
             placeholder="Search members..."
@@ -159,16 +159,16 @@ export const TeamMembersTab: React.FC = () => {
             style={{
               width: '100%',
               padding: '8px 12px 8px 32px',
-              border: '1px solid #E2E8F0',
+              border: '1px solid var(--border-subtle)',
               borderRadius: '6px',
               fontSize: '13px',
-              color: '#0F172A',
+              color: 'var(--text-primary)',
               outline: 'none',
               boxSizing: 'border-box',
             }}
           />
         </div>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#64748B', cursor: 'pointer', userSelect: 'none' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-muted)', cursor: 'pointer', userSelect: 'none' }}>
           <input
             type="checkbox"
             checked={showInactive}
@@ -180,10 +180,10 @@ export const TeamMembersTab: React.FC = () => {
       </div>
 
       {/* Members Table */}
-      <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: '8px', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ background: '#F8FAFC' }}>
+            <tr style={{ background: 'var(--bg-subtle)' }}>
               {['Member', 'Role', 'Last Active', 'Status', canManage ? 'Actions' : ''].filter(Boolean).map((h) => (
                 <th
                   key={h}
@@ -194,8 +194,8 @@ export const TeamMembersTab: React.FC = () => {
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
-                    color: '#64748B',
-                    borderBottom: '1px solid #E2E8F0',
+                    color: 'var(--text-muted)',
+                    borderBottom: '1px solid var(--border-subtle)',
                   }}
                 >
                   {h}
@@ -206,7 +206,7 @@ export const TeamMembersTab: React.FC = () => {
           <tbody>
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: '#94A3B8', fontSize: '13px' }}>
+                <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
                   No members match your search.
                 </td>
               </tr>
@@ -221,7 +221,7 @@ export const TeamMembersTab: React.FC = () => {
                 <tr
                   key={member.membership.id}
                   style={{
-                    borderBottom: '1px solid #F1F5F9',
+                    borderBottom: '1px solid var(--bg-subtle)',
                     opacity: member.isActive ? 1 : 0.55,
                   }}
                 >
@@ -234,7 +234,7 @@ export const TeamMembersTab: React.FC = () => {
                           height: '36px',
                           borderRadius: '50%',
                           background: member.avatarColor,
-                          color: '#FFFFFF',
+                          color: 'var(--bg-surface)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -246,9 +246,9 @@ export const TeamMembersTab: React.FC = () => {
                         {member.avatarInitials}
                       </div>
                       <div>
-                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>{member.fullName}</div>
-                        <div style={{ fontSize: '11px', color: '#64748B' }}>{member.profession}</div>
-                        <div style={{ fontSize: '11px', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{member.fullName}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{member.profession}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
                           <Mail size={10} />
                           {member.email}
                         </div>
@@ -287,8 +287,8 @@ export const TeamMembersTab: React.FC = () => {
                                 top: 'calc(100% + 4px)',
                                 left: 0,
                                 zIndex: 100,
-                                background: '#FFFFFF',
-                                border: '1px solid #E2E8F0',
+                                background: 'var(--bg-surface)',
+                                border: '1px solid var(--border-subtle)',
                                 borderRadius: '8px',
                                 boxShadow: '0 8px 24px rgba(15,23,42,0.1)',
                                 minWidth: '200px',
@@ -304,11 +304,11 @@ export const TeamMembersTab: React.FC = () => {
                                     width: '100%',
                                     display: 'block',
                                     padding: '8px 12px',
-                                    background: r.value === role ? '#F1F5F9' : 'transparent',
+                                    background: r.value === role ? 'var(--bg-subtle)' : 'transparent',
                                     border: 'none',
                                     textAlign: 'left',
                                     fontSize: '12px',
-                                    color: '#0F172A',
+                                    color: 'var(--text-primary)',
                                     fontWeight: r.value === role ? 700 : 400,
                                     borderRadius: '6px',
                                     cursor: 'pointer',
@@ -336,7 +336,7 @@ export const TeamMembersTab: React.FC = () => {
                         </span>
                       )}
                       {wasSaved && (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#059669', marginTop: '4px' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--status-success)', marginTop: '4px' }}>
                           <CheckCircle2 size={11} />
                           Saved
                         </span>
@@ -346,7 +346,7 @@ export const TeamMembersTab: React.FC = () => {
 
                   {/* Last Active */}
                   <td style={{ padding: '14px 16px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: '#64748B' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: 'var(--text-muted)' }}>
                       <Clock size={12} />
                       {formatRelativeTime(member.lastActive)}
                     </div>
@@ -355,12 +355,12 @@ export const TeamMembersTab: React.FC = () => {
                   {/* Status */}
                   <td style={{ padding: '14px 16px' }}>
                     {member.isActive ? (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: '#059669', fontWeight: 600 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: 'var(--status-success)', fontWeight: 600 }}>
                         <CheckCircle2 size={13} />
                         Active
                       </span>
                     ) : (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: '#DC2626', fontWeight: 600 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: 'var(--status-danger)', fontWeight: 600 }}>
                         <XCircle size={13} />
                         Inactive
                       </span>
@@ -376,9 +376,9 @@ export const TeamMembersTab: React.FC = () => {
                         style={{
                           padding: '6px 12px',
                           borderRadius: '6px',
-                          background: member.isActive ? '#FEE2E2' : '#D1FAE5',
-                          color: member.isActive ? '#DC2626' : '#059669',
-                          border: `1px solid ${member.isActive ? '#FCA5A5' : '#6EE7B7'}`,
+                          background: member.isActive ? 'var(--danger-subtle)' : 'var(--success-subtle)',
+                          color: member.isActive ? 'var(--status-danger)' : 'var(--status-success)',
+                          border: `1px solid ${member.isActive ? 'var(--danger-border)' : 'var(--success-border)'}`,
                           fontSize: '12px',
                           fontWeight: 600,
                           cursor: 'pointer',
@@ -401,14 +401,14 @@ export const TeamMembersTab: React.FC = () => {
           style={{
             marginTop: '16px',
             padding: '12px 16px',
-            background: '#FEF3C7',
-            border: '1px solid #FCD34D',
+            background: 'var(--warning-subtle)',
+            border: '1px solid var(--warning-border)',
             borderRadius: '6px',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
             fontSize: '12px',
-            color: '#92400E',
+            color: 'var(--status-warning)',
           }}
         >
           <ShieldAlert size={14} />
@@ -435,7 +435,7 @@ export const TeamMembersTab: React.FC = () => {
         >
           <div
             style={{
-              background: '#FFFFFF',
+              background: 'var(--bg-surface)',
               borderRadius: '12px',
               boxShadow: '0 24px 48px rgba(15,23,42,0.2)',
               width: '440px',
@@ -445,19 +445,19 @@ export const TeamMembersTab: React.FC = () => {
             <div
               style={{
                 padding: '16px 20px',
-                borderBottom: '1px solid #E2E8F0',
+                borderBottom: '1px solid var(--border-subtle)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <UserPlus size={16} style={{ color: '#0284C7' }} />
-                <span style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>Invite Team Member</span>
+                <UserPlus size={16} style={{ color: 'var(--accent-primary)' }} />
+                <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>Invite Team Member</span>
               </div>
               <button
                 onClick={() => setShowInviteDialog(false)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
               >
                 <X size={16} />
               </button>
@@ -466,11 +466,11 @@ export const TeamMembersTab: React.FC = () => {
             <div style={{ padding: '20px' }}>
               {inviteSent ? (
                 <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                  <CheckCircle2 size={40} style={{ color: '#059669', marginBottom: '12px' }} />
-                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', marginBottom: '6px' }}>
+                  <CheckCircle2 size={40} style={{ color: 'var(--status-success)', marginBottom: '12px' }} />
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
                     Invitation Sent
                   </div>
-                  <div style={{ fontSize: '13px', color: '#64748B' }}>
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                     A demo invite link for <strong>{invite.email}</strong> has been generated.
                     In production, a Supabase edge function would send a secure email.
                   </div>
@@ -478,7 +478,7 @@ export const TeamMembersTab: React.FC = () => {
               ) : (
                 <>
                   <div style={{ marginBottom: '16px' }}>
-                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', marginBottom: '6px' }}>
                       Email Address
                     </label>
                     <input
@@ -489,17 +489,17 @@ export const TeamMembersTab: React.FC = () => {
                       style={{
                         width: '100%',
                         padding: '9px 12px',
-                        border: '1px solid #E2E8F0',
+                        border: '1px solid var(--border-subtle)',
                         borderRadius: '6px',
                         fontSize: '13px',
-                        color: '#0F172A',
+                        color: 'var(--text-primary)',
                         outline: 'none',
                         boxSizing: 'border-box',
                       }}
                     />
                   </div>
                   <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', marginBottom: '6px' }}>
                       Assign Role
                     </label>
                     <select
@@ -508,10 +508,10 @@ export const TeamMembersTab: React.FC = () => {
                       style={{
                         width: '100%',
                         padding: '9px 12px',
-                        border: '1px solid #E2E8F0',
+                        border: '1px solid var(--border-subtle)',
                         borderRadius: '6px',
                         fontSize: '13px',
-                        color: '#0F172A',
+                        color: 'var(--text-primary)',
                         outline: 'none',
                         cursor: 'pointer',
                       }}
@@ -520,7 +520,7 @@ export const TeamMembersTab: React.FC = () => {
                         <option key={r.value} value={r.value}>{r.label}</option>
                       ))}
                     </select>
-                    <div style={{ marginTop: '8px', padding: '8px 12px', background: '#F8FAFC', borderRadius: '6px', fontSize: '12px', color: '#64748B', borderLeft: '3px solid #E2E8F0' }}>
+                    <div style={{ marginTop: '8px', padding: '8px 12px', background: 'var(--bg-subtle)', borderRadius: '6px', fontSize: '12px', color: 'var(--text-muted)', borderLeft: '3px solid var(--border-subtle)' }}>
                       {invite.role === 'organization_admin'
                         ? '⚠ Organisation Admin has no clinical decision authority. Admin is segregated from clinical access by design.'
                         : invite.role === 'clinician'
@@ -535,7 +535,7 @@ export const TeamMembersTab: React.FC = () => {
                   <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                     <button
                       onClick={() => setShowInviteDialog(false)}
-                      style={{ padding: '8px 16px', borderRadius: '6px', background: '#F1F5F9', border: '1px solid #E2E8F0', fontSize: '13px', color: '#64748B', cursor: 'pointer', fontWeight: 600 }}
+                      style={{ padding: '8px 16px', borderRadius: '6px', background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)', fontSize: '13px', color: 'var(--text-muted)', cursor: 'pointer', fontWeight: 600 }}
                     >
                       Cancel
                     </button>
@@ -545,8 +545,8 @@ export const TeamMembersTab: React.FC = () => {
                       style={{
                         padding: '8px 18px',
                         borderRadius: '6px',
-                        background: invite.email ? '#0F172A' : '#94A3B8',
-                        color: '#FFFFFF',
+                        background: invite.email ? 'var(--text-primary)' : 'var(--text-muted)',
+                        color: 'var(--bg-surface)',
                         border: 'none',
                         fontSize: '13px',
                         fontWeight: 600,
@@ -560,7 +560,7 @@ export const TeamMembersTab: React.FC = () => {
               )}
             </div>
 
-            <div style={{ padding: '12px 20px', background: '#F8FAFC', borderTop: '1px solid #E2E8F0', fontSize: '11px', color: '#94A3B8' }}>
+            <div style={{ padding: '12px 20px', background: 'var(--bg-subtle)', borderTop: '1px solid var(--border-subtle)', fontSize: '11px', color: 'var(--text-muted)' }}>
               Demo: Generates a pending <code>organization_invitations</code> record.
               Production: Supabase edge function delivers a time-limited invite link via email.
             </div>
@@ -573,11 +573,11 @@ export const TeamMembersTab: React.FC = () => {
         style={{
           marginTop: '16px',
           padding: '12px 16px',
-          background: '#F8FAFC',
-          border: '1px solid #E2E8F0',
+          background: 'var(--bg-subtle)',
+          border: '1px solid var(--border-subtle)',
           borderRadius: '6px',
           fontSize: '12px',
-          color: '#64748B',
+          color: 'var(--text-muted)',
         }}
       >
         <strong>Demo Mode:</strong> Role changes and deactivations update local session state only.

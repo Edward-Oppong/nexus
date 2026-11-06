@@ -67,11 +67,11 @@ export const ReasoningTab: React.FC = () => {
             <span className="badge badge-nexus" style={{ whiteSpace: 'nowrap' }}>
               ⬡ Nexus Clinical Intelligence Engine v2.5 (Production Live)
             </span>
-            <span style={{ fontSize: '11px', color: '#64748B' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
               Multi-hypothesis differential decomposition & human review
             </span>
           </div>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#0F172A' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>
             Clinical Reasoning & Candidate Hypotheses
           </h2>
         </div>
@@ -81,9 +81,9 @@ export const ReasoningTab: React.FC = () => {
             onClick={() => exportCaseToPdf({ fullCase: activeCase, assessment: activeCase.nexusAssessment })}
             className="btn btn-sm"
             style={{
-              border: '1px solid #CBD5E1',
-              background: '#FFFFFF',
-              color: '#0F766E',
+              border: '1px solid var(--border-medium)',
+              background: 'var(--bg-surface)',
+              color: 'var(--accent-primary)',
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
@@ -111,20 +111,20 @@ export const ReasoningTab: React.FC = () => {
       {hypotheses.length === 0 ? (
         <div
           style={{
-            background: '#FFFFFF',
-            border: '1px dashed #CBD5E1',
+            background: 'var(--bg-surface)',
+            border: '1px dashed var(--border-medium)',
             borderRadius: '6px',
             padding: '36px 20px',
             textAlign: 'center',
           }}
         >
-          <div style={{ display: 'inline-flex', padding: '10px', background: '#F1F5F9', borderRadius: '50%', color: '#64748B', marginBottom: '12px' }}>
+          <div style={{ display: 'inline-flex', padding: '10px', background: 'var(--bg-subtle)', borderRadius: '50%', color: 'var(--text-muted)', marginBottom: '12px' }}>
             <BrainCircuit size={26} />
           </div>
-          <h3 style={{ fontSize: '15px', fontWeight: 600, color: '#0F172A', marginBottom: '6px' }}>
+          <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
             No Candidate Hypotheses Generated
           </h3>
-          <p style={{ fontSize: '12px', color: '#64748B', maxWidth: '440px', margin: '0 auto 16px', lineHeight: 1.5 }}>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', maxWidth: '440px', margin: '0 auto 16px', lineHeight: 1.5 }}>
             No candidate differential diagnoses have been established for this case yet. Ingest clinical documents or run the Nexus reasoning analysis above to generate hypotheses.
           </p>
           <button
@@ -140,19 +140,19 @@ export const ReasoningTab: React.FC = () => {
           {hypotheses.map((hyp, index) => {
             const isSelected = activeHypothesis ? hyp.id === activeHypothesis.id : false;
             const statusBg =
-              hyp.status === 'Supported' ? '#ECFDF5' : hyp.status === 'Uncertain' ? '#FFFBEB' : '#FEF2F2';
+              hyp.status === 'Supported' ? 'var(--success-subtle)' : hyp.status === 'Uncertain' ? 'var(--warning-subtle)' : 'var(--danger-subtle)';
             const statusColor =
-              hyp.status === 'Supported' ? '#065F46' : hyp.status === 'Uncertain' ? '#92400E' : '#991B1B';
+              hyp.status === 'Supported' ? 'var(--status-success)' : hyp.status === 'Uncertain' ? 'var(--status-warning)' : 'var(--status-danger)';
             const statusBorder =
-              hyp.status === 'Supported' ? '#6EE7B7' : hyp.status === 'Uncertain' ? '#FCD34D' : '#FCA5A5';
+              hyp.status === 'Supported' ? 'var(--success-border)' : hyp.status === 'Uncertain' ? 'var(--warning-border)' : 'var(--danger-border)';
 
             return (
               <div
                 key={hyp.id}
                 onClick={() => setSelectedHypothesisId(hyp.id)}
                 style={{
-                  background: isSelected ? '#FFFFFF' : '#F8FAFC',
-                  border: `2px solid ${isSelected ? '#0F172A' : '#E2E8F0'}`,
+                  background: isSelected ? 'var(--bg-surface)' : 'var(--bg-subtle)',
+                  border: `2px solid ${isSelected ? 'var(--text-primary)' : 'var(--border-subtle)'}`,
                   borderRadius: '6px',
                   padding: '16px',
                   cursor: 'pointer',
@@ -165,7 +165,7 @@ export const ReasoningTab: React.FC = () => {
               >
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
                       HYPOTHESIS 0{index + 1}
                     </span>
                     <span
@@ -183,22 +183,22 @@ export const ReasoningTab: React.FC = () => {
                     </span>
                   </div>
 
-                  <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', marginBottom: '6px', lineHeight: 1.3 }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px', lineHeight: 1.3 }}>
                     {hyp.title}
                   </h3>
-                  <p style={{ fontSize: '11px', color: '#64748B', lineHeight: 1.4, marginBottom: '12px' }}>
+                  <p style={{ fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.4, marginBottom: '12px' }}>
                     {hyp.statusDetail}
                   </p>
                 </div>
 
                 <div
                   style={{
-                    borderTop: '1px solid #E2E8F0',
+                    borderTop: '1px solid var(--border-subtle)',
                     paddingTop: '8px',
                     display: 'flex',
                     justifyContent: 'space-between',
                     fontSize: '11px',
-                    color: '#475569',
+                    color: 'var(--text-secondary)',
                   }}
                 >
                   <span>✓ {hyp.supportingFindingIds.length} sup</span>
@@ -215,18 +215,18 @@ export const ReasoningTab: React.FC = () => {
       {activeHypothesis && (
         <section
           style={{
-            background: '#FFFFFF',
-            border: '1px solid #E2E8F0',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: '6px',
             padding: '20px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <div>
-              <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748B', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
+              <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
                 Detailed Decomposition
               </span>
-              <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', marginTop: '2px' }}>
+              <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
                 {activeHypothesis.title}
               </h3>
             </div>
@@ -238,18 +238,18 @@ export const ReasoningTab: React.FC = () => {
           {/* Nexus Clinical Assessment Text */}
           <div
             style={{
-              background: '#F8FAFC',
-              border: '1px solid #CBD5E1',
-              borderLeft: '4px solid #0F172A',
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-medium)',
+              borderLeft: '4px solid var(--text-primary)',
               borderRadius: '4px',
               padding: '14px',
               fontSize: '13px',
-              color: '#1E293B',
+              color: 'var(--text-primary)',
               lineHeight: 1.6,
               marginBottom: '20px',
             }}
           >
-            <strong style={{ color: '#0F172A', display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '4px' }}>
+            <strong style={{ color: 'var(--text-primary)', display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '4px' }}>
               Nexus Assessment
             </strong>
             {activeHypothesis.nexusAssessment}
@@ -257,7 +257,7 @@ export const ReasoningTab: React.FC = () => {
 
           {/* Section 20: Evidence Balance / Contradiction View */}
           <div style={{ marginBottom: '20px' }}>
-            <div style={{ fontSize: '12px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '10px' }}>
+            <div style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '10px' }}>
               Evidence Balance & Contradiction Analysis
             </div>
 
@@ -265,13 +265,13 @@ export const ReasoningTab: React.FC = () => {
               {/* Supporting Column */}
               <div
                 style={{
-                  background: '#F0FDF4',
-                  border: '1px solid #BBF7D0',
+                  background: 'var(--success-subtle)',
+                  border: '1px solid var(--success-border)',
                   borderRadius: '6px',
                   padding: '14px',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#15803D', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', marginBottom: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--status-success)', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', marginBottom: '10px' }}>
                   <CheckCircle2 size={15} /> Supporting Findings ({activeHypothesis.supportingFindingIds.length})
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -279,12 +279,12 @@ export const ReasoningTab: React.FC = () => {
                     <div
                       key={id}
                       style={{
-                        background: '#FFFFFF',
-                        border: '1px solid #DCFCE7',
+                        background: 'var(--bg-surface)',
+                        border: '1px solid var(--success-subtle)',
                         padding: '8px',
                         borderRadius: '4px',
                         fontSize: '12px',
-                        color: '#166534',
+                        color: 'var(--status-success)',
                         lineHeight: 1.3,
                       }}
                     >
@@ -297,18 +297,18 @@ export const ReasoningTab: React.FC = () => {
               {/* Contradicting Column */}
               <div
                 style={{
-                  background: '#FEF2F2',
-                  border: '1px solid #FECACA',
+                  background: 'var(--danger-subtle)',
+                  border: '1px solid var(--danger-border)',
                   borderRadius: '6px',
                   padding: '14px',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#B91C1C', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', marginBottom: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--status-danger)', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', marginBottom: '10px' }}>
                   <AlertTriangle size={15} /> Contradicting / Atypical ({activeHypothesis.contradictingFindingIds.length})
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {activeHypothesis.contradictingFindingIds.length === 0 ? (
-                    <div style={{ fontSize: '12px', color: '#991B1B', fontStyle: 'italic' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--status-danger)', fontStyle: 'italic' }}>
                       No contradicting findings observed.
                     </div>
                   ) : (
@@ -316,12 +316,12 @@ export const ReasoningTab: React.FC = () => {
                       <div
                         key={id}
                         style={{
-                          background: '#FFFFFF',
-                          border: '1px solid #FEE2E2',
+                          background: 'var(--bg-surface)',
+                          border: '1px solid var(--danger-subtle)',
                           padding: '8px',
                           borderRadius: '4px',
                           fontSize: '12px',
-                          color: '#991B1B',
+                          color: 'var(--status-danger)',
                           lineHeight: 1.3,
                         }}
                       >
@@ -335,13 +335,13 @@ export const ReasoningTab: React.FC = () => {
               {/* Unresolved / Missing Gaps Column */}
               <div
                 style={{
-                  background: '#FFFBEB',
-                  border: '1px solid #FDE68A',
+                  background: 'var(--warning-subtle)',
+                  border: '1px solid var(--warning-border)',
                   borderRadius: '6px',
                   padding: '14px',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#B45309', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', marginBottom: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--status-warning)', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', marginBottom: '10px' }}>
                   <HelpCircle size={15} /> Unresolved Information Gaps
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -349,15 +349,15 @@ export const ReasoningTab: React.FC = () => {
                     <div
                       key={gap.id}
                       style={{
-                        background: '#FFFFFF',
-                        border: '1px solid #FEF3C7',
+                        background: 'var(--bg-surface)',
+                        border: '1px solid var(--warning-subtle)',
                         padding: '8px',
                         borderRadius: '4px',
                         fontSize: '12px',
                       }}
                     >
-                      <div style={{ fontWeight: 600, color: '#92400E' }}>? {gap.testName}</div>
-                      <div style={{ fontSize: '11px', color: '#B45309', marginTop: '2px' }}>
+                      <div style={{ fontWeight: 600, color: 'var(--status-warning)' }}>? {gap.testName}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--status-warning)', marginTop: '2px' }}>
                         Status: {gap.status}
                       </div>
                     </div>
@@ -367,7 +367,7 @@ export const ReasoningTab: React.FC = () => {
             </div>
 
             {/* Phase 11: Point-of-Care Feature Attribution & Sensitivity Simulation */}
-            <div style={{ marginTop: '16px', borderTop: '1px solid #E2E8F0', paddingTop: '14px' }}>
+            <div style={{ marginTop: '16px', borderTop: '1px solid var(--border-subtle)', paddingTop: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <button
                   onClick={() => setShowExplainability(!showExplainability)}
@@ -381,7 +381,7 @@ export const ReasoningTab: React.FC = () => {
                     gap: '8px',
                     fontSize: '12px',
                     fontWeight: 600,
-                    color: '#2563EB',
+                    color: 'var(--accent-primary)',
                   }}
                 >
                   <BrainCircuit size={15} />
@@ -389,17 +389,17 @@ export const ReasoningTab: React.FC = () => {
                   {showExplainability ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                 </button>
 
-                <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
                   Likelihood: {explainability?.qualitativeLikelihood || activeHypothesis.statusDetail || activeHypothesis.status}
                 </span>
               </div>
 
               {showExplainability && explainability && (
-                <div style={{ marginTop: '14px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '6px', padding: '14px' }}>
+                <div style={{ marginTop: '14px', background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Sparkles size={14} style={{ color: '#6366F1' }} />
-                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#0F172A' }}>
+                      <Sparkles size={14} style={{ color: 'var(--accent-primary)' }} />
+                      <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>
                         Shapley-Proxy Clinical Feature Attribution
                       </span>
                     </div>
@@ -407,7 +407,7 @@ export const ReasoningTab: React.FC = () => {
                       <button
                         onClick={() => setShowKnowledgeGraph(true)}
                         className="btn btn-xs btn-outline"
-                        style={{ fontSize: '11px', padding: '2px 8px', display: 'flex', alignItems: 'center', gap: '4px', color: '#2563EB', borderColor: '#BFDBFE', background: '#EFF6FF' }}
+                        style={{ fontSize: '11px', padding: '2px 8px', display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--accent-primary)', borderColor: 'var(--border-medium)', background: 'var(--accent-subtle)' }}
                       >
                         <Network size={12} /> Knowledge Graph &rarr;
                       </button>
@@ -428,22 +428,22 @@ export const ReasoningTab: React.FC = () => {
                         <div
                           key={attr.findingId}
                           style={{
-                            background: '#FFFFFF',
-                            border: '1px solid #E2E8F0',
+                            background: 'var(--bg-surface)',
+                            border: '1px solid var(--border-subtle)',
                             borderRadius: '4px',
                             padding: '8px 10px',
                             fontSize: '11px',
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                            <span style={{ fontWeight: 600, color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }} title={attr.findingLabel}>
+                            <span style={{ fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }} title={attr.findingLabel}>
                               {attr.findingLabel}
                             </span>
                             <span
                               style={{
                                 fontWeight: 700,
                                 fontFamily: 'var(--font-mono)',
-                                color: isPos ? '#16A34A' : '#DC2626',
+                                color: isPos ? 'var(--status-success)' : 'var(--status-danger)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '2px',
@@ -453,7 +453,7 @@ export const ReasoningTab: React.FC = () => {
                               {attr.attributionPercentage}%
                             </span>
                           </div>
-                          <div style={{ color: '#64748B', fontSize: '10px', lineHeight: 1.3 }}>
+                          <div style={{ color: 'var(--text-muted)', fontSize: '10px', lineHeight: 1.3 }}>
                             {attr.counterfactualImpact}
                           </div>
                         </div>
@@ -462,15 +462,15 @@ export const ReasoningTab: React.FC = () => {
                   </div>
 
                   {explainability.counterfactuals && explainability.counterfactuals.length > 0 && (
-                    <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '4px', padding: '10px 12px' }}>
-                      <div style={{ fontSize: '11px', fontWeight: 600, color: '#1E40AF', marginBottom: '4px' }}>
+                    <div style={{ background: 'var(--accent-subtle)', border: '1px solid var(--border-medium)', borderRadius: '4px', padding: '10px 12px' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--accent-primary)', marginBottom: '4px' }}>
                         Counterfactual Sensitivity Simulation
                       </div>
-                      <div style={{ fontSize: '11px', color: '#1E3A8A', lineHeight: 1.4 }}>
+                      <div style={{ fontSize: '11px', color: 'var(--accent-primary)', lineHeight: 1.4 }}>
                         <strong>{explainability.counterfactuals[0].findingModified}: </strong>
                         {explainability.counterfactuals[0].predictedHypothesisRankShift}
                       </div>
-                      <div style={{ fontSize: '10px', color: '#3B82F6', marginTop: '4px', fontStyle: 'italic' }}>
+                      <div style={{ fontSize: '10px', color: 'var(--accent-primary)', marginTop: '4px', fontStyle: 'italic' }}>
                         {explainability.counterfactuals[0].clinicalRationale}
                       </div>
                     </div>
@@ -485,18 +485,18 @@ export const ReasoningTab: React.FC = () => {
       {/* Section 21 & Expert Correction #5: Multi-Dimensional Qualitative Uncertainty */}
       <section
         style={{
-          background: '#FFFFFF',
-          border: '1px solid #E2E8F0',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-subtle)',
           borderRadius: '6px',
           padding: '20px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
           <div>
-            <h3 style={{ fontSize: '12px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em' }}>
+            <h3 style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em' }}>
               Qualitative Uncertainty Assessment
             </h3>
-            <div style={{ fontSize: '11px', color: '#64748B' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
               Transparent clinical confidence dimensions (Zero arbitrary percentage meters)
             </div>
           </div>
@@ -507,40 +507,40 @@ export const ReasoningTab: React.FC = () => {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '14px' }}>
           {/* Data Completeness */}
-          <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '12px', borderRadius: '6px' }}>
-            <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>
+          <div style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)', padding: '12px', borderRadius: '6px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
               Data Completeness
             </div>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', margin: '4px 0' }}>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: '4px 0' }}>
               {uncertainty.dataCompleteness}
             </div>
-            <div style={{ fontSize: '11px', color: '#475569', lineHeight: 1.4 }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
               {uncertainty.dataCompletenessReason}
             </div>
           </div>
 
           {/* Evidence Consistency */}
-          <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '12px', borderRadius: '6px' }}>
-            <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>
+          <div style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)', padding: '12px', borderRadius: '6px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
               Evidence Consistency
             </div>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: '#D97706', margin: '4px 0' }}>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--status-warning)', margin: '4px 0' }}>
               {uncertainty.evidenceConsistency}
             </div>
-            <div style={{ fontSize: '11px', color: '#475569', lineHeight: 1.4 }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
               {uncertainty.evidenceConsistencyReason}
             </div>
           </div>
 
           {/* Model Applicability */}
-          <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '12px', borderRadius: '6px' }}>
-            <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>
+          <div style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)', padding: '12px', borderRadius: '6px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
               Model Applicability
             </div>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: '#DC2626', margin: '4px 0' }}>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--status-danger)', margin: '4px 0' }}>
               {uncertainty.modelApplicability}
             </div>
-            <div style={{ fontSize: '11px', color: '#475569', lineHeight: 1.4 }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
               {uncertainty.modelApplicabilityReason}
             </div>
           </div>
@@ -548,12 +548,12 @@ export const ReasoningTab: React.FC = () => {
 
         <div
           style={{
-            background: '#F1F5F9',
-            border: '1px solid #CBD5E1',
+            background: 'var(--bg-subtle)',
+            border: '1px solid var(--border-medium)',
             borderRadius: '4px',
             padding: '10px 14px',
             fontSize: '12px',
-            color: '#334155',
+            color: 'var(--text-secondary)',
           }}
         >
           <strong>Primary clinical rationale: </strong>
@@ -565,21 +565,21 @@ export const ReasoningTab: React.FC = () => {
       {informationGaps && informationGaps.length > 0 && informationGaps[0] && (
         <section
           style={{
-            background: '#FFFBEB',
-            border: '1px solid #FCD34D',
+            background: 'var(--warning-subtle)',
+            border: '1px solid var(--warning-border)',
             borderRadius: '6px',
             padding: '18px 20px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
             <div>
-              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: '#B45309', letterSpacing: '0.06em' }}>
+              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--status-warning)', letterSpacing: '0.06em' }}>
                 High-Priority Information Gap Detected
               </div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#92400E', marginTop: '2px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--status-warning)', marginTop: '2px' }}>
                 {informationGaps[0].testName}
               </h3>
-              <p style={{ fontSize: '12px', color: '#78350F', marginTop: '4px', maxWidth: '720px', lineHeight: 1.5 }}>
+              <p style={{ fontSize: '12px', color: 'var(--status-warning)', marginTop: '4px', maxWidth: '720px', lineHeight: 1.5 }}>
                 {informationGaps[0].whyItMatters}
               </p>
               </div>

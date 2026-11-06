@@ -38,25 +38,25 @@ export const NexusAnalysisRailPanel: React.FC = () => {
     return (
       <section
         style={{
-          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-          border: '1px solid #334155',
+          background: 'linear-gradient(135deg, var(--text-primary) 0%, var(--text-primary) 100%)',
+          border: '1px solid var(--text-secondary)',
           borderRadius: '8px',
           padding: '14px',
           display: 'flex',
           flexDirection: 'column',
           gap: '10px',
-          color: '#F8FAFC',
+          color: 'var(--text-primary)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Sparkles size={14} color="#38BDF8" />
+          <Sparkles size={14} color="var(--accent-primary)" />
           <span
             style={{
               fontSize: '11px',
               fontWeight: 700,
               letterSpacing: '0.06em',
               textTransform: 'uppercase',
-              color: '#F8FAFC',
+              color: 'var(--text-primary)',
             }}
           >
             Nexus Analysis Running
@@ -64,11 +64,11 @@ export const NexusAnalysisRailPanel: React.FC = () => {
         </div>
 
         {/* Progress bar */}
-        <div style={{ background: '#1E293B', borderRadius: '4px', overflow: 'hidden', height: '4px' }}>
+        <div style={{ background: 'var(--bg-app)', borderRadius: '4px', overflow: 'hidden', height: '4px' }}>
           <div
             style={{
               height: '100%',
-              background: 'linear-gradient(90deg, #0284C7, #38BDF8)',
+              background: 'linear-gradient(90deg, var(--accent-primary), var(--accent-primary))',
               width: `${(analysisStage.stageIndex / analysisStage.totalStages) * 100}%`,
               transition: 'width 0.5s ease',
               borderRadius: '4px',
@@ -77,18 +77,18 @@ export const NexusAnalysisRailPanel: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Loader size={13} style={{ animation: 'spin 1s linear infinite' }} color="#38BDF8" />
+          <Loader size={13} style={{ animation: 'spin 1s linear infinite' }} color="var(--accent-primary)" />
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '11px', fontWeight: 600, color: '#CBD5E1' }}>
+            <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--border-medium)' }}>
               {analysisStage.stageName}
             </div>
-            <div style={{ fontSize: '10px', color: '#64748B', marginTop: '2px', lineHeight: 1.35 }}>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px', lineHeight: 1.35 }}>
               {analysisStage.detail}
             </div>
           </div>
         </div>
 
-        <div style={{ fontSize: '10px', color: '#475569', fontFamily: 'monospace' }}>
+        <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
           Stage {analysisStage.stageIndex} / {analysisStage.totalStages}
         </div>
       </section>
@@ -100,8 +100,8 @@ export const NexusAnalysisRailPanel: React.FC = () => {
     return (
       <section
         style={{
-          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-          border: '1px solid #334155',
+          background: 'linear-gradient(135deg, var(--text-primary) 0%, var(--text-primary) 100%)',
+          border: '1px solid var(--text-secondary)',
           borderRadius: '8px',
           padding: '14px',
           display: 'flex',
@@ -110,21 +110,21 @@ export const NexusAnalysisRailPanel: React.FC = () => {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Sparkles size={14} color="#38BDF8" />
+          <Sparkles size={14} color="var(--accent-primary)" />
           <span
             style={{
               fontSize: '11px',
               fontWeight: 700,
               letterSpacing: '0.06em',
               textTransform: 'uppercase',
-              color: '#F8FAFC',
+              color: 'var(--text-primary)',
             }}
           >
             Nexus Analysis
           </span>
         </div>
 
-        <p style={{ margin: 0, fontSize: '11px', color: '#94A3B8', lineHeight: 1.5 }}>
+        <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
           Run the 4-stage clinical reasoning pipeline to generate grounded differential hypotheses,
           detect contradictions, and retrieve live PubMed evidence.
         </p>
@@ -139,8 +139,8 @@ export const NexusAnalysisRailPanel: React.FC = () => {
             padding: '8px 12px',
             borderRadius: '6px',
             border: 'none',
-            background: '#0284C7',
-            color: '#FFFFFF',
+            background: 'var(--accent-primary)',
+            color: 'var(--bg-surface)',
             fontSize: '11px',
             fontWeight: 700,
             cursor: 'pointer',
@@ -164,8 +164,8 @@ export const NexusAnalysisRailPanel: React.FC = () => {
   return (
     <section
       style={{
-        background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-        border: '1px solid #334155',
+        background: 'linear-gradient(135deg, var(--text-primary) 0%, var(--text-primary) 100%)',
+        border: '1px solid var(--text-secondary)',
         borderRadius: '8px',
         overflow: 'hidden',
       }}
@@ -178,19 +178,19 @@ export const NexusAnalysisRailPanel: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'space-between',
           cursor: 'pointer',
-          borderBottom: isExpanded ? '1px solid #1E293B' : 'none',
+          borderBottom: isExpanded ? '1px solid var(--text-primary)' : 'none',
         }}
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Sparkles size={14} color="#38BDF8" />
+          <Sparkles size={14} color="var(--accent-primary)" />
           <span
             style={{
               fontSize: '11px',
               fontWeight: 700,
               letterSpacing: '0.06em',
               textTransform: 'uppercase',
-              color: '#F8FAFC',
+              color: 'var(--text-primary)',
             }}
           >
             Nexus Assessment
@@ -206,7 +206,7 @@ export const NexusAnalysisRailPanel: React.FC = () => {
             style={{
               border: 'none',
               background: 'transparent',
-              color: '#64748B',
+              color: 'var(--text-muted)',
               cursor: 'pointer',
               padding: '2px',
               display: 'flex',
@@ -216,9 +216,9 @@ export const NexusAnalysisRailPanel: React.FC = () => {
             <RefreshCw size={11} />
           </button>
           {isExpanded ? (
-            <ChevronDown size={13} color="#64748B" />
+            <ChevronDown size={13} color="var(--text-muted)" />
           ) : (
-            <ChevronRight size={13} color="#64748B" />
+            <ChevronRight size={13} color="var(--text-muted)" />
           )}
         </div>
       </div>
@@ -235,11 +235,11 @@ export const NexusAnalysisRailPanel: React.FC = () => {
                 background: 'rgba(2, 132, 199, 0.1)',
                 border: '1px solid rgba(2, 132, 199, 0.25)',
                 fontSize: '11px',
-                color: '#BAE6FD',
+                color: 'var(--border-medium)',
                 lineHeight: 1.45,
               }}
             >
-              <div style={{ fontWeight: 700, fontSize: '9px', letterSpacing: '0.08em', color: '#38BDF8', marginBottom: '4px', textTransform: 'uppercase' }}>
+              <div style={{ fontWeight: 700, fontSize: '9px', letterSpacing: '0.08em', color: 'var(--accent-primary)', marginBottom: '4px', textTransform: 'uppercase' }}>
                 SUMMARY
               </div>
               {nexusAssessment.summary.length > 200
@@ -257,7 +257,7 @@ export const NexusAnalysisRailPanel: React.FC = () => {
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.08em',
-                  color: '#64748B',
+                  color: 'var(--text-muted)',
                   marginBottom: '6px',
                   display: 'flex',
                   alignItems: 'center',
@@ -292,7 +292,7 @@ export const NexusAnalysisRailPanel: React.FC = () => {
                           style={{
                             fontSize: '9px',
                             fontWeight: 700,
-                            color: i === 0 ? '#38BDF8' : '#64748B',
+                            color: i === 0 ? 'var(--accent-primary)' : 'var(--text-muted)',
                             fontFamily: 'monospace',
                             marginTop: '1px',
                             flexShrink: 0,
@@ -304,7 +304,7 @@ export const NexusAnalysisRailPanel: React.FC = () => {
                           style={{
                             fontSize: '11px',
                             fontWeight: 600,
-                            color: i === 0 ? '#E2E8F0' : '#94A3B8',
+                            color: i === 0 ? 'var(--border-subtle)' : 'var(--text-muted)',
                             lineHeight: 1.3,
                           }}
                         >
@@ -315,7 +315,7 @@ export const NexusAnalysisRailPanel: React.FC = () => {
                         <div
                           style={{
                             fontSize: '10px',
-                            color: '#64748B',
+                            color: 'var(--text-muted)',
                             lineHeight: 1.4,
                             paddingLeft: '16px',
                           }}
@@ -339,7 +339,7 @@ export const NexusAnalysisRailPanel: React.FC = () => {
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.08em',
-                  color: '#64748B',
+                  color: 'var(--text-muted)',
                   marginBottom: '5px',
                 }}
               >
@@ -355,14 +355,14 @@ export const NexusAnalysisRailPanel: React.FC = () => {
                       background: 'rgba(220, 38, 38, 0.08)',
                       border: '1px solid rgba(220, 38, 38, 0.2)',
                       fontSize: '10px',
-                      color: '#FCA5A5',
+                      color: 'var(--danger-border)',
                       lineHeight: 1.4,
                       display: 'flex',
                       gap: '6px',
                       alignItems: 'flex-start',
                     }}
                   >
-                    <AlertTriangle size={11} color="#F87171" style={{ flexShrink: 0, marginTop: '1px' }} />
+                    <AlertTriangle size={11} color="var(--danger-border)" style={{ flexShrink: 0, marginTop: '1px' }} />
                     {c.explanation.length > 100 ? c.explanation.slice(0, 97) + '...' : c.explanation}
                   </div>
                 ))}
@@ -382,10 +382,10 @@ export const NexusAnalysisRailPanel: React.FC = () => {
                 background: 'rgba(245, 158, 11, 0.08)',
                 border: '1px solid rgba(245, 158, 11, 0.2)',
                 fontSize: '10px',
-                color: '#FCD34D',
+                color: 'var(--warning-border)',
               }}
             >
-              <Info size={11} color="#FBBF24" style={{ flexShrink: 0 }} />
+              <Info size={11} color="var(--status-warning)" style={{ flexShrink: 0 }} />
               {missingFindings.length} investigation(s) recommended to confirm diagnosis
             </div>
           )}
@@ -399,7 +399,7 @@ export const NexusAnalysisRailPanel: React.FC = () => {
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.08em',
-                  color: '#64748B',
+                  color: 'var(--text-muted)',
                   marginBottom: '5px',
                 }}
               >
@@ -415,14 +415,14 @@ export const NexusAnalysisRailPanel: React.FC = () => {
                       background: 'rgba(16, 185, 129, 0.07)',
                       border: '1px solid rgba(16, 185, 129, 0.2)',
                       fontSize: '10px',
-                      color: '#6EE7B7',
+                      color: 'var(--success-border)',
                       lineHeight: 1.4,
                       display: 'flex',
                       gap: '6px',
                       alignItems: 'flex-start',
                     }}
                   >
-                    <CheckCircle2 size={11} color="#34D399" style={{ flexShrink: 0, marginTop: '1px' }} />
+                    <CheckCircle2 size={11} color="var(--status-success)" style={{ flexShrink: 0, marginTop: '1px' }} />
                     {r.content.length > 100 ? r.content.slice(0, 97) + '...' : r.content}
                   </div>
                 ))}
@@ -437,10 +437,10 @@ export const NexusAnalysisRailPanel: React.FC = () => {
               alignItems: 'center',
               justifyContent: 'space-between',
               paddingTop: '4px',
-              borderTop: '1px solid #1E293B',
+              borderTop: '1px solid var(--text-primary)',
             }}
           >
-            <span style={{ fontSize: '9px', color: '#475569', fontFamily: 'monospace' }}>
+            <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
               {nexusAssessment.modelName} · {nexusAssessment.promptVersion}
             </span>
             <button
@@ -450,7 +450,7 @@ export const NexusAnalysisRailPanel: React.FC = () => {
                 background: 'transparent',
                 fontSize: '10px',
                 fontWeight: 600,
-                color: '#38BDF8',
+                color: 'var(--accent-primary)',
                 cursor: 'pointer',
                 padding: 0,
                 display: 'flex',

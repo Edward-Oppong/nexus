@@ -74,27 +74,27 @@ export function generateCaseReportHtml({
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-size: 11pt;
       line-height: 1.45;
-      color: #0F172A;
-      background: #FFFFFF;
+      color: var(--text-primary);
+      background: var(--bg-surface);
       margin: 0;
       padding: 0;
     }
     .header-table {
       width: 100%;
-      border-bottom: 2px solid #0F766E;
+      border-bottom: 2px solid var(--accent-primary);
       padding-bottom: 12px;
       margin-bottom: 16px;
     }
     .header-title {
       font-size: 18pt;
       font-weight: 800;
-      color: #0F766E;
+      color: var(--accent-primary);
       letter-spacing: -0.02em;
       margin: 0;
     }
     .header-sub {
       font-size: 9pt;
-      color: #64748B;
+      color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.05em;
       margin-top: 2px;
@@ -107,23 +107,23 @@ export function generateCaseReportHtml({
       font-weight: 700;
       text-transform: uppercase;
     }
-    .badge-esi1 { background-color: #DC2626; color: #FFFFFF; }
-    .badge-esi2 { background-color: #EA580C; color: #FFFFFF; }
+    .badge-esi1 { background-color: var(--status-danger); color: var(--bg-surface); }
+    .badge-esi2 { background-color: #EA580C; color: var(--bg-surface); }
     .badge-esi3 { background-color: #EAB308; color: #000000; }
-    .badge-esi4 { background-color: #2563EB; color: #FFFFFF; }
-    .badge-esi5 { background-color: #10B981; color: #FFFFFF; }
-    .badge-urgent { background-color: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
-    .badge-supported { background-color: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
-    .badge-uncertain { background-color: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; }
-    .badge-contradicted { background-color: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+    .badge-esi4 { background-color: var(--accent-primary); color: var(--bg-surface); }
+    .badge-esi5 { background-color: var(--status-success); color: var(--bg-surface); }
+    .badge-urgent { background-color: var(--danger-subtle); color: var(--status-danger); border: 1px solid var(--danger-border); }
+    .badge-supported { background-color: var(--success-subtle); color: var(--status-success); border: 1px solid var(--success-border); }
+    .badge-uncertain { background-color: var(--warning-subtle); color: var(--status-warning); border: 1px solid var(--warning-border); }
+    .badge-contradicted { background-color: var(--danger-subtle); color: var(--status-danger); border: 1px solid var(--danger-border); }
 
     .section-title {
       font-size: 11pt;
       font-weight: 700;
-      color: #0F172A;
+      color: var(--text-primary);
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      border-bottom: 1px solid #CBD5E1;
+      border-bottom: 1px solid var(--border-medium);
       padding-bottom: 4px;
       margin: 18px 0 8px 0;
     }
@@ -142,7 +142,7 @@ export function generateCaseReportHtml({
     }
     .info-label {
       font-weight: 600;
-      color: #475569;
+      color: var(--text-secondary);
     }
     table.data-table {
       width: 100%;
@@ -151,16 +151,16 @@ export function generateCaseReportHtml({
       font-size: 9.5pt;
     }
     table.data-table th {
-      background-color: #F1F5F9;
-      color: #334155;
+      background-color: var(--bg-subtle);
+      color: var(--text-secondary);
       font-weight: 700;
       text-align: left;
       padding: 6px 8px;
-      border: 1px solid #E2E8F0;
+      border: 1px solid var(--border-subtle);
     }
     table.data-table td {
       padding: 6px 8px;
-      border: 1px solid #E2E8F0;
+      border: 1px solid var(--border-subtle);
       vertical-align: top;
     }
     .alert-box {
@@ -170,17 +170,17 @@ export function generateCaseReportHtml({
       font-size: 9.5pt;
     }
     .alert-danger {
-      background-color: #FEF2F2;
-      border: 1px solid #F87171;
-      color: #991B1B;
+      background-color: var(--danger-subtle);
+      border: 1px solid var(--danger-border);
+      color: var(--status-danger);
     }
     .alert-warning {
-      background-color: #FFFBEB;
-      border: 1px solid #FBBF24;
-      color: #92400E;
+      background-color: var(--warning-subtle);
+      border: 1px solid var(--status-warning);
+      color: var(--status-warning);
     }
     .alert-esi {
-      background-color: #F8FAFC;
+      background-color: var(--bg-subtle);
       border: 2px solid ${esi.badgeColor};
       border-left-width: 6px;
     }
@@ -190,9 +190,9 @@ export function generateCaseReportHtml({
     .footer {
       margin-top: 24px;
       padding-top: 10px;
-      border-top: 1px solid #E2E8F0;
+      border-top: 1px solid var(--border-subtle);
       font-size: 8pt;
-      color: #64748B;
+      color: var(--text-muted);
       display: flex;
       justify-content: space-between;
     }
@@ -208,9 +208,9 @@ export function generateCaseReportHtml({
         <div class="header-sub">Nexus Clinical Intelligence Platform · Comprehensive Case Dossier</div>
       </td>
       <td style="text-align: right; vertical-align: top;">
-        <div style="font-size: 11pt; font-weight: 700; color: #0F172A;">CASE: ${fullCase.overview.id}</div>
-        <div style="font-size: 8.5pt; color: #64748B;">Generated: ${now}</div>
-        <div style="font-size: 8.5pt; color: #64748B;">Clinician: ${clinicianName}</div>
+        <div style="font-size: 11pt; font-weight: 700; color: var(--text-primary);">CASE: ${fullCase.overview.id}</div>
+        <div style="font-size: 8.5pt; color: var(--text-muted);">Generated: ${now}</div>
+        <div style="font-size: 8.5pt; color: var(--text-muted);">Clinician: ${clinicianName}</div>
       </td>
     </tr>
   </table>
@@ -234,7 +234,7 @@ export function generateCaseReportHtml({
   <div class="section-title">2. Clinical Presentation & Intake History</div>
   <div style="margin-bottom: 8px;">
     <strong>Chief Complaint / Presenting Problem:</strong><br />
-    <div style="padding: 6px 10px; background: #F8FAFC; border-left: 3px solid #0F766E; margin-top: 4px; font-weight: 600;">
+    <div style="padding: 6px 10px; background: var(--bg-subtle); border-left: 3px solid var(--accent-primary); margin-top: 4px; font-weight: 600;">
       ${fullCase.chiefComplaint || 'None documented'}
     </div>
   </div>
@@ -242,7 +242,7 @@ export function generateCaseReportHtml({
   ${fullCase.historyOfPresentIllness ? `
   <div style="margin-bottom: 8px;">
     <strong>History of Present Illness (HPI):</strong><br />
-    <div style="padding: 6px 10px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 4px; margin-top: 4px; font-size: 9.5pt;">
+    <div style="padding: 6px 10px; background: var(--bg-subtle); border: 1px solid var(--border-subtle); border-radius: 4px; margin-top: 4px; font-size: 9.5pt;">
       ${fullCase.historyOfPresentIllness}
     </div>
   </div>
@@ -254,13 +254,13 @@ export function generateCaseReportHtml({
         <strong>Past Medical History:</strong><br />
         ${fullCase.pastMedicalHistory.length > 0
           ? `<ul style="margin: 4px 0 0 16px; padding: 0; font-size: 9.5pt;">${fullCase.pastMedicalHistory.map((pmh) => `<li>${pmh}</li>`).join('')}</ul>`
-          : '<span style="font-size: 9.5pt; color: #64748B;">None documented</span>'}
+          : '<span style="font-size: 9.5pt; color: var(--text-muted);">None documented</span>'}
       </div>
       <div class="info-cell" style="width: 50%;">
         <strong>Active Pharmacotherapy:</strong><br />
         ${patient.medications.length > 0
           ? `<ul style="margin: 4px 0 0 16px; padding: 0; font-size: 9.5pt;">${patient.medications.map((m) => `<li>${m.name} ${m.dosage || ''} ${m.frequency || ''}</li>`).join('')}</ul>`
-          : '<span style="font-size: 9.5pt; color: #64748B;">No medications on file</span>'}
+          : '<span style="font-size: 9.5pt; color: var(--text-muted);">No medications on file</span>'}
       </div>
     </div>
   </div>
@@ -282,11 +282,11 @@ export function generateCaseReportHtml({
           <td><strong>${f.label}</strong></td>
           <td>${f.description || 'Present'}</td>
           <td>
-            <span style="font-weight: 700; color: ${f.description?.includes('CRITICAL') || f.statusDisplay?.includes('CRITICAL') ? '#DC2626' : f.description?.includes('HIGH') ? '#EA580C' : '#0F172A'};">
+            <span style="font-weight: 700; color: ${f.description?.includes('CRITICAL') || f.statusDisplay?.includes('CRITICAL') ? 'var(--status-danger)' : f.description?.includes('HIGH') ? '#EA580C' : 'var(--text-primary)'};">
               ${f.statusDisplay || f.status || 'Recorded'}
             </span>
           </td>
-          <td style="color: #64748B; font-size: 8.5pt;">${f.provenance.recordedBy || 'Clinical Entry'}</td>
+          <td style="color: var(--text-muted); font-size: 8.5pt;">${f.provenance.recordedBy || 'Clinical Entry'}</td>
         </tr>
       `).join('')}
     </tbody>
@@ -296,10 +296,10 @@ export function generateCaseReportHtml({
   <div class="section-title">4. Emergency Severity Index (ESI) Triage Stratification</div>
   <div class="alert-box alert-esi">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-      <span style="font-size: 11pt; font-weight: 800; color: #0F172A;">
+      <span style="font-size: 11pt; font-weight: 800; color: var(--text-primary);">
         TRIAGE CLASSIFICATION: <span class="badge badge-esi${esi.level}">${esi.levelName}</span>
       </span>
-      <span style="font-size: 9pt; font-weight: 700; color: #475569;">
+      <span style="font-size: 9pt; font-weight: 700; color: var(--text-secondary);">
         Anticipated Resources: ${esi.anticipatedResources}
       </span>
     </div>
@@ -307,7 +307,7 @@ export function generateCaseReportHtml({
       <strong>Rationale:</strong> ${esi.rationale}
     </div>
     ${esi.isLifeSavingRequired ? `
-      <div style="font-size: 9.5pt; font-weight: 700; color: #DC2626; margin-bottom: 4px;">
+      <div style="font-size: 9.5pt; font-weight: 700; color: var(--status-danger); margin-bottom: 4px;">
         ⚠️ IMMEDIATE LIFE-SAVING INTERVENTION REQUIRED (ACLS/PALS Resuscitation Bay Protocol)
       </div>
     ` : ''}
@@ -317,7 +317,7 @@ export function generateCaseReportHtml({
       </div>
     ` : ''}
     <div style="margin-top: 6px;">
-      <strong style="font-size: 9pt; text-transform: uppercase; color: #475569;">Recommended Priority Actions:</strong>
+      <strong style="font-size: 9pt; text-transform: uppercase; color: var(--text-secondary);">Recommended Priority Actions:</strong>
       <ul style="margin: 4px 0 0 16px; padding: 0; font-size: 9pt;">
         ${esi.recommendedActions.map((act) => `<li>${act}</li>`).join('')}
       </ul>
@@ -367,7 +367,7 @@ export function generateCaseReportHtml({
       </div>
     `).join('')}
   ` : `
-    <div style="padding: 8px 12px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 6px; font-size: 9pt; color: #166534;">
+    <div style="padding: 8px 12px; background: var(--success-subtle); border: 1px solid var(--success-border); border-radius: 6px; font-size: 9pt; color: var(--status-success);">
       ✓ No acute drug-allergy contraindications or critical threshold conflicts detected.
     </div>
   `}
@@ -405,19 +405,19 @@ export function generateCaseReportHtml({
   </table>
 
   <!-- Attending Sign-Off & Legal Disclaimers -->
-  <div style="margin-top: 30px; border-top: 2px solid #0F172A; padding-top: 12px;">
+  <div style="margin-top: 30px; border-top: 2px solid var(--text-primary); padding-top: 12px;">
     <table style="width: 100%; font-size: 9pt;">
       <tr>
         <td style="width: 60%; vertical-align: top;">
           <strong>Attending Clinician Review & Attestation:</strong><br />
-          <p style="font-size: 8pt; color: #64748B; margin: 4px 0 16px 0; max-width: 420px;">
+          <p style="font-size: 8pt; color: var(--text-muted); margin: 4px 0 16px 0; max-width: 420px;">
             I confirm that I have personally evaluated this patient presentation, reviewed the AI-assisted differential diagnosis and safety alerts, and assume full medical-legal responsibility for all diagnostic and therapeutic decisions.
           </p>
-          <div style="border-bottom: 1px solid #334155; width: 280px; height: 28px;"></div>
-          <div style="font-size: 8.5pt; color: #475569; margin-top: 4px;">Clinician Signature & Date Stamp</div>
+          <div style="border-bottom: 1px solid var(--text-secondary); width: 280px; height: 28px;"></div>
+          <div style="font-size: 8.5pt; color: var(--text-secondary); margin-top: 4px;">Clinician Signature & Date Stamp</div>
         </td>
         <td style="width: 40%; vertical-align: top; text-align: right;">
-          <div style="font-size: 8pt; color: #64748B;">
+          <div style="font-size: 8pt; color: var(--text-muted);">
             <strong>MDCG 2020-1 / EU MDR 2017/745</strong><br />
             Nexus AI Decision Support System v3.2<br />
             Non-autonomous Clinical Co-Pilot<br />

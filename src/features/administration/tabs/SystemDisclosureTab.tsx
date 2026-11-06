@@ -70,16 +70,16 @@ const COMPONENTS: ComponentInfo[] = [
 ];
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; border: string }> = {
-  Active:     { bg: '#D1FAE5', text: '#065F46', border: '#6EE7B7' },
-  Configured: { bg: '#EFF6FF', text: '#1D4ED8', border: '#93C5FD' },
-  Standby:    { bg: '#F1F5F9', text: '#334155', border: '#CBD5E1' },
+  Active:     { bg: 'var(--success-subtle)', text: 'var(--status-success)', border: 'var(--success-border)' },
+  Configured: { bg: 'var(--accent-subtle)', text: 'var(--accent-primary)', border: 'var(--border-medium)' },
+  Standby:    { bg: 'var(--bg-subtle)', text: 'var(--text-secondary)', border: 'var(--border-medium)' },
 };
 
 const PROVENANCE_STYLES: Record<string, { bg: string; text: string }> = {
-  AI_GENERATED:       { bg: '#FFF7ED', text: '#C2410C' },
-  AI_EXTRACTED:       { bg: '#FFFBEB', text: '#B45309' },
-  IMPORTED:           { bg: '#EFF6FF', text: '#1D4ED8' },
-  CLINICIAN_VERIFIED: { bg: '#D1FAE5', text: '#065F46' },
+  AI_GENERATED:       { bg: '#FFF7ED', text: 'var(--status-warning)' },
+  AI_EXTRACTED:       { bg: 'var(--warning-subtle)', text: 'var(--status-warning)' },
+  IMPORTED:           { bg: 'var(--accent-subtle)', text: 'var(--accent-primary)' },
+  CLINICIAN_VERIFIED: { bg: 'var(--success-subtle)', text: 'var(--status-success)' },
 };
 
 export const SystemDisclosureTab: React.FC = () => {
@@ -92,12 +92,12 @@ export const SystemDisclosureTab: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <Cpu size={18} style={{ color: '#0284C7' }} />
-            <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+            <Cpu size={18} style={{ color: 'var(--accent-primary)' }} />
+            <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
               Clinical AI Architecture & Live Model Registry
             </h2>
           </div>
-          <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>
             Multi-model clinical intelligence architecture with live LLM synthesis and deterministic clinical safety gates.
           </p>
         </div>
@@ -110,9 +110,9 @@ export const SystemDisclosureTab: React.FC = () => {
             gap: '8px',
             padding: '8px 16px',
             borderRadius: '6px',
-            border: '1px solid #0284C7',
-            backgroundColor: '#0284C7',
-            color: '#FFFFFF',
+            border: '1px solid var(--accent-primary)',
+            backgroundColor: 'var(--accent-primary)',
+            color: 'var(--bg-surface)',
             fontSize: '12.5px',
             fontWeight: 600,
             cursor: 'pointer',
@@ -126,8 +126,8 @@ export const SystemDisclosureTab: React.FC = () => {
       {/* Active Model Status Card */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-          color: '#FFFFFF',
+          background: 'linear-gradient(135deg, var(--text-primary) 0%, var(--text-primary) 100%)',
+          color: 'var(--bg-surface)',
           borderRadius: '8px',
           padding: '16px 20px',
           marginBottom: '24px',
@@ -149,16 +149,16 @@ export const SystemDisclosureTab: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#38BDF8',
+              color: 'var(--accent-primary)',
             }}
           >
             <Zap size={18} />
           </div>
           <div>
-            <div style={{ fontSize: '11px', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>
               Active Production AI Engine
             </div>
-            <div style={{ fontSize: '15px', fontWeight: 700, color: '#F8FAFC' }}>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
               {activeEngine.displayName}
             </div>
           </div>
@@ -169,14 +169,14 @@ export const SystemDisclosureTab: React.FC = () => {
             style={{
               padding: '4px 10px',
               borderRadius: '12px',
-              backgroundColor: activeEngine.isLive ? '#065F46' : '#1E293B',
-              color: activeEngine.isLive ? '#34D399' : '#94A3B8',
+              backgroundColor: activeEngine.isLive ? 'var(--status-success)' : 'var(--text-primary)',
+              color: activeEngine.isLive ? 'var(--status-success)' : 'var(--text-muted)',
               fontSize: '11px',
               fontWeight: 700,
               display: 'inline-flex',
               alignItems: 'center',
               gap: '4px',
-              border: `1px solid ${activeEngine.isLive ? '#059669' : '#475569'}`,
+              border: `1px solid ${activeEngine.isLive ? 'var(--status-success)' : 'var(--text-secondary)'}`,
             }}
           >
             <CheckCircle2 size={12} />
@@ -186,15 +186,15 @@ export const SystemDisclosureTab: React.FC = () => {
       </div>
 
       {/* Component Table */}
-      <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', overflow: 'hidden', marginBottom: '24px' }}>
+      <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: '8px', overflow: 'hidden', marginBottom: '24px' }}>
         <div
           style={{
             padding: '12px 16px',
-            borderBottom: '1px solid #E2E8F0',
+            borderBottom: '1px solid var(--border-subtle)',
             fontWeight: 700,
             fontSize: '13px',
-            color: '#0F172A',
-            background: '#F8FAFC',
+            color: 'var(--text-primary)',
+            background: 'var(--bg-subtle)',
           }}
         >
           Registered Architectural Subsystems ({COMPONENTS.length})
@@ -203,12 +203,12 @@ export const SystemDisclosureTab: React.FC = () => {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #E2E8F0', background: '#F8FAFC', textAlign: 'left' }}>
-                <th style={{ padding: '10px 16px', color: '#475569', fontWeight: 600 }}>Component / Model</th>
-                <th style={{ padding: '10px 16px', color: '#475569', fontWeight: 600 }}>Subsystem Role</th>
-                <th style={{ padding: '10px 16px', color: '#475569', fontWeight: 600 }}>Status</th>
-                <th style={{ padding: '10px 16px', color: '#475569', fontWeight: 600 }}>Provenance Tag</th>
-                <th style={{ padding: '10px 16px', color: '#475569', fontWeight: 600 }}>Architecture & Compliance Notes</th>
+              <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-subtle)', textAlign: 'left' }}>
+                <th style={{ padding: '10px 16px', color: 'var(--text-secondary)', fontWeight: 600 }}>Component / Model</th>
+                <th style={{ padding: '10px 16px', color: 'var(--text-secondary)', fontWeight: 600 }}>Subsystem Role</th>
+                <th style={{ padding: '10px 16px', color: 'var(--text-secondary)', fontWeight: 600 }}>Status</th>
+                <th style={{ padding: '10px 16px', color: 'var(--text-secondary)', fontWeight: 600 }}>Provenance Tag</th>
+                <th style={{ padding: '10px 16px', color: 'var(--text-secondary)', fontWeight: 600 }}>Architecture & Compliance Notes</th>
               </tr>
             </thead>
             <tbody>
@@ -216,11 +216,11 @@ export const SystemDisclosureTab: React.FC = () => {
                 const sStyle = STATUS_STYLES[c.status] || STATUS_STYLES.Active;
                 const pStyle = PROVENANCE_STYLES[c.provenanceTag] || PROVENANCE_STYLES.AI_GENERATED;
                 return (
-                  <tr key={c.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                    <td style={{ padding: '12px 16px', fontWeight: 700, color: '#0F172A' }}>
+                  <tr key={c.id} style={{ borderBottom: '1px solid var(--bg-subtle)' }}>
+                    <td style={{ padding: '12px 16px', fontWeight: 700, color: 'var(--text-primary)' }}>
                       {c.name}
                     </td>
-                    <td style={{ padding: '12px 16px', color: '#334155' }}>
+                    <td style={{ padding: '12px 16px', color: 'var(--text-secondary)' }}>
                       {c.subsystemRole}
                     </td>
                     <td style={{ padding: '12px 16px' }}>
@@ -255,7 +255,7 @@ export const SystemDisclosureTab: React.FC = () => {
                         {c.provenanceTag}
                       </span>
                     </td>
-                    <td style={{ padding: '12px 16px', color: '#64748B', maxWidth: '300px' }}>
+                    <td style={{ padding: '12px 16px', color: 'var(--text-muted)', maxWidth: '300px' }}>
                       {c.notes}
                     </td>
                   </tr>

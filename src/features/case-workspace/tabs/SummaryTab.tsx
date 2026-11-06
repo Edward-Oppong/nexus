@@ -7,23 +7,23 @@ export const SummaryTab: React.FC = () => {
   const { chiefComplaint, historyOfPresentIllness, hypotheses, uncertainty, safetyIssues, informationGaps } = activeCase;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Executive Summary Card */}
       <section
         style={{
-          background: '#FFFFFF',
-          border: '1px solid #E2E8F0',
-          borderRadius: '6px',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: '8px',
           padding: '20px',
         }}
       >
-        <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '8px' }}>
+        <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
           Executive Case Summary
         </div>
-        <h2 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', marginBottom: '10px', lineHeight: 1.4 }}>
+        <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '10px', lineHeight: 1.4 }}>
           {chiefComplaint}
         </h2>
-        <p style={{ fontSize: '13px', color: '#334155', lineHeight: 1.6 }}>
+        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
           {historyOfPresentIllness}
         </p>
       </section>
@@ -33,19 +33,19 @@ export const SummaryTab: React.FC = () => {
         {/* Candidate Hypotheses Snapshot */}
         <div
           style={{
-            background: '#FFFFFF',
-            border: '1px solid #E2E8F0',
-            borderRadius: '6px',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: '8px',
             padding: '16px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <h3 style={{ fontSize: '12px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em' }}>
+            <h3 style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.05em' }}>
               Candidate Hypotheses
             </h3>
             <button
               onClick={() => setActiveCaseSubTab('reasoning')}
-              style={{ border: 'none', background: 'transparent', fontSize: '11px', color: '#2563EB', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}
+              style={{ border: 'none', background: 'transparent', fontSize: '11px', color: 'var(--accent-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px', fontWeight: 600 }}
             >
               Explore reasoning <ArrowRight size={11} />
             </button>
@@ -57,28 +57,32 @@ export const SummaryTab: React.FC = () => {
                 key={h.id}
                 onClick={() => setActiveCaseSubTab('reasoning')}
                 style={{
-                  padding: '8px 10px',
-                  background: '#F8FAFC',
-                  borderRadius: '4px',
-                  border: '1px solid #F1F5F9',
+                  padding: '10px 12px',
+                  background: 'var(--bg-subtle)',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-subtle)',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   fontSize: '12px',
+                  transition: 'background 0.15s ease',
                 }}
               >
                 <div>
-                  <span style={{ fontWeight: 600, color: '#0F172A' }}>{idx + 1}. {h.title}</span>
-                  <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>{h.statusDetail}</div>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{idx + 1}. {h.title}</span>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{h.statusDetail}</div>
                 </div>
                 <span
                   style={{
-                    fontSize: '11px',
-                    fontWeight: 600,
-                    color: h.status === 'Supported' ? '#047857' : h.status === 'Uncertain' ? '#B45309' : '#B91C1C',
-                    background: h.status === 'Supported' ? '#ECFDF5' : h.status === 'Uncertain' ? '#FEF3C7' : '#FEF2F2',
-                    padding: '2px 6px',
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                    color: h.status === 'Supported' ? 'var(--status-success)' : h.status === 'Uncertain' ? 'var(--status-warning)' : 'var(--status-danger)',
+                    background: h.status === 'Supported' ? 'var(--success-subtle)' : h.status === 'Uncertain' ? 'var(--warning-subtle)' : 'var(--danger-subtle)',
+                    border: `1px solid ${h.status === 'Supported' ? 'var(--success-border)' : h.status === 'Uncertain' ? 'var(--warning-border)' : 'var(--danger-border)'}`,
+                    padding: '2px 7px',
                     borderRadius: '4px',
                   }}
                 >
@@ -92,19 +96,19 @@ export const SummaryTab: React.FC = () => {
         {/* Unresolved Clinical Gaps */}
         <div
           style={{
-            background: '#FFFFFF',
-            border: '1px solid #E2E8F0',
-            borderRadius: '6px',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: '8px',
             padding: '16px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <h3 style={{ fontSize: '12px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em' }}>
+            <h3 style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.05em' }}>
               High-Priority Clinical Gaps
             </h3>
             <button
               onClick={() => setActiveCaseSubTab('clinical')}
-              style={{ border: 'none', background: 'transparent', fontSize: '11px', color: '#0F766E', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}
+              style={{ border: 'none', background: 'transparent', fontSize: '11px', color: 'var(--accent-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px', fontWeight: 600 }}
             >
               View clinical data <ArrowRight size={11} />
             </button>
@@ -116,17 +120,17 @@ export const SummaryTab: React.FC = () => {
                 key={gap.id}
                 style={{
                   padding: '10px 12px',
-                  background: '#FFFBEB',
-                  border: '1px solid #FDE68A',
-                  borderRadius: '4px',
+                  background: 'var(--warning-subtle)',
+                  border: '1px solid var(--warning-border)',
+                  borderRadius: '6px',
                   fontSize: '12px',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <strong style={{ color: '#92400E' }}>{gap.testName}</strong>
-                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#B45309' }}>{gap.priority}</span>
+                  <strong style={{ color: 'var(--text-primary)' }}>{gap.testName}</strong>
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--status-warning)', textTransform: 'uppercase' }}>{gap.priority}</span>
                 </div>
-                <p style={{ color: '#78350F', fontSize: '11px', marginTop: '4px', lineHeight: 1.4 }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '11px', marginTop: '4px', lineHeight: 1.4 }}>
                   {gap.whyItMatters}
                 </p>
               </div>
@@ -137,17 +141,17 @@ export const SummaryTab: React.FC = () => {
                 onClick={() => setActiveCaseSubTab('safety')}
                 style={{
                   padding: '10px 12px',
-                  background: '#FEF2F2',
-                  border: '1px solid #FCA5A5',
-                  borderRadius: '4px',
+                  background: 'var(--danger-subtle)',
+                  border: '1px solid var(--danger-border)',
+                  borderRadius: '6px',
                   fontSize: '12px',
                   cursor: 'pointer',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#991B1B', fontWeight: 700 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--status-danger)', fontWeight: 700 }}>
                   <ShieldAlert size={14} /> Active Safety Review
                 </div>
-                <div style={{ color: '#7F1D1D', fontSize: '11px', marginTop: '2px' }}>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '11px', marginTop: '2px' }}>
                   {safetyIssues[0].title}
                 </div>
               </div>

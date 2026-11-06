@@ -238,8 +238,8 @@ export const DocumentsTab: React.FC = () => {
         <div
           style={{
             padding: '10px 16px',
-            background: '#0F172A',
-            color: '#F8FAFC',
+            background: 'var(--bg-app)',
+            color: 'var(--text-primary)',
             borderRadius: '6px',
             fontSize: '13px',
             display: 'flex',
@@ -251,7 +251,7 @@ export const DocumentsTab: React.FC = () => {
           <span>{toastMessage}</span>
           <button
             onClick={() => setToastMessage(null)}
-            style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer' }}
+            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
           >
             ✕
           </button>
@@ -261,9 +261,9 @@ export const DocumentsTab: React.FC = () => {
       {/* Main Interoperability Navigation Header */}
       <div
         style={{
-          background: '#FFFFFF',
+          background: 'var(--bg-surface)',
           borderRadius: '8px',
-          border: '1px solid #E2E8F0',
+          border: '1px solid var(--border-subtle)',
           padding: '18px 22px',
           display: 'flex',
           flexDirection: 'column',
@@ -275,8 +275,8 @@ export const DocumentsTab: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
               <div
                 style={{
-                  background: '#F0FDF4',
-                  color: '#16A34A',
+                  background: 'var(--success-subtle)',
+                  color: 'var(--status-success)',
                   padding: '6px',
                   borderRadius: '6px',
                   display: 'flex',
@@ -284,24 +284,24 @@ export const DocumentsTab: React.FC = () => {
               >
                 <Globe size={18} />
               </div>
-              <h1 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0F172A' }}>
+              <h1 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
                 Advanced Health Interoperability & Documents Hub
               </h1>
               <span
                 style={{
                   fontSize: '11px',
                   fontWeight: 600,
-                  color: '#0369A1',
-                  background: '#F0F9FF',
+                  color: 'var(--accent-primary)',
+                  background: 'var(--accent-subtle)',
                   padding: '2px 8px',
                   borderRadius: '12px',
-                  border: '1px solid #BAE6FD',
+                  border: '1px solid var(--border-medium)',
                 }}
               >
                 Phase 10 Enterprise
               </span>
             </div>
-            <p style={{ margin: 0, fontSize: '13px', color: '#64748B', maxWidth: '780px' }}>
+            <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)', maxWidth: '780px' }}>
               Unified gateway connecting SMART on FHIR launch, legacy hospital C-CDA XML ingestion,
               cross-enterprise IHE XDS.b document registries, and WHO SMART Guidelines Base profile validation.
             </p>
@@ -314,8 +314,8 @@ export const DocumentsTab: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              background: '#0F172A',
-              color: '#FFFFFF',
+              background: 'var(--bg-app)',
+              color: 'var(--bg-surface)',
               border: 'none',
               borderRadius: '6px',
               padding: '8px 14px',
@@ -330,7 +330,7 @@ export const DocumentsTab: React.FC = () => {
         </div>
 
         {/* 6-Console Sub-Navigation Toolbar */}
-        <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid #F1F5F9', paddingTop: '12px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid var(--bg-subtle)', paddingTop: '12px', flexWrap: 'wrap' }}>
           {[
             { id: 'DOCUMENTS' as const, label: '1. Documents & FHIR Export', icon: FileText, badge: `${documents.length} Docs` },
             { id: 'SMART' as const, label: '2. SMART on FHIR Launch', icon: ExternalLink, badge: smartContext.status === 'TOKEN_EXCHANGED' ? 'Connected' : 'Ready' },
@@ -353,9 +353,9 @@ export const DocumentsTab: React.FC = () => {
                   borderRadius: '6px',
                   fontSize: '12px',
                   fontWeight: isActive ? 600 : 500,
-                  color: isActive ? '#0284C7' : '#475569',
-                  background: isActive ? '#F0F9FF' : '#FFFFFF',
-                  border: isActive ? '1px solid #BAE6FD' : '1px solid #E2E8F0',
+                  color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                  background: isActive ? 'var(--accent-subtle)' : 'var(--bg-surface)',
+                  border: isActive ? '1px solid var(--border-medium)' : '1px solid var(--border-subtle)',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
@@ -368,8 +368,8 @@ export const DocumentsTab: React.FC = () => {
                     fontWeight: 700,
                     padding: '1px 6px',
                     borderRadius: '10px',
-                    background: isActive ? '#BAE6FD' : '#F1F5F9',
-                    color: isActive ? '#0369A1' : '#64748B',
+                    background: isActive ? 'var(--border-medium)' : 'var(--bg-subtle)',
+                    color: isActive ? 'var(--accent-primary)' : 'var(--text-muted)',
                   }}
                 >
                   {tab.badge}
@@ -386,12 +386,12 @@ export const DocumentsTab: React.FC = () => {
       {activeConsole === 'DOCUMENTS' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '20px' }}>
           {/* Documents Table */}
-          <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '18px' }}>
+          <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '18px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                 Case Document Repository
               </h3>
-              <span style={{ fontSize: '11px', color: '#64748B' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                 Boundary-mapped to FHIR DocumentReference
               </span>
             </div>
@@ -409,18 +409,18 @@ export const DocumentsTab: React.FC = () => {
                       justifyContent: 'space-between',
                       padding: '12px 14px',
                       borderRadius: '6px',
-                      border: isSelected ? '1px solid #0284C7' : '1px solid #E2E8F0',
-                      background: isSelected ? '#F8FAFC' : '#FFFFFF',
+                      border: isSelected ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                      background: isSelected ? 'var(--bg-subtle)' : 'var(--bg-surface)',
                       cursor: 'pointer',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <FileText size={18} color={isSelected ? '#0284C7' : '#64748B'} />
+                      <FileText size={18} color={isSelected ? 'var(--accent-primary)' : 'var(--text-muted)'} />
                       <div>
-                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
                           {doc.title}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
                           {doc.documentClass} · {Math.round((doc.fileSizeBytes || 0) / 1024)} KB · Uploaded by {doc.uploadedBy}
                         </div>
                       </div>
@@ -431,8 +431,8 @@ export const DocumentsTab: React.FC = () => {
                         fontWeight: 700,
                         padding: '2px 8px',
                         borderRadius: '4px',
-                        background: doc.documentStatus === 'REVIEWED' ? '#DCFCE7' : '#FEF3C7',
-                        color: doc.documentStatus === 'REVIEWED' ? '#15803D' : '#B45309',
+                        background: doc.documentStatus === 'REVIEWED' ? 'var(--success-subtle)' : 'var(--warning-subtle)',
+                        color: doc.documentStatus === 'REVIEWED' ? 'var(--status-success)' : 'var(--status-warning)',
                       }}
                     >
                       {doc.documentStatus}
@@ -444,9 +444,9 @@ export const DocumentsTab: React.FC = () => {
 
             {/* Exported FHIR Bundle Viewer (if generated) */}
             {exportedJson && (
-              <div style={{ marginTop: '20px', borderTop: '1px solid #E2E8F0', paddingTop: '16px' }}>
+              <div style={{ marginTop: '20px', borderTop: '1px solid var(--border-subtle)', paddingTop: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>
                     FHIR R4 Export Bundle Payload (JSON)
                   </span>
                   <button
@@ -461,8 +461,8 @@ export const DocumentsTab: React.FC = () => {
                       fontSize: '11px',
                       padding: '4px 8px',
                       borderRadius: '4px',
-                      background: '#F1F5F9',
-                      border: '1px solid #CBD5E1',
+                      background: 'var(--bg-subtle)',
+                      border: '1px solid var(--border-medium)',
                       cursor: 'pointer',
                     }}
                   >
@@ -471,8 +471,8 @@ export const DocumentsTab: React.FC = () => {
                 </div>
                 <pre
                   style={{
-                    background: '#0F172A',
-                    color: '#38BDF8',
+                    background: 'var(--bg-app)',
+                    color: 'var(--accent-primary)',
                     padding: '12px',
                     borderRadius: '6px',
                     fontSize: '11px',
@@ -489,11 +489,11 @@ export const DocumentsTab: React.FC = () => {
 
           {/* Document Preview Details Drawer */}
           {selectedDoc && (
-            <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '18px' }}>
-              <h3 style={{ margin: '0 0 10px', fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+            <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '18px' }}>
+              <h3 style={{ margin: '0 0 10px', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                 Document Metadata & Preview
               </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px', color: '#475569' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
                 <div>
                   <strong>Document ID:</strong> {selectedDoc.id}
                 </div>
@@ -511,19 +511,19 @@ export const DocumentsTab: React.FC = () => {
                 </div>
               </div>
 
-              <div style={{ marginTop: '16px', borderTop: '1px solid #F1F5F9', paddingTop: '14px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B' }}>
+              <div style={{ marginTop: '16px', borderTop: '1px solid var(--bg-subtle)', paddingTop: '14px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                   Simulated Content Preview
                 </span>
                 <div
                   style={{
                     marginTop: '6px',
-                    background: '#F8FAFC',
+                    background: 'var(--bg-subtle)',
                     padding: '12px',
                     borderRadius: '6px',
-                    border: '1px solid #E2E8F0',
+                    border: '1px solid var(--border-subtle)',
                     fontSize: '12px',
-                    color: '#0F172A',
+                    color: 'var(--text-primary)',
                     lineHeight: 1.4,
                   }}
                 >
@@ -541,17 +541,17 @@ export const DocumentsTab: React.FC = () => {
       {activeConsole === 'SMART' && (
         <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '20px' }}>
           {/* EHR Vendor & Launch Parameters */}
-          <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '18px' }}>
-            <h3 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+          <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '18px' }}>
+            <h3 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
               EHR Launch Simulator
             </h3>
-            <p style={{ margin: '0 0 14px', fontSize: '12px', color: '#64748B' }}>
+            <p style={{ margin: '0 0 14px', fontSize: '12px', color: 'var(--text-muted)' }}>
               Simulates incoming SMART on FHIR handshake triggered from an external EHR (Epic, Cerner, SMART sandbox).
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                   Target EHR Platform
                 </label>
                 <select
@@ -562,7 +562,7 @@ export const DocumentsTab: React.FC = () => {
                     setSmartContext(initializeSmartLaunch(vendor.fhirBaseUrl, simulatedLaunchToken));
                     setTokenResponse(null);
                   }}
-                  style={{ width: '100%', padding: '6px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px', background: '#FFFFFF' }}
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px', background: 'var(--bg-surface)' }}
                 >
                   <option value="epic-sandbox">Epic Interconnect EHR Sandbox</option>
                   <option value="cerner-sandbox">Oracle Cerner Millennium Sandbox</option>
@@ -571,14 +571,14 @@ export const DocumentsTab: React.FC = () => {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                   Simulated EHR Launch Token
                 </label>
                 <input
                   type="text"
                   value={simulatedLaunchToken}
                   onChange={(e) => setSimulatedLaunchToken(e.target.value)}
-                  style={{ width: '100%', padding: '6px 10px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '12px', fontFamily: 'var(--font-mono)' }}
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: '4px', border: '1px solid var(--border-medium)', fontSize: '12px', fontFamily: 'var(--font-mono)' }}
                 />
               </div>
 
@@ -590,8 +590,8 @@ export const DocumentsTab: React.FC = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '6px',
-                  background: '#0284C7',
-                  color: '#FFFFFF',
+                  background: 'var(--accent-primary)',
+                  color: 'var(--bg-surface)',
                   border: 'none',
                   borderRadius: '6px',
                   padding: '10px',
@@ -608,10 +608,10 @@ export const DocumentsTab: React.FC = () => {
           </div>
 
           {/* Handshake & Token Context Results */}
-          <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '18px' }}>
+          <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '18px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>
+                <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
                   SMART OAuth2 Session Context
                 </span>
                 <span
@@ -620,8 +620,8 @@ export const DocumentsTab: React.FC = () => {
                     fontWeight: 700,
                     padding: '2px 8px',
                     borderRadius: '10px',
-                    background: smartContext.status === 'TOKEN_EXCHANGED' ? '#DCFCE7' : '#FEF3C7',
-                    color: smartContext.status === 'TOKEN_EXCHANGED' ? '#15803D' : '#B45309',
+                    background: smartContext.status === 'TOKEN_EXCHANGED' ? 'var(--success-subtle)' : 'var(--warning-subtle)',
+                    color: smartContext.status === 'TOKEN_EXCHANGED' ? 'var(--status-success)' : 'var(--status-warning)',
                   }}
                 >
                   {smartContext.status}
@@ -630,21 +630,21 @@ export const DocumentsTab: React.FC = () => {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
-              <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 700 }}>FHIR BASE (iss)</div>
-                <div style={{ fontSize: '11px', color: '#0F172A', fontFamily: 'var(--font-mono)', marginTop: '2px', wordBreak: 'break-all' }}>
+              <div style={{ background: 'var(--bg-subtle)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700 }}>FHIR BASE (iss)</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', marginTop: '2px', wordBreak: 'break-all' }}>
                   {smartContext.iss}
                 </div>
               </div>
-              <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 700 }}>PATIENT CONTEXT</div>
-                <div style={{ fontSize: '12px', color: '#0284C7', fontWeight: 700, marginTop: '2px' }}>
+              <div style={{ background: 'var(--bg-subtle)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700 }}>PATIENT CONTEXT</div>
+                <div style={{ fontSize: '12px', color: 'var(--accent-primary)', fontWeight: 700, marginTop: '2px' }}>
                   {smartContext.patientId || 'Unresolved'}
                 </div>
               </div>
-              <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 700 }}>ENCOUNTER CONTEXT</div>
-                <div style={{ fontSize: '12px', color: '#0F172A', fontWeight: 700, marginTop: '2px' }}>
+              <div style={{ background: 'var(--bg-subtle)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700 }}>ENCOUNTER CONTEXT</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: 700, marginTop: '2px' }}>
                   {smartContext.encounterId || 'Unresolved'}
                 </div>
               </div>
@@ -652,13 +652,13 @@ export const DocumentsTab: React.FC = () => {
 
             {tokenResponse && (
               <div>
-                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                   Decoded Access Token & Identity Payload
                 </span>
                 <pre
                   style={{
-                    background: '#0F172A',
-                    color: '#A7F3D0',
+                    background: 'var(--bg-app)',
+                    color: 'var(--success-border)',
                     padding: '12px',
                     borderRadius: '6px',
                     fontSize: '11px',
@@ -682,19 +682,19 @@ export const DocumentsTab: React.FC = () => {
       {activeConsole === 'CDA' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
           {/* C-CDA Raw XML Editor/Viewer */}
-          <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '18px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '18px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                   HL7 C-CDA XML Source
                 </h3>
-                <span style={{ fontSize: '11px', color: '#64748B' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                   Referral document from Korle Bu Teaching Hospital
                 </span>
               </div>
               <button
                 onClick={() => setCdaXmlInput(SAMPLE_CCDA_XML)}
-                style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '4px', background: '#F1F5F9', border: '1px solid #CBD5E1', cursor: 'pointer' }}
+                style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '4px', background: 'var(--bg-subtle)', border: '1px solid var(--border-medium)', cursor: 'pointer' }}
               >
                 Reset XML
               </button>
@@ -709,24 +709,24 @@ export const DocumentsTab: React.FC = () => {
                 flex: 1,
                 padding: '10px',
                 borderRadius: '6px',
-                border: '1px solid #CBD5E1',
+                border: '1px solid var(--border-medium)',
                 fontSize: '11px',
                 fontFamily: 'var(--font-mono)',
-                background: '#0F172A',
-                color: '#E2E8F0',
+                background: 'var(--bg-app)',
+                color: 'var(--border-subtle)',
                 resize: 'none',
               }}
             />
           </div>
 
           {/* Parsed Structure & Extract Action */}
-          <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                   Parsed Clinical Sections
                 </h3>
-                <span style={{ fontSize: '11px', color: '#64748B' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                   {parsedCda.header.title}
                 </span>
               </div>
@@ -736,8 +736,8 @@ export const DocumentsTab: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: '#0284C7',
-                  color: '#FFFFFF',
+                  background: 'var(--accent-primary)',
+                  color: 'var(--bg-surface)',
                   border: 'none',
                   borderRadius: '6px',
                   padding: '6px 12px',
@@ -753,36 +753,36 @@ export const DocumentsTab: React.FC = () => {
             {/* Sections Accordion */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {parsedCda.sections.allergies && (
-                <div style={{ background: '#FEF2F2', padding: '10px 12px', borderRadius: '6px', border: '1px solid #FCA5A5' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#991B1B' }}>Allergies Section</span>
-                  <div style={{ fontSize: '11px', color: '#7F1D1D', marginTop: '2px' }}>
+                <div style={{ background: 'var(--danger-subtle)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--danger-border)' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--status-danger)' }}>Allergies Section</span>
+                  <div style={{ fontSize: '11px', color: 'var(--status-danger)', marginTop: '2px' }}>
                     {parsedCda.sections.allergies.narrativeHtml}
                   </div>
                 </div>
               )}
 
               {parsedCda.sections.problemList && (
-                <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>Active Problem List</span>
-                  <div style={{ fontSize: '11px', color: '#334155', marginTop: '2px' }}>
+                <div style={{ background: 'var(--bg-subtle)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>Active Problem List</span>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                     {parsedCda.sections.problemList.narrativeHtml}
                   </div>
                 </div>
               )}
 
               {parsedCda.sections.vitalSigns && (
-                <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>Vitals at Referral</span>
-                  <div style={{ fontSize: '11px', color: '#334155', marginTop: '2px' }}>
+                <div style={{ background: 'var(--bg-subtle)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>Vitals at Referral</span>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                     {parsedCda.sections.vitalSigns.narrativeHtml}
                   </div>
                 </div>
               )}
 
               {parsedCda.sections.medications && (
-                <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>Medications</span>
-                  <div style={{ fontSize: '11px', color: '#334155', marginTop: '2px' }}>
+                <div style={{ background: 'var(--bg-subtle)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>Medications</span>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                     {parsedCda.sections.medications.narrativeHtml}
                   </div>
                 </div>
@@ -790,11 +790,11 @@ export const DocumentsTab: React.FC = () => {
             </div>
 
             {extractedResult && (
-              <div style={{ background: '#F0FDF4', padding: '12px', borderRadius: '6px', border: '1px solid #BBF7D0' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#166534' }}>
+              <div style={{ background: 'var(--success-subtle)', padding: '12px', borderRadius: '6px', border: '1px solid var(--success-border)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--status-success)' }}>
                   Extraction Summary: {extractedResult.extractedFindingsCount} Findings Ingested
                 </span>
-                <div style={{ fontSize: '11px', color: '#166534', marginTop: '4px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--status-success)', marginTop: '4px' }}>
                   Problems mapped to case hypotheses; vitals recorded into clinical record.
                 </div>
               </div>
@@ -809,13 +809,13 @@ export const DocumentsTab: React.FC = () => {
       {activeConsole === 'HL7_V2' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px' }}>
           {/* Left: Raw ER7 Editor */}
-          <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                   Raw HL7 v2.5.1 ER7 Message Feed
                 </h3>
-                <span style={{ fontSize: '11px', color: '#64748B' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                   Pipe-and-hat standard encoding from hospital LIS / EHR
                 </span>
               </div>
@@ -846,9 +846,9 @@ export const DocumentsTab: React.FC = () => {
                 fontSize: '11px',
                 padding: '12px',
                 borderRadius: '6px',
-                border: '1px solid #CBD5E1',
-                backgroundColor: '#0F172A',
-                color: '#38BDF8',
+                border: '1px solid var(--border-medium)',
+                backgroundColor: 'var(--bg-app)',
+                color: 'var(--accent-primary)',
                 lineHeight: 1.5,
                 resize: 'vertical',
               }}
@@ -866,13 +866,13 @@ export const DocumentsTab: React.FC = () => {
           {/* Right: Parsed Segments & Extracted Findings */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {parsedHl7 && (
-              <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '18px' }}>
+              <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '18px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                   <div>
-                    <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                    <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
                       Message Details ({parsedHl7.messageType})
                     </h4>
-                    <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'var(--font-mono)' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
                       Control ID: {parsedHl7.messageControlId} · Version {parsedHl7.versionId}
                     </span>
                   </div>
@@ -892,9 +892,9 @@ export const DocumentsTab: React.FC = () => {
                         fontWeight: 600,
                         padding: '2px 8px',
                         borderRadius: '4px',
-                        background: seg.name === 'OBX' ? '#EFF6FF' : seg.name === 'DG1' ? '#FEF3C7' : '#F1F5F9',
-                        color: seg.name === 'OBX' ? '#1D4ED8' : seg.name === 'DG1' ? '#B45309' : '#334155',
-                        border: '1px solid #E2E8F0',
+                        background: seg.name === 'OBX' ? 'var(--accent-subtle)' : seg.name === 'DG1' ? 'var(--warning-subtle)' : 'var(--bg-subtle)',
+                        color: seg.name === 'OBX' ? 'var(--accent-primary)' : seg.name === 'DG1' ? 'var(--status-warning)' : 'var(--text-secondary)',
+                        border: '1px solid var(--border-subtle)',
                       }}
                     >
                       {seg.name} ({seg.fields.length} fields)
@@ -904,9 +904,9 @@ export const DocumentsTab: React.FC = () => {
 
                 {/* Extracted Findings & Ingestion Action */}
                 {hl7ExtractResult && (
-                  <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '12px' }}>
+                  <div style={{ borderTop: '1px solid var(--bg-subtle)', paddingTop: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#166534' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--status-success)' }}>
                         Extracted Observations ({hl7ExtractResult.observations.length})
                       </span>
                       <button
@@ -923,21 +923,21 @@ export const DocumentsTab: React.FC = () => {
                         <div
                           key={i}
                           style={{
-                            background: '#F8FAFC',
-                            border: '1px solid #E2E8F0',
+                            background: 'var(--bg-subtle)',
+                            border: '1px solid var(--border-subtle)',
                             borderRadius: '4px',
                             padding: '8px 10px',
                             fontSize: '11px',
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <span style={{ fontWeight: 600, color: '#0F172A' }}>{obs.identifierText}</span>
-                            <span style={{ fontFamily: 'var(--font-mono)', color: obs.abnormalFlags ? '#DC2626' : '#166534', fontWeight: 700 }}>
+                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{obs.identifierText}</span>
+                            <span style={{ fontFamily: 'var(--font-mono)', color: obs.abnormalFlags ? 'var(--status-danger)' : 'var(--status-success)', fontWeight: 700 }}>
                               {obs.observationValue} {obs.units} {obs.abnormalFlags && `(${obs.abnormalFlags})`}
                             </span>
                           </div>
                           {obs.referenceRange && (
-                            <div style={{ color: '#64748B', fontSize: '10px' }}>
+                            <div style={{ color: 'var(--text-muted)', fontSize: '10px' }}>
                               Ref: {obs.referenceRange} {obs.units} · Status: {obs.observationResultStatus}
                             </div>
                           )}
@@ -958,17 +958,17 @@ export const DocumentsTab: React.FC = () => {
       {activeConsole === 'IHE_XDS' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '20px' }}>
           {/* Registry Document Entries */}
-          <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '18px' }}>
+          <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '18px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                   IHE XDS.b Registry Stored Query (ITI-18)
                 </h3>
-                <span style={{ fontSize: '11px', color: '#64748B' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                   Querying affinity domain for patient: {activeCase.overview.patient.id}
                 </span>
               </div>
-              <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: '#DCFCE7', color: '#15803D' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: 'var(--success-subtle)', color: 'var(--status-success)' }}>
                 STATUS: {xdsQueryResult.registryStatus}
               </span>
             </div>
@@ -986,19 +986,19 @@ export const DocumentsTab: React.FC = () => {
                       justifyContent: 'space-between',
                       padding: '12px 14px',
                       borderRadius: '6px',
-                      border: isSelected ? '1px solid #0284C7' : '1px solid #E2E8F0',
-                      background: isSelected ? '#F0F9FF' : '#FFFFFF',
+                      border: isSelected ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                      background: isSelected ? 'var(--accent-subtle)' : 'var(--bg-surface)',
                       cursor: 'pointer',
                     }}
                   >
                     <div>
-                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
                         {xdoc.title}
                       </div>
-                      <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
                         {xdoc.authorPerson} · {xdoc.authorInstitution}
                       </div>
-                      <div style={{ fontSize: '10px', color: '#94A3B8', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
                         UUID: {xdoc.entryUuid}
                       </div>
                     </div>
@@ -1010,8 +1010,8 @@ export const DocumentsTab: React.FC = () => {
                       style={{
                         padding: '4px 10px',
                         borderRadius: '4px',
-                        background: '#0F172A',
-                        color: '#FFFFFF',
+                        background: 'var(--bg-app)',
+                        color: 'var(--bg-surface)',
                         border: 'none',
                         fontSize: '11px',
                         cursor: 'pointer',
@@ -1027,19 +1027,19 @@ export const DocumentsTab: React.FC = () => {
 
           {/* Document Payload Viewer */}
           {selectedXdsDoc && (
-            <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '18px' }}>
-              <h3 style={{ margin: '0 0 10px', fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+            <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '18px' }}>
+              <h3 style={{ margin: '0 0 10px', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                 Retrieved Document Payload
               </h3>
-              <div style={{ fontSize: '11px', color: '#64748B', marginBottom: '8px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px' }}>
                 MIME: <strong>{selectedXdsDoc.mimeType}</strong> · Size: {Math.round(selectedXdsDoc.sizeBytes / 1024)} KB
               </div>
 
               {retrievedPayload && (
                 <pre
                   style={{
-                    background: '#0F172A',
-                    color: '#E2E8F0',
+                    background: 'var(--bg-app)',
+                    color: 'var(--border-subtle)',
                     padding: '12px',
                     borderRadius: '6px',
                     fontSize: '11px',
@@ -1062,13 +1062,13 @@ export const DocumentsTab: React.FC = () => {
       {activeConsole === 'WHO_SMART' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Validation Header Card */}
-          <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '20px' }}>
+          <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
                   WHO SMART Guidelines Base Profile Compliance Audit
                 </h3>
-                <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B' }}>
+                <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
                   Audits case FHIR resources against World Health Organization SMART Guidelines Digital Adaptation Kit (DAK) R4 Implementation Guide.
                 </p>
               </div>
@@ -1080,8 +1080,8 @@ export const DocumentsTab: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: '#0284C7',
-                  color: '#FFFFFF',
+                  background: 'var(--accent-primary)',
+                  color: 'var(--bg-surface)',
                   border: 'none',
                   borderRadius: '6px',
                   padding: '8px 14px',
@@ -1101,44 +1101,44 @@ export const DocumentsTab: React.FC = () => {
                 display: 'grid',
                 gridTemplateColumns: 'repeat(4, 1fr)',
                 gap: '12px',
-                background: '#F8FAFC',
+                background: 'var(--bg-subtle)',
                 padding: '14px',
                 borderRadius: '6px',
-                border: '1px solid #E2E8F0',
+                border: '1px solid var(--border-subtle)',
               }}
             >
               <div>
-                <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B' }}>
+                <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                   Overall Compliance
                 </div>
-                <div style={{ fontSize: '20px', fontWeight: 800, color: '#16A34A', marginTop: '2px' }}>
+                <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--status-success)', marginTop: '2px' }}>
                   {whoReport.compliancePercentage}%
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B' }}>
+                <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                   Audit Status
                 </div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', marginTop: '4px' }}>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>
                   {whoReport.overallStatus}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B' }}>
+                <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                   Passed Checks
                 </div>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '2px' }}>
                   {whoReport.passedChecks} / {whoReport.totalChecks}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B' }}>
+                <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                   IG Version
                 </div>
-                <div style={{ fontSize: '11px', color: '#0284C7', fontWeight: 600, marginTop: '4px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--accent-primary)', fontWeight: 600, marginTop: '4px' }}>
                   {whoReport.whoSmartGuidelineVersion}
                 </div>
               </div>
@@ -1146,8 +1146,8 @@ export const DocumentsTab: React.FC = () => {
           </div>
 
           {/* Validation Issues & Findings */}
-          <div style={{ background: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', padding: '18px' }}>
-            <h4 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+          <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', padding: '18px' }}>
+            <h4 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
               Conformance Findings & Checklist
             </h4>
 
@@ -1161,24 +1161,24 @@ export const DocumentsTab: React.FC = () => {
                     gap: '10px',
                     padding: '12px',
                     borderRadius: '6px',
-                    background: issue.severity === 'INFO' ? '#F0FDF4' : '#FFFBEB',
-                    border: issue.severity === 'INFO' ? '1px solid #BBF7D0' : '1px solid #FCD34D',
+                    background: issue.severity === 'INFO' ? 'var(--success-subtle)' : 'var(--warning-subtle)',
+                    border: issue.severity === 'INFO' ? '1px solid var(--success-border)' : '1px solid var(--warning-border)',
                   }}
                 >
-                  <CheckCircle2 size={16} color={issue.severity === 'INFO' ? '#16A34A' : '#D97706'} style={{ marginTop: '2px' }} />
+                  <CheckCircle2 size={16} color={issue.severity === 'INFO' ? 'var(--status-success)' : 'var(--status-warning)'} style={{ marginTop: '2px' }} />
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>
                         {issue.ruleCode}: {issue.resourceType}
                       </span>
-                      <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '4px', background: '#E2E8F0', color: '#475569' }}>
+                      <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '4px', background: 'var(--border-subtle)', color: 'var(--text-secondary)' }}>
                         {issue.severity}
                       </span>
                     </div>
-                    <div style={{ fontSize: '12px', color: '#334155', marginTop: '2px' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                       {issue.message}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
                       <strong>Guidance:</strong> {issue.recommendedFix}
                     </div>
                   </div>

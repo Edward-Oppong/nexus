@@ -37,7 +37,7 @@ export const OrganizationSwitcher: React.FC = () => {
           borderRadius: '6px',
           backgroundColor: 'rgba(255, 255, 255, 0.05)',
           border: '1px solid rgba(255, 255, 255, 0.1)',
-          color: '#e2e8f0',
+          color: 'var(--border-subtle)',
           fontSize: '12px',
           fontWeight: 600,
           cursor: 'pointer',
@@ -45,11 +45,11 @@ export const OrganizationSwitcher: React.FC = () => {
         }}
         title="Switch Organization Tenant"
       >
-        <Building2 size={14} style={{ color: '#38bdf8' }} />
+        <Building2 size={14} style={{ color: 'var(--accent-primary)' }} />
         <span style={{ maxWidth: '170px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {activeOrganization?.name || 'Select Organization'}
         </span>
-        <ChevronDown size={12} style={{ color: '#94a3b8' }} />
+        <ChevronDown size={12} style={{ color: 'var(--text-muted)' }} />
       </button>
 
       {isOpen && (
@@ -75,7 +75,7 @@ export const OrganizationSwitcher: React.FC = () => {
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
-              color: '#64748b',
+              color: 'var(--text-muted)',
               borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
               marginBottom: '4px',
             }}
@@ -102,7 +102,7 @@ export const OrganizationSwitcher: React.FC = () => {
                   borderRadius: '6px',
                   backgroundColor: isSelected ? 'rgba(2, 132, 199, 0.2)' : 'transparent',
                   border: 'none',
-                  color: isSelected ? '#38bdf8' : '#cbd5e1',
+                  color: isSelected ? 'var(--accent-primary)' : 'var(--border-medium)',
                   fontSize: '12px',
                   textAlign: 'left',
                   cursor: 'pointer',
@@ -111,9 +111,9 @@ export const OrganizationSwitcher: React.FC = () => {
               >
                 <div>
                   <div style={{ fontWeight: isSelected ? 700 : 500 }}>{org.name}</div>
-                  <div style={{ fontSize: '10px', color: '#64748b' }}>{org.organizationType} · {org.countryCode}</div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{org.organizationType} · {org.countryCode}</div>
                 </div>
-                {isSelected && <Check size={14} style={{ color: '#38bdf8' }} />}
+                {isSelected && <Check size={14} style={{ color: 'var(--accent-primary)' }} />}
               </button>
             );
           })}

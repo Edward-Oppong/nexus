@@ -37,14 +37,14 @@ export const EvidenceDrawer: React.FC = () => {
                 fontFamily: 'var(--font-mono)',
                 fontSize: '11px',
                 textTransform: 'uppercase',
-                color: '#2563EB',
+                color: 'var(--accent-primary)',
                 letterSpacing: '0.04em',
                 fontWeight: 600,
               }}
             >
               Clinical Evidence Record · {documentType}
             </span>
-            <h2 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', marginTop: '4px', lineHeight: 1.3 }}>
+            <h2 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px', lineHeight: 1.3 }}>
               {title}
             </h2>
           </div>
@@ -54,7 +54,7 @@ export const EvidenceDrawer: React.FC = () => {
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              color: '#64748B',
+              color: 'var(--text-muted)',
               padding: '4px',
             }}
           >
@@ -70,9 +70,9 @@ export const EvidenceDrawer: React.FC = () => {
               alignItems: 'center',
               gap: '4px',
               padding: '4px 8px',
-              background: authority === 'High' ? '#ECFDF5' : '#F8FAFC',
-              color: authority === 'High' ? '#065F46' : '#334155',
-              border: `1px solid ${authority === 'High' ? '#6EE7B7' : '#E2E8F0'}`,
+              background: authority === 'High' ? 'var(--success-subtle)' : 'var(--bg-subtle)',
+              color: authority === 'High' ? 'var(--status-success)' : 'var(--text-secondary)',
+              border: `1px solid ${authority === 'High' ? 'var(--success-border)' : 'var(--border-subtle)'}`,
               borderRadius: '4px',
               fontSize: '11px',
               fontWeight: 600,
@@ -87,9 +87,9 @@ export const EvidenceDrawer: React.FC = () => {
               alignItems: 'center',
               gap: '4px',
               padding: '4px 8px',
-              background: relationship === 'Supports' ? '#EFF6FF' : relationship === 'Contradicts' ? '#FEF2F2' : '#F1F5F9',
-              color: relationship === 'Supports' ? '#1E40AF' : relationship === 'Contradicts' ? '#991B1B' : '#475569',
-              border: `1px solid ${relationship === 'Supports' ? '#93C5FD' : relationship === 'Contradicts' ? '#FCA5A5' : '#CBD5E1'}`,
+              background: relationship === 'Supports' ? 'var(--accent-subtle)' : relationship === 'Contradicts' ? 'var(--danger-subtle)' : 'var(--bg-subtle)',
+              color: relationship === 'Supports' ? 'var(--accent-primary)' : relationship === 'Contradicts' ? 'var(--status-danger)' : 'var(--text-secondary)',
+              border: `1px solid ${relationship === 'Supports' ? 'var(--border-medium)' : relationship === 'Contradicts' ? 'var(--danger-border)' : 'var(--border-medium)'}`,
               borderRadius: '4px',
               fontSize: '11px',
               fontWeight: 600,
@@ -102,26 +102,26 @@ export const EvidenceDrawer: React.FC = () => {
         {/* Content Details */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '13px', flex: 1 }}>
           <section aria-labelledby="evidence-why-relevant-title">
-            <h3 id="evidence-why-relevant-title" style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '6px' }}>
+            <h3 id="evidence-why-relevant-title" style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '6px' }}>
               Why Am I Seeing This Evidence?
             </h3>
-            <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '10px 12px', borderRadius: '6px', color: '#334155', lineHeight: 1.4 }}>
+            <div style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)', padding: '10px 12px', borderRadius: '6px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
               {relevanceExplanation}
             </div>
           </section>
 
           <section aria-labelledby="evidence-relevant-passage-title">
-            <h3 id="evidence-relevant-passage-title" style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '6px' }}>
+            <h3 id="evidence-relevant-passage-title" style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '6px' }}>
               Relevant Guideline Passage
             </h3>
             <div
               style={{
-                background: '#FFFFFF',
-                border: '1px solid #CBD5E1',
-                borderLeft: '4px solid #2563EB',
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-medium)',
+                borderLeft: '4px solid var(--accent-primary)',
                 padding: '12px',
                 borderRadius: '4px',
-                color: '#0F172A',
+                color: 'var(--text-primary)',
                 lineHeight: 1.5,
                 fontStyle: 'italic',
               }}
@@ -131,10 +131,10 @@ export const EvidenceDrawer: React.FC = () => {
           </section>
 
           <section aria-labelledby="evidence-source-provenance-title">
-            <h3 id="evidence-source-provenance-title" style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '6px' }}>
+            <h3 id="evidence-source-provenance-title" style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '6px' }}>
               Source Provenance & Metadata
             </h3>
-            <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '10px 12px', borderRadius: '6px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)', padding: '10px 12px', borderRadius: '6px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <div><strong>Issuing Body:</strong> {sourceOrganization}</div>
               <div><strong>Publication Year:</strong> {publicationYear}</div>
               <div><strong>Retrieved for Nexus:</strong> {retrievalDate}</div>
@@ -144,7 +144,7 @@ export const EvidenceDrawer: React.FC = () => {
 
           <section aria-labelledby="evidence-citation-title">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-              <h3 id="evidence-citation-title" style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748B', fontWeight: 600, letterSpacing: '0.05em', margin: 0 }}>
+              <h3 id="evidence-citation-title" style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em', margin: 0 }}>
                 Citation Reference
               </h3>
               {(selectedEvidence.url || (selectedEvidence as any).source?.url) && (
@@ -158,7 +158,7 @@ export const EvidenceDrawer: React.FC = () => {
                     gap: '4px',
                     fontSize: '11px',
                     fontWeight: 600,
-                    color: '#0284C7',
+                    color: 'var(--accent-primary)',
                     textDecoration: 'none',
                   }}
                 >
@@ -167,14 +167,14 @@ export const EvidenceDrawer: React.FC = () => {
                 </a>
               )}
             </div>
-            <div style={{ background: '#F1F5F9', padding: '8px 10px', borderRadius: '4px', fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#334155', lineHeight: 1.4 }}>
+            <div style={{ background: 'var(--bg-subtle)', padding: '8px 10px', borderRadius: '4px', fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
               {citation}
             </div>
           </section>
         </div>
 
         {/* Footer */}
-        <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '16px', display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+        <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '16px', display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
           {(selectedEvidence.url || (selectedEvidence as any).source?.url) && (
             <a
               href={selectedEvidence.url || (selectedEvidence as any).source?.url}
@@ -187,7 +187,7 @@ export const EvidenceDrawer: React.FC = () => {
                 gap: '6px',
                 fontSize: '12px',
                 textDecoration: 'none',
-                color: '#334155',
+                color: 'var(--text-secondary)',
               }}
             >
               <ExternalLink size={14} />

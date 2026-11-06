@@ -266,8 +266,8 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
   return (
     <div
       style={{
-        backgroundColor: '#FFFFFF',
-        border: '1px solid #E2E8F0',
+        backgroundColor: 'var(--bg-surface)',
+        border: '1px solid var(--border-subtle)',
         borderRadius: '10px',
         boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
         display: 'flex',
@@ -280,8 +280,8 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
       <div
         style={{
           padding: '14px 18px',
-          borderBottom: '1px solid #E2E8F0',
-          backgroundColor: '#F8FAFC',
+          borderBottom: '1px solid var(--border-subtle)',
+          backgroundColor: 'var(--bg-subtle)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -295,18 +295,18 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
               width: '36px',
               height: '36px',
               borderRadius: '8px',
-              backgroundColor: doc.fileType === 'image' ? '#EEF2FF' : '#F0FDF4',
+              backgroundColor: doc.fileType === 'image' ? 'var(--accent-subtle)' : 'var(--success-subtle)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: doc.fileType === 'image' ? '#4F46E5' : '#0F766E',
+              color: doc.fileType === 'image' ? 'var(--accent-primary)' : 'var(--accent-primary)',
             }}
           >
             {doc.fileType === 'image' ? <ImageIcon size={20} /> : <FileText size={20} />}
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                 {doc.title}
               </span>
               <span
@@ -315,15 +315,15 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
                   fontWeight: 600,
                   padding: '2px 8px',
                   borderRadius: '12px',
-                  backgroundColor: doc.fileType === 'image' ? '#E0E7FF' : '#CCFBF1',
-                  color: doc.fileType === 'image' ? '#3730A3' : '#0F766E',
+                  backgroundColor: doc.fileType === 'image' ? 'var(--accent-subtle)' : 'var(--success-border)',
+                  color: doc.fileType === 'image' ? 'var(--accent-primary)' : 'var(--accent-primary)',
                   textTransform: 'uppercase',
                 }}
               >
                 {doc.fileType}
               </span>
             </div>
-            <div style={{ fontSize: '12px', color: '#64748B', display: 'flex', gap: '12px', marginTop: '2px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', gap: '12px', marginTop: '2px' }}>
               <span>Category: <strong>{doc.category}</strong></span>
               <span>•</span>
               <span>
@@ -345,7 +345,7 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
           <div
             style={{
               display: 'flex',
-              backgroundColor: '#E2E8F0',
+              backgroundColor: 'var(--border-subtle)',
               padding: '3px',
               borderRadius: '6px',
               gap: '2px',
@@ -355,8 +355,8 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
               onClick={() => setActiveTab('split')}
               style={{
                 border: 'none',
-                background: activeTab === 'split' ? '#FFFFFF' : 'transparent',
-                color: activeTab === 'split' ? '#0F172A' : '#64748B',
+                background: activeTab === 'split' ? 'var(--bg-surface)' : 'transparent',
+                color: activeTab === 'split' ? 'var(--text-primary)' : 'var(--text-muted)',
                 fontWeight: activeTab === 'split' ? 600 : 500,
                 padding: '4px 10px',
                 borderRadius: '4px',
@@ -374,8 +374,8 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
               onClick={() => setActiveTab('viewer')}
               style={{
                 border: 'none',
-                background: activeTab === 'viewer' ? '#FFFFFF' : 'transparent',
-                color: activeTab === 'viewer' ? '#0F172A' : '#64748B',
+                background: activeTab === 'viewer' ? 'var(--bg-surface)' : 'transparent',
+                color: activeTab === 'viewer' ? 'var(--text-primary)' : 'var(--text-muted)',
                 fontWeight: activeTab === 'viewer' ? 600 : 500,
                 padding: '4px 10px',
                 borderRadius: '4px',
@@ -393,8 +393,8 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
               onClick={() => setActiveTab('table')}
               style={{
                 border: 'none',
-                background: activeTab === 'table' ? '#FFFFFF' : 'transparent',
-                color: activeTab === 'table' ? '#0F172A' : '#64748B',
+                background: activeTab === 'table' ? 'var(--bg-surface)' : 'transparent',
+                color: activeTab === 'table' ? 'var(--text-primary)' : 'var(--text-muted)',
                 fontWeight: activeTab === 'table' ? 600 : 500,
                 padding: '4px 10px',
                 borderRadius: '4px',
@@ -412,8 +412,8 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
               onClick={() => setActiveTab('transcript')}
               style={{
                 border: 'none',
-                background: activeTab === 'transcript' ? '#FFFFFF' : 'transparent',
-                color: activeTab === 'transcript' ? '#0F172A' : '#64748B',
+                background: activeTab === 'transcript' ? 'var(--bg-surface)' : 'transparent',
+                color: activeTab === 'transcript' ? 'var(--text-primary)' : 'var(--text-muted)',
                 fontWeight: activeTab === 'transcript' ? 600 : 500,
                 padding: '4px 10px',
                 borderRadius: '4px',
@@ -434,8 +434,8 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
             onClick={handleApplyToPatientCase}
             style={{
               border: 'none',
-              backgroundColor: '#0F766E',
-              color: '#FFFFFF',
+              backgroundColor: 'var(--accent-primary)',
+              color: 'var(--bg-surface)',
               fontWeight: 600,
               fontSize: '12px',
               padding: '6px 14px',
@@ -454,9 +454,9 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
           <button
             onClick={onRemoveDocument}
             style={{
-              border: '1px solid #E2E8F0',
-              background: '#FFFFFF',
-              color: '#94A3B8',
+              border: '1px solid var(--border-subtle)',
+              background: 'var(--bg-surface)',
+              color: 'var(--text-muted)',
               borderRadius: '6px',
               padding: '6px 8px',
               cursor: 'pointer',
@@ -473,9 +473,9 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
         <div
           style={{
             padding: '8px 16px',
-            backgroundColor: '#ECFDF5',
-            borderBottom: '1px solid #A7F3D0',
-            color: '#065F46',
+            backgroundColor: 'var(--success-subtle)',
+            borderBottom: '1px solid var(--success-border)',
+            color: 'var(--status-success)',
             fontSize: '12px',
             fontWeight: 600,
             display: 'flex',
@@ -483,7 +483,7 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
             gap: '8px',
           }}
         >
-          <CheckCircle2 size={14} color="#059669" />
+          <CheckCircle2 size={14} color="var(--status-success)" />
           {syncStatusMessage}
         </div>
       )}
@@ -503,10 +503,10 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
         {(activeTab === 'split' || activeTab === 'viewer') && (
           <div
             style={{
-              borderRight: activeTab === 'split' ? '1px solid #E2E8F0' : 'none',
+              borderRight: activeTab === 'split' ? '1px solid var(--border-subtle)' : 'none',
               display: 'flex',
               flexDirection: 'column',
-              backgroundColor: '#F1F5F9',
+              backgroundColor: 'var(--bg-subtle)',
               overflow: 'hidden',
             }}
           >
@@ -514,16 +514,16 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
             <div
               style={{
                 padding: '8px 12px',
-                backgroundColor: '#E2E8F0',
+                backgroundColor: 'var(--border-subtle)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                borderBottom: '1px solid #CBD5E1',
+                borderBottom: '1px solid var(--border-medium)',
                 fontSize: '12px',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontWeight: 600, color: '#334155' }}>
+                <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
                   {doc.fileType === 'image' ? 'Image Reconstructor' : 'PDF Document Viewer'}
                 </span>
               </div>
@@ -536,8 +536,8 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
                       disabled={currentPage <= 1}
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                       style={{
-                        border: '1px solid #CBD5E1',
-                        background: '#FFFFFF',
+                        border: '1px solid var(--border-medium)',
+                        background: 'var(--bg-surface)',
                         borderRadius: '4px',
                         padding: '2px 4px',
                         cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
@@ -546,15 +546,15 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
                     >
                       <ChevronLeft size={14} />
                     </button>
-                    <span style={{ fontSize: '11px', color: '#475569', minWidth: '60px', textAlign: 'center' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--text-secondary)', minWidth: '60px', textAlign: 'center' }}>
                       {currentPage} / {totalPages}
                     </span>
                     <button
                       disabled={currentPage >= totalPages}
                       onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                       style={{
-                        border: '1px solid #CBD5E1',
-                        background: '#FFFFFF',
+                        border: '1px solid var(--border-medium)',
+                        background: 'var(--bg-surface)',
                         borderRadius: '4px',
                         padding: '2px 4px',
                         cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
@@ -570,8 +570,8 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
                   <button
                     onClick={() => setZoomScale((z) => Math.max(0.5, z - 0.2))}
                     style={{
-                      border: '1px solid #CBD5E1',
-                      background: '#FFFFFF',
+                      border: '1px solid var(--border-medium)',
+                      background: 'var(--bg-surface)',
                       borderRadius: '4px',
                       padding: '3px 6px',
                       cursor: 'pointer',
@@ -580,14 +580,14 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
                   >
                     <ZoomOut size={13} />
                   </button>
-                  <span style={{ fontSize: '11px', minWidth: '38px', textAlign: 'center', color: '#475569' }}>
+                  <span style={{ fontSize: '11px', minWidth: '38px', textAlign: 'center', color: 'var(--text-secondary)' }}>
                     {Math.round(zoomScale * 100)}%
                   </span>
                   <button
                     onClick={() => setZoomScale((z) => Math.min(2.5, z + 0.2))}
                     style={{
-                      border: '1px solid #CBD5E1',
-                      background: '#FFFFFF',
+                      border: '1px solid var(--border-medium)',
+                      background: 'var(--bg-surface)',
                       borderRadius: '4px',
                       padding: '3px 6px',
                       cursor: 'pointer',
@@ -602,8 +602,8 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
                   <button
                     onClick={() => setRotation((r) => (r + 90) % 360)}
                     style={{
-                      border: '1px solid #CBD5E1',
-                      background: '#FFFFFF',
+                      border: '1px solid var(--border-medium)',
+                      background: 'var(--bg-surface)',
                       borderRadius: '4px',
                       padding: '3px 6px',
                       cursor: 'pointer',
@@ -625,13 +625,13 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'flex-start',
-                backgroundColor: '#475569',
+                backgroundColor: 'var(--text-secondary)',
               }}
             >
               {doc.fileType === 'image' ? (
                 <div
                   style={{
-                    backgroundColor: '#FFFFFF',
+                    backgroundColor: 'var(--bg-surface)',
                     boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
                     borderRadius: '4px',
                     overflow: 'hidden',
@@ -654,7 +654,7 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
                 <div
                   style={{
                     position: 'relative',
-                    backgroundColor: '#FFFFFF',
+                    backgroundColor: 'var(--bg-surface)',
                     boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
                     borderRadius: '4px',
                     overflow: 'hidden',
@@ -674,8 +674,8 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
                         gap: '8px',
                       }}
                     >
-                      <RefreshCw size={24} color="#0F766E" className="spin-icon" style={{ animation: 'spin 1s linear infinite' }} />
-                      <span style={{ fontSize: '12px', color: '#0F766E', fontWeight: 600 }}>
+                      <RefreshCw size={24} color="var(--accent-primary)" className="spin-icon" style={{ animation: 'spin 1s linear infinite' }} />
+                      <span style={{ fontSize: '12px', color: 'var(--accent-primary)', fontWeight: 600 }}>
                         Reconstructing PDF Page {currentPage}…
                       </span>
                     </div>
@@ -706,7 +706,7 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
             style={{
               display: 'flex',
               flexDirection: 'column',
-              backgroundColor: '#FFFFFF',
+              backgroundColor: 'var(--bg-surface)',
               overflow: 'hidden',
             }}
           >
@@ -714,18 +714,18 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
             <div
               style={{
                 padding: '10px 16px',
-                borderBottom: '1px solid #E2E8F0',
-                backgroundColor: '#F8FAFC',
+                borderBottom: '1px solid var(--border-subtle)',
+                backgroundColor: 'var(--bg-subtle)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
               }}
             >
               <div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
                   Extracted Clinical Findings & Parameters
                 </div>
-                <div style={{ fontSize: '11px', color: '#64748B' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                   Edit parameters, values, reference ranges, and verify findings before AI ingestion.
                 </div>
                 <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginTop: '5px' }}>
@@ -736,9 +736,9 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
                     <span key={label} style={{
                       display: 'inline-flex', alignItems: 'center', gap: '3px',
                       fontSize: '9px', fontWeight: 600,
-                      background: '#EFF6FF', color: '#1D4ED8',
+                      background: 'var(--accent-subtle)', color: 'var(--accent-primary)',
                       padding: '1px 6px', borderRadius: '8px',
-                      border: '1px solid #BFDBFE',
+                      border: '1px solid var(--border-medium)',
                     }}>
                       <Sparkles size={8} /> {title}: {label}
                     </span>
@@ -749,9 +749,9 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
               <button
                 onClick={handleAddRow}
                 style={{
-                  border: '1px solid #CBD5E1',
-                  backgroundColor: '#FFFFFF',
-                  color: '#0F766E',
+                  border: '1px solid var(--border-medium)',
+                  backgroundColor: 'var(--bg-surface)',
+                  color: 'var(--accent-primary)',
                   fontWeight: 600,
                   fontSize: '11px',
                   padding: '4px 10px',
@@ -769,8 +769,8 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
             {/* Editable Data Table Grid */}
             <div style={{ flex: 1, overflow: 'auto', padding: '12px 16px' }}>
               {findings.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#64748B' }}>
-                  <AlertCircle size={28} color="#94A3B8" style={{ margin: '0 auto 8px' }} />
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
+                  <AlertCircle size={28} color="var(--text-muted)" style={{ margin: '0 auto 8px' }} />
                   <p style={{ margin: 0, fontSize: '13px', fontWeight: 600 }}>No clinical entities extracted yet</p>
                   <p style={{ margin: '4px 0 12px', fontSize: '11px' }}>
                     Click "+ Add Parameter" above or switch to the Editable Transcript tab to paste clinical notes.
@@ -779,7 +779,7 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
               ) : (
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                   <thead>
-                    <tr style={{ borderBottom: '2px solid #E2E8F0', textAlign: 'left', color: '#64748B' }}>
+                    <tr style={{ borderBottom: '2px solid var(--border-subtle)', textAlign: 'left', color: 'var(--text-muted)' }}>
                       <th style={{ padding: '6px 4px', width: '32px', textAlign: 'center' }}>Sync</th>
                       <th style={{ padding: '6px 8px', width: '110px' }}>Category</th>
                       <th style={{ padding: '6px 8px' }}>Finding / Parameter</th>
@@ -796,8 +796,8 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
                         <tr
                           key={f.id || idx}
                           style={{
-                            borderBottom: '1px solid #F1F5F9',
-                            backgroundColor: isVerified ? '#F0FDF4' : f.isAccepted === false ? '#F8FAFC' : '#FFFFFF',
+                            borderBottom: '1px solid var(--bg-subtle)',
+                            backgroundColor: isVerified ? 'var(--success-subtle)' : f.isAccepted === false ? 'var(--bg-subtle)' : 'var(--bg-surface)',
                             opacity: f.isAccepted === false ? 0.6 : 1,
                           }}
                         >
@@ -821,20 +821,20 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
                                 width: '100%',
                                 padding: '4px 6px',
                                 borderRadius: '4px',
-                                border: '1px solid #E2E8F0',
+                                border: '1px solid var(--border-subtle)',
                                 fontSize: '11px',
                                 fontWeight: 600,
                                 color:
                                   f.category === 'vital-signs'
-                                    ? '#0369A1'
+                                    ? 'var(--accent-primary)'
                                     : f.category === 'laboratory'
-                                    ? '#7C3AED'
+                                    ? 'var(--accent-primary)'
                                     : f.category === 'medication'
-                                    ? '#C2410C'
+                                    ? 'var(--status-warning)'
                                     : f.category === 'diagnosis'
-                                    ? '#B91C1C'
-                                    : '#0F766E',
-                                backgroundColor: '#FFFFFF',
+                                    ? 'var(--status-danger)'
+                                    : 'var(--accent-primary)',
+                                backgroundColor: 'var(--bg-surface)',
                               }}
                             >
                               <option value="vital-signs">Vitals</option>
@@ -856,17 +856,17 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
                                 width: '100%',
                                 padding: '4px 8px',
                                 borderRadius: '4px',
-                                border: '1px solid #CBD5E1',
+                                border: '1px solid var(--border-medium)',
                                 fontSize: '12px',
                                 fontWeight: 600,
-                                color: '#0F172A',
+                                color: 'var(--text-primary)',
                               }}
                             />
                             {f.sourceSnippet && (
                               <div
                                 style={{
                                   fontSize: '10px',
-                                  color: '#64748B',
+                                  color: 'var(--text-muted)',
                                   marginTop: '2px',
                                   fontStyle: 'italic',
                                   overflow: 'hidden',
@@ -891,9 +891,9 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
                                 width: '100%',
                                 padding: '4px 8px',
                                 borderRadius: '4px',
-                                border: '1px solid #CBD5E1',
+                                border: '1px solid var(--border-medium)',
                                 fontSize: '12px',
-                                color: '#0F172A',
+                                color: 'var(--text-primary)',
                                 fontWeight: 500,
                               }}
                             />
@@ -910,9 +910,9 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
                                 width: '100%',
                                 padding: '4px 6px',
                                 borderRadius: '4px',
-                                border: '1px solid #E2E8F0',
+                                border: '1px solid var(--border-subtle)',
                                 fontSize: '11px',
-                                color: '#475569',
+                                color: 'var(--text-secondary)',
                               }}
                             />
                           </td>
@@ -931,8 +931,8 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '3px',
-                                backgroundColor: isVerified ? '#DCFCE7' : '#FEF3C7',
-                                color: isVerified ? '#166534' : '#92400E',
+                                backgroundColor: isVerified ? 'var(--success-subtle)' : 'var(--warning-subtle)',
+                                color: isVerified ? 'var(--status-success)' : 'var(--status-warning)',
                                 width: '100%',
                                 justifyContent: 'center',
                               }}
@@ -949,7 +949,7 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
                               style={{
                                 border: 'none',
                                 background: 'transparent',
-                                color: '#94A3B8',
+                                color: 'var(--text-muted)',
                                 cursor: 'pointer',
                                 padding: '2px',
                               }}
@@ -974,17 +974,17 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
             style={{
               display: 'flex',
               flexDirection: 'column',
-              backgroundColor: '#FFFFFF',
+              backgroundColor: 'var(--bg-surface)',
               padding: '16px',
               gap: '12px',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifySelf: 'stretch', justifyContent: 'space-between' }}>
               <div>
-                <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+                <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                   Editable Document Transcript & OCR Text
                 </h4>
-                <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B' }}>
+                <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
                   Modify or paste clinical text directly. Click "Re-extract Findings" to update the table with your edits.
                 </p>
               </div>
@@ -993,8 +993,8 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
                 onClick={handleReExtractFromText}
                 style={{
                   border: 'none',
-                  backgroundColor: '#0F766E',
-                  color: '#FFFFFF',
+                  backgroundColor: 'var(--accent-primary)',
+                  color: 'var(--bg-surface)',
                   fontWeight: 600,
                   fontSize: '12px',
                   padding: '6px 14px',
@@ -1021,9 +1021,9 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
                 lineHeight: '1.6',
                 padding: '12px',
                 borderRadius: '6px',
-                border: '1px solid #CBD5E1',
-                backgroundColor: '#F8FAFC',
-                color: '#0F172A',
+                border: '1px solid var(--border-medium)',
+                backgroundColor: 'var(--bg-subtle)',
+                color: 'var(--text-primary)',
                 resize: 'vertical',
                 boxSizing: 'border-box',
               }}
@@ -1037,17 +1037,17 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
       <div
         style={{
           padding: '10px 18px',
-          borderTop: '1px solid #E2E8F0',
-          backgroundColor: '#F8FAFC',
+          borderTop: '1px solid var(--border-subtle)',
+          backgroundColor: 'var(--bg-subtle)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           fontSize: '12px',
-          color: '#475569',
+          color: 'var(--text-secondary)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <CheckCircle2 size={14} color="#0F766E" />
+          <CheckCircle2 size={14} color="var(--accent-primary)" />
           <span>
             Clinician Adjudication: <strong>{verifiedCount} verified</strong>,{' '}
             <strong>{findings.length - verifiedCount} pending review</strong>.
@@ -1060,7 +1060,7 @@ export const DocumentReconstructionReview: React.FC<DocumentReconstructionReview
             style={{
               border: 'none',
               background: 'none',
-              color: '#0F766E',
+              color: 'var(--accent-primary)',
               fontWeight: 700,
               cursor: 'pointer',
               display: 'flex',

@@ -118,12 +118,12 @@ export const AiEngineConfigModal: React.FC<AiEngineConfigModalProps> = ({
     >
       <div
         style={{
-          backgroundColor: '#FFFFFF',
+          backgroundColor: 'var(--bg-surface)',
           borderRadius: '12px',
           width: '100%',
           maxWidth: '560px',
           boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #E2E8F0',
+          border: '1px solid var(--border-subtle)',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
@@ -133,8 +133,8 @@ export const AiEngineConfigModal: React.FC<AiEngineConfigModalProps> = ({
         <div
           style={{
             padding: '18px 24px',
-            background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-            color: '#FFFFFF',
+            background: 'linear-gradient(135deg, var(--text-primary) 0%, var(--text-primary) 100%)',
+            color: 'var(--bg-surface)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -151,7 +151,7 @@ export const AiEngineConfigModal: React.FC<AiEngineConfigModalProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#38BDF8',
+                color: 'var(--accent-primary)',
               }}
             >
               <Zap size={18} />
@@ -160,7 +160,7 @@ export const AiEngineConfigModal: React.FC<AiEngineConfigModalProps> = ({
               <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, letterSpacing: '-0.01em' }}>
                 Nexus Live AI Reasoning Engine
               </h3>
-              <p style={{ margin: 0, fontSize: '11px', color: '#94A3B8' }}>
+              <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-muted)' }}>
                 Connect real-time clinical LLMs for zero-simulation diagnostic synthesis
               </p>
             </div>
@@ -170,7 +170,7 @@ export const AiEngineConfigModal: React.FC<AiEngineConfigModalProps> = ({
             style={{
               background: 'transparent',
               border: 'none',
-              color: '#94A3B8',
+              color: 'var(--text-muted)',
               cursor: 'pointer',
               padding: '4px',
               borderRadius: '4px',
@@ -184,7 +184,7 @@ export const AiEngineConfigModal: React.FC<AiEngineConfigModalProps> = ({
         <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Provider Selection */}
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
               Select Active AI Reasoning Provider
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
@@ -208,8 +208,8 @@ export const AiEngineConfigModal: React.FC<AiEngineConfigModalProps> = ({
                     style={{
                       padding: '10px',
                       borderRadius: '8px',
-                      border: `2px solid ${isSelected ? '#0284C7' : '#E2E8F0'}`,
-                      background: isSelected ? '#F0F9FF' : '#F8FAFC',
+                      border: `2px solid ${isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
+                      background: isSelected ? 'var(--accent-subtle)' : 'var(--bg-subtle)',
                       textAlign: 'left',
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
@@ -217,12 +217,12 @@ export const AiEngineConfigModal: React.FC<AiEngineConfigModalProps> = ({
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: isSelected ? '#0284C7' : '#1E293B' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: isSelected ? 'var(--accent-primary)' : 'var(--text-primary)' }}>
                         {p.label}
                       </span>
-                      {isSelected && <CheckCircle2 size={13} color="#0284C7" />}
+                      {isSelected && <CheckCircle2 size={13} color="var(--accent-primary)" />}
                     </div>
-                    <div style={{ fontSize: '10px', color: '#64748B', marginTop: '2px' }}>{p.sub}</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>{p.sub}</div>
                   </button>
                 );
               })}
@@ -233,8 +233,8 @@ export const AiEngineConfigModal: React.FC<AiEngineConfigModalProps> = ({
           {settings.selectedProvider !== 'autonomous' && (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <label style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Key size={13} color="#0284C7" />
+                <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Key size={13} color="var(--accent-primary)" />
                   {settings.selectedProvider === 'gemini'
                     ? 'Google Gemini API Key'
                     : settings.selectedProvider === 'groq'
@@ -252,7 +252,7 @@ export const AiEngineConfigModal: React.FC<AiEngineConfigModalProps> = ({
                     href="https://aistudio.google.com/app/apikey"
                     target="_blank"
                     rel="noreferrer"
-                    style={{ fontSize: '11px', color: '#0284C7', display: 'flex', alignItems: 'center', gap: '3px', textDecoration: 'none', fontWeight: 600 }}
+                    style={{ fontSize: '11px', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '3px', textDecoration: 'none', fontWeight: 600 }}
                   >
                     Get Free Key <ExternalLink size={10} />
                   </a>
@@ -262,7 +262,7 @@ export const AiEngineConfigModal: React.FC<AiEngineConfigModalProps> = ({
                     href="https://console.groq.com/keys"
                     target="_blank"
                     rel="noreferrer"
-                    style={{ fontSize: '11px', color: '#0284C7', display: 'flex', alignItems: 'center', gap: '3px', textDecoration: 'none', fontWeight: 600 }}
+                    style={{ fontSize: '11px', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '3px', textDecoration: 'none', fontWeight: 600 }}
                   >
                     Get Free Groq Key <ExternalLink size={10} />
                   </a>
@@ -287,11 +287,11 @@ export const AiEngineConfigModal: React.FC<AiEngineConfigModalProps> = ({
                     width: '100%',
                     padding: '9px 40px 9px 12px',
                     borderRadius: '6px',
-                    border: '1px solid #CBD5E1',
+                    border: '1px solid var(--border-medium)',
                     fontSize: '13px',
                     fontFamily: 'monospace',
                     boxSizing: 'border-box',
-                    backgroundColor: '#FFFFFF',
+                    backgroundColor: 'var(--bg-surface)',
                   }}
                 />
                 <button
@@ -304,7 +304,7 @@ export const AiEngineConfigModal: React.FC<AiEngineConfigModalProps> = ({
                     transform: 'translateY(-50%)',
                     background: 'none',
                     border: 'none',
-                    color: '#64748B',
+                    color: 'var(--text-muted)',
                     cursor: 'pointer',
                     padding: '4px',
                   }}
@@ -314,7 +314,7 @@ export const AiEngineConfigModal: React.FC<AiEngineConfigModalProps> = ({
                 </button>
               </div>
 
-              <p style={{ margin: '6px 0 0', fontSize: '11px', color: '#64748B' }}>
+              <p style={{ margin: '6px 0 0', fontSize: '11px', color: 'var(--text-muted)' }}>
                 Stored locally in your browser and used strictly for direct HTTPS calls to {settings.selectedProvider.toUpperCase()} API. Never shared with third parties.
               </p>
             </div>
@@ -330,9 +330,9 @@ export const AiEngineConfigModal: React.FC<AiEngineConfigModalProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                backgroundColor: testResult.ok ? '#ECFDF5' : '#FEF2F2',
-                border: `1px solid ${testResult.ok ? '#6EE7B7' : '#FCA5A5'}`,
-                color: testResult.ok ? '#065F46' : '#991B1B',
+                backgroundColor: testResult.ok ? 'var(--success-subtle)' : 'var(--danger-subtle)',
+                border: `1px solid ${testResult.ok ? 'var(--success-border)' : 'var(--danger-border)'}`,
+                color: testResult.ok ? 'var(--status-success)' : 'var(--status-danger)',
               }}
             >
               {testResult.ok ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
@@ -346,19 +346,19 @@ export const AiEngineConfigModal: React.FC<AiEngineConfigModalProps> = ({
               style={{
                 padding: '12px 14px',
                 borderRadius: '6px',
-                backgroundColor: '#F8FAFC',
-                border: '1px solid #E2E8F0',
+                backgroundColor: 'var(--bg-subtle)',
+                border: '1px solid var(--border-subtle)',
                 fontSize: '12px',
-                color: '#334155',
+                color: 'var(--text-secondary)',
                 display: 'flex',
                 gap: '8px',
                 alignItems: 'flex-start',
               }}
             >
-              <Cpu size={16} color="#0F766E" style={{ marginTop: '2px', flexShrink: 0 }} />
+              <Cpu size={16} color="var(--accent-primary)" style={{ marginTop: '2px', flexShrink: 0 }} />
               <div>
-                <strong style={{ color: '#0F172A' }}>Nexus Autonomous Clinical Engine</strong>
-                <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: '#64748B', lineHeight: 1.4 }}>
+                <strong style={{ color: 'var(--text-primary)' }}>Nexus Autonomous Clinical Engine</strong>
+                <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-muted)', lineHeight: 1.4 }}>
                   Runs high-acuity ESI 1–5 triage stratification, vital danger zones, and 18 deterministic clinical safety boundary checks without external cloud dependencies.
                 </p>
               </div>
@@ -370,8 +370,8 @@ export const AiEngineConfigModal: React.FC<AiEngineConfigModalProps> = ({
         <div
           style={{
             padding: '16px 24px',
-            backgroundColor: '#F8FAFC',
-            borderTop: '1px solid #E2E8F0',
+            backgroundColor: 'var(--bg-subtle)',
+            borderTop: '1px solid var(--border-subtle)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -385,9 +385,9 @@ export const AiEngineConfigModal: React.FC<AiEngineConfigModalProps> = ({
               style={{
                 padding: '8px 14px',
                 borderRadius: '6px',
-                border: '1px solid #CBD5E1',
-                backgroundColor: '#FFFFFF',
-                color: '#0F172A',
+                border: '1px solid var(--border-medium)',
+                backgroundColor: 'var(--bg-surface)',
+                color: 'var(--text-primary)',
                 fontSize: '12px',
                 fontWeight: 600,
                 cursor: testing || !currentKey ? 'not-allowed' : 'pointer',
@@ -411,9 +411,9 @@ export const AiEngineConfigModal: React.FC<AiEngineConfigModalProps> = ({
               style={{
                 padding: '8px 14px',
                 borderRadius: '6px',
-                border: '1px solid #CBD5E1',
-                backgroundColor: '#FFFFFF',
-                color: '#475569',
+                border: '1px solid var(--border-medium)',
+                backgroundColor: 'var(--bg-surface)',
+                color: 'var(--text-secondary)',
                 fontSize: '12px',
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -428,8 +428,8 @@ export const AiEngineConfigModal: React.FC<AiEngineConfigModalProps> = ({
                 padding: '8px 18px',
                 borderRadius: '6px',
                 border: 'none',
-                backgroundColor: saveSuccess ? '#059669' : '#0284C7',
-                color: '#FFFFFF',
+                backgroundColor: saveSuccess ? 'var(--status-success)' : 'var(--accent-primary)',
+                color: 'var(--bg-surface)',
                 fontSize: '12px',
                 fontWeight: 700,
                 cursor: 'pointer',

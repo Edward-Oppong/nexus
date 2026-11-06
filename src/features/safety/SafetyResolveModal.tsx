@@ -53,8 +53,8 @@ export const SafetyResolveModal: React.FC<SafetyResolveModalProps> = ({
                 width: '32px',
                 height: '32px',
                 borderRadius: '6px',
-                background: '#FEE2E2',
-                color: '#DC2626',
+                background: 'var(--danger-subtle)',
+                color: 'var(--status-danger)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -63,10 +63,10 @@ export const SafetyResolveModal: React.FC<SafetyResolveModalProps> = ({
               <ShieldAlert size={18} />
             </div>
             <div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0F172A' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
                 {mode === 'RESOLVE' ? 'Resolve Clinical Safety Concern' : 'Acknowledge Clinical Safety Concern'}
               </h3>
-              <div style={{ fontSize: '11px', color: '#64748B' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                 Severity: {concern.severity} · Category: {concern.category}
               </div>
             </div>
@@ -77,7 +77,7 @@ export const SafetyResolveModal: React.FC<SafetyResolveModalProps> = ({
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              color: '#64748B',
+              color: 'var(--text-muted)',
               padding: '4px',
             }}
           >
@@ -88,19 +88,19 @@ export const SafetyResolveModal: React.FC<SafetyResolveModalProps> = ({
         {/* Concern Details */}
         <div
           style={{
-            background: '#F8FAFC',
-            border: '1px solid #E2E8F0',
+            background: 'var(--bg-subtle)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: '6px',
             padding: '12px 14px',
             marginBottom: '16px',
             fontSize: '13px',
-            color: '#1E293B',
+            color: 'var(--text-primary)',
             lineHeight: 1.5,
           }}
         >
           {concern.description}
           {concern.recommendedAction && (
-            <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #E2E8F0', fontSize: '12px', color: '#475569' }}>
+            <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)', fontSize: '12px', color: 'var(--text-secondary)' }}>
               <strong>Recommended Action:</strong> {concern.recommendedAction}
             </div>
           )}
@@ -114,7 +114,7 @@ export const SafetyResolveModal: React.FC<SafetyResolveModalProps> = ({
                 display: 'block',
                 fontSize: '12px',
                 fontWeight: 600,
-                color: '#0F172A',
+                color: 'var(--text-primary)',
                 marginBottom: '6px',
               }}
             >
@@ -137,7 +137,7 @@ export const SafetyResolveModal: React.FC<SafetyResolveModalProps> = ({
                 boxSizing: 'border-box',
                 padding: '8px 10px',
                 borderRadius: '6px',
-                border: '1px solid #CBD5E1',
+                border: '1px solid var(--border-medium)',
                 fontSize: '13px',
                 fontFamily: 'inherit',
               }}
@@ -151,8 +151,8 @@ export const SafetyResolveModal: React.FC<SafetyResolveModalProps> = ({
               style={{
                 padding: '6px 14px',
                 borderRadius: '5px',
-                border: '1px solid #CBD5E1',
-                background: '#FFFFFF',
+                border: '1px solid var(--border-medium)',
+                background: 'var(--bg-surface)',
                 fontSize: '12px',
                 fontWeight: 500,
                 cursor: 'pointer',
@@ -166,8 +166,8 @@ export const SafetyResolveModal: React.FC<SafetyResolveModalProps> = ({
                 padding: '6px 16px',
                 borderRadius: '5px',
                 border: 'none',
-                background: mode === 'RESOLVE' ? '#059669' : '#0F172A',
-                color: '#FFFFFF',
+                background: mode === 'RESOLVE' ? 'var(--status-success)' : 'var(--text-primary)',
+                color: 'var(--bg-surface)',
                 fontSize: '12px',
                 fontWeight: 600,
                 cursor: 'pointer',

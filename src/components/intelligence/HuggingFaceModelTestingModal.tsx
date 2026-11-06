@@ -337,7 +337,7 @@ Return ONLY this JSON structure, no extra text:
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          color: '#e2e8f0',
+          color: 'var(--border-subtle)',
         }}
       >
         {/* Header */}
@@ -368,10 +368,10 @@ Return ONLY this JSON structure, no extra text:
               🤗
             </div>
             <div>
-              <h2 style={{ fontSize: '18px', fontWeight: 600, margin: 0, color: '#f8fafc' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
                 Hugging Face Model Testing & Verification Console
               </h2>
-              <p style={{ fontSize: '12px', margin: '2px 0 0 0', color: '#94a3b8' }}>
+              <p style={{ fontSize: '12px', margin: '2px 0 0 0', color: 'var(--text-muted)' }}>
                 Live inference test bench for Nexus specialized model stack (v1.1.0)
               </p>
             </div>
@@ -381,7 +381,7 @@ Return ONLY this JSON structure, no extra text:
             style={{
               background: 'transparent',
               border: 'none',
-              color: '#94a3b8',
+              color: 'var(--text-muted)',
               fontSize: '20px',
               cursor: 'pointer',
               padding: '6px 10px',
@@ -405,7 +405,7 @@ Return ONLY this JSON structure, no extra text:
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#38bdf8', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--accent-primary)', textTransform: 'uppercase' }}>
               HF Token:
             </span>
             <input
@@ -420,7 +420,7 @@ Return ONLY this JSON structure, no extra text:
                 backgroundColor: '#0a101d',
                 border: '1px solid rgba(255, 255, 255, 0.15)',
                 borderRadius: '6px',
-                color: '#f8fafc',
+                color: 'var(--text-primary)',
                 fontSize: '13px',
                 fontFamily: 'monospace',
               }}
@@ -429,7 +429,7 @@ Return ONLY this JSON structure, no extra text:
               onClick={handleSaveToken}
               style={{
                 padding: '6px 14px',
-                backgroundColor: '#0284c7',
+                backgroundColor: 'var(--accent-primary)',
                 border: 'none',
                 borderRadius: '6px',
                 color: '#fff',
@@ -448,7 +448,7 @@ Return ONLY this JSON structure, no extra text:
                   backgroundColor: 'transparent',
                   border: '1px solid rgba(255, 255, 255, 0.15)',
                   borderRadius: '6px',
-                  color: '#94a3b8',
+                  color: 'var(--text-muted)',
                   fontSize: '12px',
                   cursor: 'pointer',
                 }}
@@ -465,7 +465,7 @@ Return ONLY this JSON structure, no extra text:
               backgroundColor: isTestingAll ? 'rgba(56, 189, 248, 0.2)' : 'rgba(56, 189, 248, 0.15)',
               border: '1px solid rgba(56, 189, 248, 0.3)',
               borderRadius: '6px',
-              color: '#38bdf8',
+              color: 'var(--accent-primary)',
               fontSize: '12px',
               fontWeight: 600,
               cursor: isTestingAll ? 'not-allowed' : 'pointer',
@@ -480,10 +480,10 @@ Return ONLY this JSON structure, no extra text:
           {/* Models Health Grid */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Specialized Medical Models Registry
               </span>
-              <span style={{ fontSize: '12px', color: '#64748b' }}>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                 Uses Serverless Inference API with fallback
               </span>
             </div>
@@ -516,8 +516,8 @@ Return ONLY this JSON structure, no extra text:
                     <div>
                       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
                         <div>
-                          <div style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9' }}>{model.name}</div>
-                          <div style={{ fontSize: '11px', color: '#38bdf8', fontFamily: 'monospace' }}>{model.id}</div>
+                          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{model.name}</div>
+                          <div style={{ fontSize: '11px', color: 'var(--accent-primary)', fontFamily: 'monospace' }}>{model.id}</div>
                         </div>
                         {status ? (
                           <span
@@ -542,23 +542,23 @@ Return ONLY this JSON structure, no extra text:
                                   : status.status === 'LOADING'
                                   ? '#facc15'
                                   : status.status === 'OFFLINE'
-                                  ? '#94a3b8'
+                                  ? 'var(--text-muted)'
                                   : status.status === 'UNAUTHENTICATED'
                                   ? '#fb923c'
-                                  : '#f87171',
+                                  : 'var(--danger-border)',
                             }}
                           >
                             {status.status} {status.latencyMs ? `(${status.latencyMs}ms)` : ''}
                           </span>
                         ) : (
-                          <span style={{ fontSize: '10px', color: '#64748b' }}>UNTESTED</span>
+                          <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>UNTESTED</span>
                         )}
                       </div>
-                      <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>{model.role}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>{model.role}</div>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px' }}>
-                      <span style={{ fontSize: '10px', color: status?.status === 'OFFLINE' ? '#64748b' : '#475569' }}>
+                      <span style={{ fontSize: '10px', color: status?.status === 'OFFLINE' ? 'var(--text-muted)' : 'var(--text-secondary)' }}>
                         {status?.errorMessage
                           ? status.status === 'OFFLINE'
                             ? status.errorMessage  // friendly message — show in full
@@ -573,7 +573,7 @@ Return ONLY this JSON structure, no extra text:
                           backgroundColor: 'rgba(255, 255, 255, 0.06)',
                           border: '1px solid rgba(255, 255, 255, 0.1)',
                           borderRadius: '4px',
-                          color: '#cbd5e1',
+                          color: 'var(--border-medium)',
                           fontSize: '11px',
                           cursor: isTesting ? 'not-allowed' : 'pointer',
                         }}
@@ -619,8 +619,8 @@ Return ONLY this JSON structure, no extra text:
                     padding: '10px 16px',
                     backgroundColor: activeTestTab === tab.key ? '#0e1628' : 'transparent',
                     border: 'none',
-                    borderBottom: activeTestTab === tab.key ? '2px solid #38bdf8' : '2px solid transparent',
-                    color: activeTestTab === tab.key ? '#38bdf8' : '#94a3b8',
+                    borderBottom: activeTestTab === tab.key ? '2px solid var(--accent-primary)' : '2px solid transparent',
+                    color: activeTestTab === tab.key ? 'var(--accent-primary)' : 'var(--text-muted)',
                     fontSize: '12px',
                     fontWeight: 600,
                     cursor: 'pointer',
@@ -636,7 +636,7 @@ Return ONLY this JSON structure, no extra text:
               {/* TAB 1: NER */}
               {activeTestTab === 'NER' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--border-medium)' }}>
                     Clinical Note Input for Named Entity Recognition:
                   </label>
                   <textarea
@@ -649,7 +649,7 @@ Return ONLY this JSON structure, no extra text:
                       backgroundColor: '#0a101d',
                       border: '1px solid rgba(255, 255, 255, 0.12)',
                       borderRadius: '8px',
-                      color: '#f8fafc',
+                      color: 'var(--text-primary)',
                       fontSize: '12px',
                       fontFamily: 'sans-serif',
                       lineHeight: '1.5',
@@ -661,7 +661,7 @@ Return ONLY this JSON structure, no extra text:
                       disabled={isExecuting}
                       style={{
                         padding: '8px 18px',
-                        backgroundColor: '#0284c7',
+                        backgroundColor: 'var(--accent-primary)',
                         border: 'none',
                         borderRadius: '6px',
                         color: '#fff',
@@ -673,7 +673,7 @@ Return ONLY this JSON structure, no extra text:
                       {isExecuting ? 'Extracting...' : 'Extract Clinical Entities'}
                     </button>
                     {nerLatency !== null && (
-                      <span style={{ marginLeft: '12px', fontSize: '11px', color: '#38bdf8' }}>
+                      <span style={{ marginLeft: '12px', fontSize: '11px', color: 'var(--accent-primary)' }}>
                         Latency: {nerLatency}ms
                       </span>
                     )}
@@ -682,7 +682,7 @@ Return ONLY this JSON structure, no extra text:
                   {/* NER Output */}
                   {nerResults && (
                     <div style={{ marginTop: '10px' }}>
-                      <div style={{ fontSize: '12px', fontWeight: 600, color: '#94a3b8', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>
                         Extracted Clinical Entities ({nerResults.length}):
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -700,20 +700,20 @@ Return ONLY this JSON structure, no extra text:
                               gap: '6px',
                             }}
                           >
-                            <span style={{ fontWeight: 600, color: '#f8fafc' }}>{ent.word}</span>
+                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{ent.word}</span>
                             <span
                               style={{
                                 fontSize: '9px',
                                 padding: '1px 5px',
                                 borderRadius: '4px',
                                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                                color: '#38bdf8',
+                                color: 'var(--accent-primary)',
                                 textTransform: 'uppercase',
                               }}
                             >
                               {ent.entity_group || ent.entity || 'FINDING'}
                             </span>
-                            <span style={{ fontSize: '10px', color: '#64748b' }}>
+                            <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
                               {(ent.score * 100).toFixed(1)}%
                             </span>
                           </div>
@@ -727,7 +727,7 @@ Return ONLY this JSON structure, no extra text:
               {/* TAB 2: DOC CLASSIFIER */}
               {activeTestTab === 'DOC_CLF' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--border-medium)' }}>
                     Document Text for Processing Strategy Classification:
                   </label>
                   <textarea
@@ -740,7 +740,7 @@ Return ONLY this JSON structure, no extra text:
                       backgroundColor: '#0a101d',
                       border: '1px solid rgba(255, 255, 255, 0.12)',
                       borderRadius: '8px',
-                      color: '#f8fafc',
+                      color: 'var(--text-primary)',
                       fontSize: '12px',
                       fontFamily: 'sans-serif',
                       lineHeight: '1.5',
@@ -752,7 +752,7 @@ Return ONLY this JSON structure, no extra text:
                       disabled={isExecuting}
                       style={{
                         padding: '8px 18px',
-                        backgroundColor: '#0284c7',
+                        backgroundColor: 'var(--accent-primary)',
                         border: 'none',
                         borderRadius: '6px',
                         color: '#fff',
@@ -764,7 +764,7 @@ Return ONLY this JSON structure, no extra text:
                       {isExecuting ? 'Classifying...' : 'Classify Document'}
                     </button>
                     {docLatency !== null && (
-                      <span style={{ marginLeft: '12px', fontSize: '11px', color: '#38bdf8' }}>
+                      <span style={{ marginLeft: '12px', fontSize: '11px', color: 'var(--accent-primary)' }}>
                         Latency: {docLatency}ms
                       </span>
                     )}
@@ -772,7 +772,7 @@ Return ONLY this JSON structure, no extra text:
 
                   {docResults && (
                     <div style={{ marginTop: '10px' }}>
-                      <div style={{ fontSize: '12px', fontWeight: 600, color: '#94a3b8', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>
                         Document Class Predictions:
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -789,8 +789,8 @@ Return ONLY this JSON structure, no extra text:
                               fontSize: '12px',
                             }}
                           >
-                            <span style={{ fontWeight: 600, color: '#f8fafc' }}>{pred.label}</span>
-                            <span style={{ color: '#38bdf8', fontFamily: 'monospace' }}>
+                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{pred.label}</span>
+                            <span style={{ color: 'var(--accent-primary)', fontFamily: 'monospace' }}>
                               {(pred.score * 100).toFixed(2)}%
                             </span>
                           </div>
@@ -804,7 +804,7 @@ Return ONLY this JSON structure, no extra text:
               {/* TAB 3: FINDING CLASSIFIER */}
               {activeTestTab === 'FINDING' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--border-medium)' }}>
                     Clinical Finding Text:
                   </label>
                   <input
@@ -817,7 +817,7 @@ Return ONLY this JSON structure, no extra text:
                       backgroundColor: '#0a101d',
                       border: '1px solid rgba(255, 255, 255, 0.12)',
                       borderRadius: '8px',
-                      color: '#f8fafc',
+                      color: 'var(--text-primary)',
                       fontSize: '12px',
                     }}
                   />
@@ -827,7 +827,7 @@ Return ONLY this JSON structure, no extra text:
                       disabled={isExecuting}
                       style={{
                         padding: '8px 18px',
-                        backgroundColor: '#0284c7',
+                        backgroundColor: 'var(--accent-primary)',
                         border: 'none',
                         borderRadius: '6px',
                         color: '#fff',
@@ -842,11 +842,11 @@ Return ONLY this JSON structure, no extra text:
 
                   {findingResult && (
                     <div style={{ marginTop: '10px', padding: '12px', backgroundColor: '#0a101d', borderRadius: '8px' }}>
-                      <div style={{ fontSize: '12px', color: '#94a3b8' }}>Category Classification:</div>
-                      <div style={{ fontSize: '16px', fontWeight: 600, color: '#38bdf8', marginTop: '4px' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Category Classification:</div>
+                      <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--accent-primary)', marginTop: '4px' }}>
                         {findingResult.category}
                       </div>
-                      <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
                         Confidence: {(findingResult.confidence * 100).toFixed(1)}% | Latency: {findingResult.latencyMs}ms
                       </div>
                     </div>
@@ -858,7 +858,7 @@ Return ONLY this JSON structure, no extra text:
               {activeTestTab === 'MEDCPT' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div>
-                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>Clinical Query:</label>
+                    <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--border-medium)' }}>Clinical Query:</label>
                     <input
                       type="text"
                       value={cptQuery}
@@ -869,14 +869,14 @@ Return ONLY this JSON structure, no extra text:
                         backgroundColor: '#0a101d',
                         border: '1px solid rgba(255, 255, 255, 0.12)',
                         borderRadius: '6px',
-                        color: '#f8fafc',
+                        color: 'var(--text-primary)',
                         fontSize: '12px',
                         marginTop: '4px',
                       }}
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>Literature Passage:</label>
+                    <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--border-medium)' }}>Literature Passage:</label>
                     <textarea
                       rows={3}
                       value={cptPassage}
@@ -887,7 +887,7 @@ Return ONLY this JSON structure, no extra text:
                         backgroundColor: '#0a101d',
                         border: '1px solid rgba(255, 255, 255, 0.12)',
                         borderRadius: '6px',
-                        color: '#f8fafc',
+                        color: 'var(--text-primary)',
                         fontSize: '12px',
                         marginTop: '4px',
                       }}
@@ -899,7 +899,7 @@ Return ONLY this JSON structure, no extra text:
                       disabled={isExecuting}
                       style={{
                         padding: '8px 18px',
-                        backgroundColor: '#0284c7',
+                        backgroundColor: 'var(--accent-primary)',
                         border: 'none',
                         borderRadius: '6px',
                         color: '#fff',
@@ -915,16 +915,16 @@ Return ONLY this JSON structure, no extra text:
                   {cptResults && (
                     <div style={{ marginTop: '10px', padding: '12px', backgroundColor: '#0a101d', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                        <span style={{ color: '#94a3b8' }}>MedCPT Query Embedding:</span>
+                        <span style={{ color: 'var(--text-muted)' }}>MedCPT Query Embedding:</span>
                         <span style={{ color: '#4ade80', fontWeight: 600 }}>{cptResults.embeddingDimensions} dimensions (768-d dense vector)</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                        <span style={{ color: '#94a3b8' }}>MedCPT Cross-Encoder Relevance:</span>
-                        <span style={{ color: '#38bdf8', fontWeight: 700, fontFamily: 'monospace' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>MedCPT Cross-Encoder Relevance:</span>
+                        <span style={{ color: 'var(--accent-primary)', fontWeight: 700, fontFamily: 'monospace' }}>
                           {(cptResults.crossEncoderScore * 100).toFixed(1)}% match
                         </span>
                       </div>
-                      <div style={{ fontSize: '11px', color: '#64748b' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                         Round-trip latency: {cptResults.latencyMs}ms
                       </div>
                     </div>
@@ -935,7 +935,7 @@ Return ONLY this JSON structure, no extra text:
               {/* TAB 5: MEDGEMMA REASONING */}
               {activeTestTab === 'MEDGEMMA' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--border-medium)' }}>
                     Structured Case Input for Falconsai Clinical Summarizer:
                   </label>
                   <textarea
@@ -948,7 +948,7 @@ Return ONLY this JSON structure, no extra text:
                       backgroundColor: '#0a101d',
                       border: '1px solid rgba(255, 255, 255, 0.12)',
                       borderRadius: '8px',
-                      color: '#f8fafc',
+                      color: 'var(--text-primary)',
                       fontSize: '12px',
                       fontFamily: 'monospace',
                       lineHeight: '1.4',
@@ -960,7 +960,7 @@ Return ONLY this JSON structure, no extra text:
                       disabled={isExecuting}
                       style={{
                         padding: '8px 18px',
-                        backgroundColor: '#0284c7',
+                        backgroundColor: 'var(--accent-primary)',
                         border: 'none',
                         borderRadius: '6px',
                         color: '#fff',
@@ -975,7 +975,7 @@ Return ONLY this JSON structure, no extra text:
 
                   {gemmaResult && (
                     <div style={{ marginTop: '10px', padding: '12px', backgroundColor: '#0a101d', borderRadius: '8px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94a3b8', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px' }}>
                         <span>Model: {gemmaResult.model}</span>
                         <span>Latency: {gemmaResult.latencyMs}ms</span>
                       </div>
@@ -983,7 +983,7 @@ Return ONLY this JSON structure, no extra text:
                         style={{
                           margin: 0,
                           fontSize: '11px',
-                          color: '#f8fafc',
+                          color: 'var(--text-primary)',
                           whiteSpace: 'pre-wrap',
                           fontFamily: 'monospace',
                           maxHeight: '200px',
@@ -1000,11 +1000,11 @@ Return ONLY this JSON structure, no extra text:
               {/* TAB 6: MISTRAL-7B REASONING */}
               {activeTestTab === 'MISTRAL' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div style={{ fontSize: '12px', color: '#94a3b8', lineHeight: 1.5 }}>
-                    Test <strong style={{ color: '#a78bfa' }}>Mistral-7B-Instruct-v0.3</strong> — the primary reasoning model
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                    Test <strong style={{ color: 'var(--accent-primary)' }}>Mistral-7B-Instruct-v0.3</strong> — the primary reasoning model
                     that powers the Nexus Analysis differential diagnosis engine. Formatted JSON is validated against clinical safety schemas.
                   </div>
-                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--border-medium)' }}>
                     Clinical Case Context for Differential Reasoning:
                   </label>
                   <textarea
@@ -1017,7 +1017,7 @@ Return ONLY this JSON structure, no extra text:
                       backgroundColor: '#0a101d',
                       border: '1px solid rgba(255, 255, 255, 0.12)',
                       borderRadius: '8px',
-                      color: '#f8fafc',
+                      color: 'var(--text-primary)',
                       fontSize: '12px',
                       fontFamily: 'sans-serif',
                       lineHeight: '1.5',
@@ -1052,7 +1052,7 @@ Return ONLY this JSON structure, no extra text:
                             background: 'rgba(239, 68, 68, 0.1)',
                             border: '1px solid rgba(239, 68, 68, 0.3)',
                             borderRadius: '6px',
-                            color: '#fca5a5',
+                            color: 'var(--danger-border)',
                             fontSize: '12px',
                           }}
                         >
@@ -1060,8 +1060,8 @@ Return ONLY this JSON structure, no extra text:
                         </div>
                       ) : (
                         <>
-                          <div style={{ fontSize: '11px', color: '#64748b', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Model: <span style={{ color: '#a78bfa' }}>{mistralResult.model}</span></span>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Model: <span style={{ color: 'var(--accent-primary)' }}>{mistralResult.model}</span></span>
                             <span>Latency: {mistralResult.latencyMs}ms</span>
                           </div>
 
@@ -1078,7 +1078,7 @@ Return ONLY this JSON structure, no extra text:
                                 style={{
                                   fontSize: '11px',
                                   fontWeight: 700,
-                                  color: '#a78bfa',
+                                  color: 'var(--accent-primary)',
                                   marginBottom: '8px',
                                   textTransform: 'uppercase',
                                   letterSpacing: '0.05em',
@@ -1087,8 +1087,8 @@ Return ONLY this JSON structure, no extra text:
                                 Parsed Structured Differential
                               </div>
                               {mistralResult.parsedJson.summary && (
-                                <div style={{ fontSize: '12px', color: '#cbd5e1', marginBottom: '10px', lineHeight: 1.4 }}>
-                                  <strong style={{ color: '#f1f5f9' }}>Clinical Synthesis:</strong> {mistralResult.parsedJson.summary}
+                                <div style={{ fontSize: '12px', color: 'var(--border-medium)', marginBottom: '10px', lineHeight: 1.4 }}>
+                                  <strong style={{ color: 'var(--text-primary)' }}>Clinical Synthesis:</strong> {mistralResult.parsedJson.summary}
                                 </div>
                               )}
                               {Array.isArray(mistralResult.parsedJson.hypotheses) && (
@@ -1103,11 +1103,11 @@ Return ONLY this JSON structure, no extra text:
                                         borderRadius: '6px',
                                       }}
                                     >
-                                      <div style={{ fontSize: '12px', fontWeight: 600, color: '#f1f5f9' }}>
+                                      <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>
                                         {i + 1}. {h.label || h.condition}
                                       </div>
                                       {h.rationale && (
-                                        <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>
+                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '3px' }}>
                                           {h.rationale}
                                         </div>
                                       )}
@@ -1125,7 +1125,7 @@ Return ONLY this JSON structure, no extra text:
                                 background: '#0a101d',
                                 borderRadius: '6px',
                                 fontSize: '11px',
-                                color: '#94a3b8',
+                                color: 'var(--text-muted)',
                                 fontFamily: 'monospace',
                                 whiteSpace: 'pre-wrap',
                                 maxHeight: '180px',
@@ -1155,7 +1155,7 @@ Return ONLY this JSON structure, no extra text:
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                   Raw Hugging Face JSON Output:
                 </span>
                 <button
@@ -1163,7 +1163,7 @@ Return ONLY this JSON structure, no extra text:
                   style={{
                     background: 'transparent',
                     border: 'none',
-                    color: '#64748b',
+                    color: 'var(--text-muted)',
                     fontSize: '11px',
                     cursor: 'pointer',
                   }}
@@ -1175,7 +1175,7 @@ Return ONLY this JSON structure, no extra text:
                 style={{
                   margin: 0,
                   fontSize: '11px',
-                  color: '#38bdf8',
+                  color: 'var(--accent-primary)',
                   fontFamily: 'monospace',
                   maxHeight: '180px',
                   overflowY: 'auto',
@@ -1199,7 +1199,7 @@ Return ONLY this JSON structure, no extra text:
             backgroundColor: '#0a101d',
           }}
         >
-          <div style={{ fontSize: '11px', color: '#64748b' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
             All Hugging Face calls adhere to Section 8 of ARCHITECTURE.md (Qualitative uncertainty, zero direct writes).
           </div>
           <button
@@ -1209,7 +1209,7 @@ Return ONLY this JSON structure, no extra text:
               backgroundColor: 'rgba(255, 255, 255, 0.1)',
               border: '1px solid rgba(255, 255, 255, 0.15)',
               borderRadius: '6px',
-              color: '#f8fafc',
+              color: 'var(--text-primary)',
               fontSize: '12px',
               fontWeight: 600,
               cursor: 'pointer',

@@ -31,7 +31,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         <div style={{
           padding: '32px',
           textAlign: 'center',
-          color: '#94a3b8',
+          color: 'var(--text-muted)',
           backgroundColor: '#0a0f18',
           minHeight: '100vh',
           display: 'flex',
@@ -39,8 +39,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           alignItems: 'center',
           justifyContent: 'center',
         }}>
-          <ShieldAlert size={36} style={{ color: '#ef4444', marginBottom: '12px' }} />
-          <h2 style={{ color: '#f8fafc', margin: '0 0 8px 0' }}>Authentication Required</h2>
+          <ShieldAlert size={36} style={{ color: 'var(--status-danger)', marginBottom: '12px' }} />
+          <h2 style={{ color: 'var(--text-primary)', margin: '0 0 8px 0' }}>Authentication Required</h2>
           <p style={{ margin: 0, fontSize: '14px' }}>Please sign in with your professional credentials to access this clinical resource.</p>
         </div>
       )
@@ -53,18 +53,18 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       <div style={{
         padding: '32px',
         textAlign: 'center',
-        color: '#94a3b8',
+        color: 'var(--text-muted)',
         backgroundColor: '#111927',
         borderRadius: '8px',
         border: '1px solid rgba(239, 68, 68, 0.2)',
         margin: '24px',
       }}>
-        <ShieldAlert size={32} style={{ color: '#f87171', marginBottom: '12px' }} />
-        <h3 style={{ color: '#f8fafc', margin: '0 0 6px 0' }}>Access Denied: Missing Permission</h3>
+        <ShieldAlert size={32} style={{ color: 'var(--danger-border)', marginBottom: '12px' }} />
+        <h3 style={{ color: 'var(--text-primary)', margin: '0 0 6px 0' }}>Access Denied: Missing Permission</h3>
         <p style={{ margin: '0 0 12px 0', fontSize: '13px' }}>
-          Your current role does not possess the required clinical authorization: <code style={{ color: '#38bdf8' }}>{requiredPermission}</code>
+          Your current role does not possess the required clinical authorization: <code style={{ color: 'var(--accent-primary)' }}>{requiredPermission}</code>
         </p>
-        <span style={{ fontSize: '11px', color: '#64748b' }}>
+        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
           PostgreSQL Row Level Security (RLS) would independently block database queries for this resource.
         </span>
       </div>

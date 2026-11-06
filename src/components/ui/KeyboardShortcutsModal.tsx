@@ -25,8 +25,8 @@ export const KeyboardShortcutsModal: React.FC = () => {
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Command size={18} color="#0F172A" />
-            <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>
+            <Command size={18} color="var(--text-primary)" />
+            <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
               Keyboard Shortcuts
             </h3>
           </div>
@@ -36,7 +36,7 @@ export const KeyboardShortcutsModal: React.FC = () => {
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              color: '#64748B',
+              color: 'var(--text-muted)',
               padding: '4px',
             }}
           >
@@ -53,24 +53,24 @@ export const KeyboardShortcutsModal: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '8px 10px',
-                background: '#F8FAFC',
+                background: 'var(--bg-subtle)',
                 borderRadius: '6px',
-                border: '1px solid #F1F5F9',
+                border: '1px solid var(--bg-subtle)',
                 fontSize: '13px',
               }}
             >
-              <span style={{ color: '#334155' }}>{s.desc}</span>
+              <span style={{ color: 'var(--text-secondary)' }}>{s.desc}</span>
               <kbd
                 style={{
-                  background: '#FFFFFF',
-                  border: '1px solid #CBD5E1',
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-medium)',
                   boxShadow: '0 1px 1px rgba(0,0,0,0.05)',
                   padding: '2px 8px',
                   borderRadius: '4px',
                   fontFamily: 'var(--font-mono)',
                   fontSize: '11px',
                   fontWeight: 600,
-                  color: '#0F172A',
+                  color: 'var(--text-primary)',
                 }}
               >
                 {s.key}

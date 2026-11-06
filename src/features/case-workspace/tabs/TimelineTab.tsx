@@ -15,8 +15,9 @@ export const TimelineTab: React.FC = () => {
               fontSize: '10px',
               fontWeight: 700,
               fontFamily: 'var(--font-mono)',
-              background: '#0F172A',
-              color: '#38BDF8',
+              background: 'var(--accent-subtle)',
+              color: 'var(--accent-primary)',
+              border: '1px solid var(--border-medium)',
               padding: '2px 6px',
               borderRadius: '3px',
               letterSpacing: '0.04em',
@@ -31,8 +32,9 @@ export const TimelineTab: React.FC = () => {
             style={{
               fontSize: '10px',
               fontWeight: 600,
-              background: '#EFF6FF',
-              color: '#1E40AF',
+              background: 'var(--accent-subtle)',
+              color: 'var(--accent-primary)',
+              border: '1px solid var(--border-medium)',
               padding: '2px 6px',
               borderRadius: '3px',
             }}
@@ -46,8 +48,9 @@ export const TimelineTab: React.FC = () => {
             style={{
               fontSize: '10px',
               fontWeight: 600,
-              background: '#F0FDF4',
-              color: '#15803D',
+              background: 'var(--success-subtle)',
+              color: 'var(--status-success)',
+              border: '1px solid var(--success-border)',
               padding: '2px 6px',
               borderRadius: '3px',
             }}
@@ -61,8 +64,9 @@ export const TimelineTab: React.FC = () => {
             style={{
               fontSize: '10px',
               fontWeight: 600,
-              background: '#FAF5FF',
-              color: '#6B21A8',
+              background: 'var(--bg-subtle)',
+              color: 'var(--text-secondary)',
+              border: '1px solid var(--border-medium)',
               padding: '2px 6px',
               borderRadius: '3px',
             }}
@@ -82,8 +86,9 @@ export const TimelineTab: React.FC = () => {
           fontSize: '10px',
           fontWeight: 600,
           fontFamily: 'var(--font-mono)',
-          color: '#64748B',
-          background: '#F1F5F9',
+          color: 'var(--text-muted)',
+          background: 'var(--bg-subtle)',
+          border: '1px solid var(--border-subtle)',
           padding: '1px 5px',
           borderRadius: '2px',
         }}
@@ -97,10 +102,10 @@ export const TimelineTab: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header */}
       <div>
-        <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A' }}>
+        <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
           Case Chronological Audit Trail
         </h2>
-        <p style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
+        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
           Comprehensive event timeline with explicit audit separation between human clinical actions and autonomous AI clinical reasoning events.
         </p>
       </div>
@@ -115,7 +120,7 @@ export const TimelineTab: React.FC = () => {
             top: '8px',
             bottom: '16px',
             width: '2px',
-            background: '#E2E8F0',
+            background: 'var(--border-subtle)',
           }}
         />
 
@@ -131,13 +136,13 @@ export const TimelineTab: React.FC = () => {
                   width: '22px',
                   height: '22px',
                   borderRadius: '50%',
-                  background: evt.isNexusSimulated ? '#0F172A' : '#FFFFFF',
-                  border: `2px solid ${evt.isNexusSimulated ? '#38BDF8' : '#0F172A'}`,
+                  background: evt.isNexusSimulated ? 'var(--accent-subtle)' : 'var(--bg-surface)',
+                  border: `2px solid ${evt.isNexusSimulated ? 'var(--accent-primary)' : 'var(--border-strong)'}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '10px',
-                  color: evt.isNexusSimulated ? '#38BDF8' : '#0F172A',
+                  color: evt.isNexusSimulated ? 'var(--accent-primary)' : 'var(--text-primary)',
                 }}
               >
                 {evt.isNexusSimulated ? '⬡' : '•'}
@@ -146,20 +151,20 @@ export const TimelineTab: React.FC = () => {
               {/* Event Card */}
               <div
                 style={{
-                  background: '#FFFFFF',
-                  border: `1px solid ${evt.isNexusSimulated ? '#CBD5E1' : '#E2E8F0'}`,
+                  background: 'var(--bg-surface)',
+                  border: `1px solid ${evt.isNexusSimulated ? 'var(--border-medium)' : 'var(--border-subtle)'}`,
                   borderRadius: '6px',
                   padding: '14px 16px',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>
                       {evt.time}
                     </span>
                     {getActorBadge(evt.actor)}
                     {getEventBadge(evt.eventType)}
-                    <span style={{ fontSize: '11px', color: '#64748B' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                       by <strong>{evt.actorName}</strong>
                     </span>
                   </div>
@@ -169,7 +174,7 @@ export const TimelineTab: React.FC = () => {
                       style={{
                         fontSize: '10px',
                         fontFamily: 'var(--font-mono)',
-                        color: '#64748B',
+                        color: 'var(--text-muted)',
                       }}
                     >
                       Model: {evt.modelIdentifier}
@@ -177,11 +182,11 @@ export const TimelineTab: React.FC = () => {
                   )}
                 </div>
 
-                <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A', marginBottom: '4px' }}>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
                   {evt.title}
                 </div>
 
-                <div style={{ fontSize: '12px', color: '#334155', lineHeight: 1.5 }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   {evt.description}
                 </div>
               </div>

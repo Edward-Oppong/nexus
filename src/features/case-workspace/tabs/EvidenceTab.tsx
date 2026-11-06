@@ -74,8 +74,8 @@ export const EvidenceTab: React.FC = () => {
       {/* Header */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-          <BookOpen size={20} color="#0284C7" />
-          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0F172A' }}>
+          <BookOpen size={20} color="var(--accent-primary)" />
+          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
             Traceable Clinical Evidence
           </h2>
           {hasEvidence && (
@@ -83,9 +83,9 @@ export const EvidenceTab: React.FC = () => {
               style={{
                 fontSize: '11px',
                 fontWeight: 700,
-                background: '#ECFDF5',
-                color: '#065F46',
-                border: '1px solid #A7F3D0',
+                background: 'var(--success-subtle)',
+                color: 'var(--status-success)',
+                border: '1px solid var(--success-border)',
                 padding: '2px 10px',
                 borderRadius: '20px',
               }}
@@ -94,7 +94,7 @@ export const EvidenceTab: React.FC = () => {
             </span>
           )}
         </div>
-        <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
+        <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
           Evidence is retrieved live from PubMed/Europe PMC via MedCPT ranking during Nexus Analysis.
           All citations are case-specific — no generic static guidelines are shown.
         </p>
@@ -106,20 +106,20 @@ export const EvidenceTab: React.FC = () => {
           style={{
             padding: '48px 24px',
             textAlign: 'center',
-            background: '#FFFFFF',
+            background: 'var(--bg-surface)',
             borderRadius: '12px',
-            border: '1px dashed #CBD5E1',
+            border: '1px dashed var(--border-medium)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             gap: '12px',
           }}
         >
-          <FlaskConical size={40} color="#CBD5E1" />
-          <div style={{ fontSize: '16px', fontWeight: 700, color: '#475569' }}>
+          <FlaskConical size={40} color="var(--border-medium)" />
+          <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-secondary)' }}>
             No evidence retrieved yet
           </div>
-          <div style={{ fontSize: '13px', color: '#94A3B8', maxWidth: '400px', lineHeight: 1.6 }}>
+          <div style={{ fontSize: '13px', color: 'var(--text-muted)', maxWidth: '400px', lineHeight: 1.6 }}>
             Run Nexus Analysis to retrieve case-specific PubMed citations, clinical guidelines,
             and peer-reviewed evidence ranked by MedCPT relevance to this case's hypotheses.
           </div>
@@ -132,20 +132,20 @@ export const EvidenceTab: React.FC = () => {
           style={{
             padding: '36px 24px',
             textAlign: 'center',
-            background: '#FFFBEB',
+            background: 'var(--warning-subtle)',
             borderRadius: '12px',
-            border: '1px solid #FDE68A',
+            border: '1px solid var(--warning-border)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             gap: '10px',
           }}
         >
-          <AlertCircle size={32} color="#D97706" />
-          <div style={{ fontSize: '14px', fontWeight: 700, color: '#92400E' }}>
+          <AlertCircle size={32} color="var(--status-warning)" />
+          <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--status-warning)' }}>
             No evidence sources were retrieved for this analysis
           </div>
-          <div style={{ fontSize: '12px', color: '#B45309', maxWidth: '380px', lineHeight: 1.6 }}>
+          <div style={{ fontSize: '12px', color: 'var(--status-warning)', maxWidth: '380px', lineHeight: 1.6 }}>
             PubMed retrieval may have been unavailable at analysis time, or the case presentation
             did not match any indexed clinical guidelines. Try re-running Nexus Analysis.
           </div>
@@ -156,8 +156,8 @@ export const EvidenceTab: React.FC = () => {
       {hasEvidence && (
         <div
           style={{
-            background: '#FFFFFF',
-            border: '1px solid #E2E8F0',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: '8px',
             padding: '12px 16px',
             display: 'flex',
@@ -168,7 +168,7 @@ export const EvidenceTab: React.FC = () => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '220px' }}>
-            <Search size={16} color="#94A3B8" />
+            <Search size={16} color="var(--text-muted)" />
             <input
               type="text"
               placeholder="Search by source ID…"
@@ -179,15 +179,15 @@ export const EvidenceTab: React.FC = () => {
                 border: 'none',
                 outline: 'none',
                 fontSize: '13px',
-                color: '#0F172A',
+                color: 'var(--text-primary)',
                 background: 'transparent',
               }}
             />
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Filter size={13} color="#64748B" />
-            <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>Hypothesis:</span>
+            <Filter size={13} color="var(--text-muted)" />
+            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>Hypothesis:</span>
             <select
               value={selectedHypothesis}
               onChange={(e) => setSelectedHypothesis(e.target.value)}
@@ -195,9 +195,9 @@ export const EvidenceTab: React.FC = () => {
                 fontSize: '12px',
                 padding: '4px 8px',
                 borderRadius: '4px',
-                border: '1px solid #CBD5E1',
-                background: '#F8FAFC',
-                color: '#0F172A',
+                border: '1px solid var(--border-medium)',
+                background: 'var(--bg-subtle)',
+                color: 'var(--text-primary)',
                 maxWidth: '220px',
               }}
             >
@@ -220,10 +220,10 @@ export const EvidenceTab: React.FC = () => {
               style={{
                 padding: '36px',
                 textAlign: 'center',
-                background: '#FFFFFF',
+                background: 'var(--bg-surface)',
                 borderRadius: '8px',
-                border: '1px solid #E2E8F0',
-                color: '#64748B',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--text-muted)',
                 fontSize: '13px',
               }}
             >
@@ -234,8 +234,8 @@ export const EvidenceTab: React.FC = () => {
               <div
                 key={ev.id}
                 style={{
-                  background: '#FFFFFF',
-                  border: '1px solid #E2E8F0',
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-subtle)',
                   borderRadius: '8px',
                   padding: '16px 20px',
                   display: 'flex',
@@ -245,11 +245,11 @@ export const EvidenceTab: React.FC = () => {
                   boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
                 }}
                 onMouseOver={(e) => {
-                  e.currentTarget.style.borderColor = '#059669';
+                  e.currentTarget.style.borderColor = 'var(--status-success)';
                   e.currentTarget.style.boxShadow = '0 4px 12px rgba(5,150,105,0.08)';
                 }}
                 onMouseOut={(e) => {
-                  e.currentTarget.style.borderColor = '#E2E8F0';
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
                   e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.02)';
                 }}
               >
@@ -260,9 +260,9 @@ export const EvidenceTab: React.FC = () => {
                       style={{
                         fontSize: '10px',
                         fontWeight: 700,
-                        color: '#059669',
-                        background: '#ECFDF5',
-                        border: '1px solid #A7F3D0',
+                        color: 'var(--status-success)',
+                        background: 'var(--success-subtle)',
+                        border: '1px solid var(--success-border)',
                         padding: '2px 8px',
                         borderRadius: '4px',
                         fontFamily: 'var(--font-mono)',
@@ -275,8 +275,8 @@ export const EvidenceTab: React.FC = () => {
                         style={{
                           fontSize: '10px',
                           fontWeight: 600,
-                          color: '#0369A1',
-                          background: '#E0F2FE',
+                          color: 'var(--accent-primary)',
+                          background: 'var(--accent-subtle)',
                           padding: '2px 8px',
                           borderRadius: '4px',
                         }}
@@ -291,7 +291,7 @@ export const EvidenceTab: React.FC = () => {
                     style={{
                       fontSize: '13px',
                       fontWeight: 700,
-                      color: '#0F172A',
+                      color: 'var(--text-primary)',
                       marginBottom: '6px',
                       fontFamily: 'var(--font-mono)',
                       wordBreak: 'break-all',
@@ -305,13 +305,13 @@ export const EvidenceTab: React.FC = () => {
                     <div
                       style={{
                         fontSize: '12px',
-                        color: '#334155',
+                        color: 'var(--text-secondary)',
                         lineHeight: 1.5,
                         marginBottom: '8px',
-                        background: '#F8FAFC',
+                        background: 'var(--bg-subtle)',
                         padding: '8px 10px',
                         borderRadius: '5px',
-                        border: '1px solid #F1F5F9',
+                        border: '1px solid var(--bg-subtle)',
                       }}
                     >
                       <strong>Referenced in assessment:</strong>{' '}
@@ -323,17 +323,17 @@ export const EvidenceTab: React.FC = () => {
                   {/* Linked hypotheses */}
                   {ev.linkedHyps.length > 0 && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 600, color: '#475569' }}>Linked to:</span>
+                      <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Linked to:</span>
                       {ev.linkedHyps.map((h) => (
                         <span
                           key={h.id}
                           style={{
                             fontSize: '11px',
-                            background: '#F1F5F9',
-                            color: '#0F172A',
+                            background: 'var(--bg-subtle)',
+                            color: 'var(--text-primary)',
                             padding: '2px 8px',
                             borderRadius: '12px',
-                            border: '1px solid #CBD5E1',
+                            border: '1px solid var(--border-medium)',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '4px',
@@ -348,8 +348,8 @@ export const EvidenceTab: React.FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', flexShrink: 0 }}>
-                  <CheckCircle2 size={18} color="#059669" />
-                  <span style={{ fontSize: '10px', color: '#94A3B8' }}>MedCPT Retrieved</span>
+                  <CheckCircle2 size={18} color="var(--status-success)" />
+                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>MedCPT Retrieved</span>
                 </div>
               </div>
             ))

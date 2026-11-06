@@ -49,29 +49,29 @@ const PROTOCOL_LABELS: Record<string, string> = {
 };
 
 const TRUST_BADGES: Record<string, { label: string; bg: string; text: string; border: string }> = {
-  AUTHORITATIVE: { label: 'Authoritative', bg: '#D1FAE5', text: '#065F46', border: '#6EE7B7' },
-  STANDARD:      { label: 'Standard',      bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE' },
-  SUPPLEMENTARY: { label: 'Supplementary', bg: '#FFFBEB', text: '#B45309', border: '#FDE68A' },
-  UNVERIFIED:    { label: 'Unverified',    bg: '#FEE2E2', text: '#991B1B', border: '#FCA5A5' },
+  AUTHORITATIVE: { label: 'Authoritative', bg: 'var(--success-subtle)', text: 'var(--status-success)', border: 'var(--success-border)' },
+  STANDARD:      { label: 'Standard',      bg: 'var(--accent-subtle)', text: 'var(--accent-primary)', border: 'var(--border-medium)' },
+  SUPPLEMENTARY: { label: 'Supplementary', bg: 'var(--warning-subtle)', text: 'var(--status-warning)', border: 'var(--warning-border)' },
+  UNVERIFIED:    { label: 'Unverified',    bg: 'var(--danger-subtle)', text: 'var(--status-danger)', border: 'var(--danger-border)' },
 };
 
 function CircuitBreakerBadge({ status }: { status: OrganizationFhirConfig['circuitBreakerStatus'] }) {
   if (status === 'CLOSED') {
     return (
-      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#059669', fontWeight: 700 }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--status-success)', fontWeight: 700 }}>
         <Wifi size={11} /> Online
       </span>
     );
   }
   if (status === 'HALF_OPEN') {
     return (
-      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#D97706', fontWeight: 700 }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--status-warning)', fontWeight: 700 }}>
         <Activity size={11} /> Probing
       </span>
     );
   }
   return (
-    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#DC2626', fontWeight: 700 }}>
+    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--status-danger)', fontWeight: 700 }}>
       <WifiOff size={11} /> Circuit Open
     </span>
   );
@@ -147,13 +147,13 @@ export const FhirEndpointsTab: React.FC = () => {
   const inputStyle: React.CSSProperties = {
     width: '100%',
     padding: '8px 12px',
-    border: '1px solid #E2E8F0',
+    border: '1px solid var(--border-subtle)',
     borderRadius: '6px',
     fontSize: '13px',
-    color: '#0F172A',
+    color: 'var(--text-primary)',
     outline: 'none',
     boxSizing: 'border-box',
-    background: '#FFFFFF',
+    background: 'var(--bg-surface)',
   };
 
   const labelStyle: React.CSSProperties = {
@@ -162,7 +162,7 @@ export const FhirEndpointsTab: React.FC = () => {
     fontWeight: 600,
     textTransform: 'uppercase' as const,
     letterSpacing: '0.05em',
-    color: '#64748B',
+    color: 'var(--text-muted)',
     marginBottom: '5px',
   };
 
@@ -172,12 +172,12 @@ export const FhirEndpointsTab: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <Globe size={18} style={{ color: '#0284C7' }} />
-            <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+            <Globe size={18} style={{ color: 'var(--accent-primary)' }} />
+            <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
               FHIR Endpoints
             </h2>
           </div>
-          <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>
             Organisation-scoped external system connections. FHIR translation occurs only at this boundary — the internal domain model is FHIR-free.
           </p>
         </div>
@@ -190,8 +190,8 @@ export const FhirEndpointsTab: React.FC = () => {
               gap: '6px',
               padding: '8px 16px',
               borderRadius: '6px',
-              background: '#0F172A',
-              color: '#FFFFFF',
+              background: 'var(--bg-app)',
+              color: 'var(--bg-surface)',
               border: 'none',
               fontSize: '13px',
               fontWeight: 600,
@@ -209,16 +209,16 @@ export const FhirEndpointsTab: React.FC = () => {
       {showAddForm && canManage && (
         <div
           style={{
-            background: '#F8FAFC',
-            border: '1px solid #E2E8F0',
+            background: 'var(--bg-subtle)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: '8px',
             padding: '20px',
             marginBottom: '20px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Register New Endpoint</span>
-            <button onClick={() => setShowAddForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}>
+            <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>Register New Endpoint</span>
+            <button onClick={() => setShowAddForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
               <X size={14} />
             </button>
           </div>
@@ -261,7 +261,7 @@ export const FhirEndpointsTab: React.FC = () => {
             </div>
           </div>
           {addSuccess ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#059669', fontSize: '13px', fontWeight: 600 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--status-success)', fontSize: '13px', fontWeight: 600 }}>
               <CheckCircle2 size={14} /> Endpoint registered successfully.
             </div>
           ) : (
@@ -271,8 +271,8 @@ export const FhirEndpointsTab: React.FC = () => {
               style={{
                 padding: '8px 18px',
                 borderRadius: '6px',
-                background: form.name ? '#0F172A' : '#94A3B8',
-                color: '#FFFFFF',
+                background: form.name ? 'var(--text-primary)' : 'var(--text-muted)',
+                color: 'var(--bg-surface)',
                 border: 'none',
                 fontSize: '13px',
                 fontWeight: 600,
@@ -286,16 +286,16 @@ export const FhirEndpointsTab: React.FC = () => {
       )}
 
       {/* Endpoints Table */}
-      <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', overflow: 'hidden', marginBottom: '16px' }}>
+      <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: '8px', overflow: 'hidden', marginBottom: '16px' }}>
         {orgEndpoints.length === 0 ? (
-          <div style={{ padding: '48px', textAlign: 'center', color: '#94A3B8', fontSize: '13px' }}>
+          <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
             <Globe size={32} style={{ opacity: 0.3, marginBottom: '12px' }} />
             <div>No endpoints registered for this organisation.</div>
           </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ background: '#F8FAFC' }}>
+              <tr style={{ background: 'var(--bg-subtle)' }}>
                 {['Endpoint', 'Type / Protocol', 'Trust Level', 'Circuit Breaker', 'Status', ''].map((h) => (
                   <th
                     key={h}
@@ -306,8 +306,8 @@ export const FhirEndpointsTab: React.FC = () => {
                       fontWeight: 700,
                       textTransform: 'uppercase',
                       letterSpacing: '0.05em',
-                      color: '#64748B',
-                      borderBottom: '1px solid #E2E8F0',
+                      color: 'var(--text-muted)',
+                      borderBottom: '1px solid var(--border-subtle)',
                     }}
                   >
                     {h}
@@ -324,26 +324,26 @@ export const FhirEndpointsTab: React.FC = () => {
                 return (
                   <tr
                     key={ep.id}
-                    style={{ borderBottom: '1px solid #F1F5F9', opacity: ep.isActive ? 1 : 0.5 }}
+                    style={{ borderBottom: '1px solid var(--bg-subtle)', opacity: ep.isActive ? 1 : 0.5 }}
                   >
                     {/* Endpoint */}
                     <td style={{ padding: '14px 16px' }}>
-                      <div style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>{ep.name}</div>
+                      <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{ep.name}</div>
                       {ep.baseUrl && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#94A3B8', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
                           <ExternalLink size={10} />
                           {ep.baseUrl}
                         </div>
                       )}
-                      <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
                         id: {ep.id}
                       </div>
                     </td>
 
                     {/* Type / Protocol */}
                     <td style={{ padding: '14px 16px' }}>
-                      <div style={{ fontSize: '12px', fontWeight: 600, color: '#0F172A' }}>{SYSTEM_TYPE_LABELS[ep.systemType]}</div>
-                      <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>{PROTOCOL_LABELS[ep.protocol]}</div>
+                      <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>{SYSTEM_TYPE_LABELS[ep.systemType]}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{PROTOCOL_LABELS[ep.protocol]}</div>
                     </td>
 
                     {/* Trust Level */}
@@ -357,16 +357,16 @@ export const FhirEndpointsTab: React.FC = () => {
                     <td style={{ padding: '14px 16px' }}>
                       <CircuitBreakerBadge status={ep.circuitBreakerStatus} />
                       {ep.circuitBreakerStatus === 'HALF_OPEN' && (
-                        <div style={{ fontSize: '10px', color: '#D97706', marginTop: '2px' }}>Auto-probing after cooldown</div>
+                        <div style={{ fontSize: '10px', color: 'var(--status-warning)', marginTop: '2px' }}>Auto-probing after cooldown</div>
                       )}
                     </td>
 
                     {/* Status */}
                     <td style={{ padding: '14px 16px' }}>
                       {ep.isActive ? (
-                        <span style={{ fontSize: '12px', color: '#059669', fontWeight: 600 }}>Enabled</span>
+                        <span style={{ fontSize: '12px', color: 'var(--status-success)', fontWeight: 600 }}>Enabled</span>
                       ) : (
-                        <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600 }}>Disabled</span>
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600 }}>Disabled</span>
                       )}
                     </td>
 
@@ -384,10 +384,10 @@ export const FhirEndpointsTab: React.FC = () => {
                             gap: '4px',
                             padding: '5px 10px',
                             borderRadius: '6px',
-                            background: '#F1F5F9',
-                            border: '1px solid #E2E8F0',
+                            background: 'var(--bg-subtle)',
+                            border: '1px solid var(--border-subtle)',
                             fontSize: '11px',
-                            color: '#334155',
+                            color: 'var(--text-secondary)',
                             cursor: testingId ? 'not-allowed' : 'pointer',
                             fontWeight: 600,
                           }}
@@ -395,9 +395,9 @@ export const FhirEndpointsTab: React.FC = () => {
                           {isTesting
                             ? <><RefreshCw size={11} style={{ animation: 'spin 1s linear infinite' }} /> Testing…</>
                             : result === 'success'
-                            ? <><CheckCircle2 size={11} style={{ color: '#059669' }} /> OK</>
+                            ? <><CheckCircle2 size={11} style={{ color: 'var(--status-success)' }} /> OK</>
                             : result === 'fail'
-                            ? <><AlertTriangle size={11} style={{ color: '#DC2626' }} /> Failed</>
+                            ? <><AlertTriangle size={11} style={{ color: 'var(--status-danger)' }} /> Failed</>
                             : <><Activity size={11} /> Test</>}
                         </button>
 
@@ -409,9 +409,9 @@ export const FhirEndpointsTab: React.FC = () => {
                             style={{
                               padding: '5px 10px',
                               borderRadius: '6px',
-                              background: ep.isActive ? '#FEE2E2' : '#D1FAE5',
-                              color: ep.isActive ? '#DC2626' : '#059669',
-                              border: `1px solid ${ep.isActive ? '#FCA5A5' : '#6EE7B7'}`,
+                              background: ep.isActive ? 'var(--danger-subtle)' : 'var(--success-subtle)',
+                              color: ep.isActive ? 'var(--status-danger)' : 'var(--status-success)',
+                              border: `1px solid ${ep.isActive ? 'var(--danger-border)' : 'var(--success-border)'}`,
                               fontSize: '11px',
                               fontWeight: 600,
                               cursor: 'pointer',
@@ -434,14 +434,14 @@ export const FhirEndpointsTab: React.FC = () => {
       <div
         style={{
           padding: '14px 16px',
-          background: '#F8FAFC',
-          border: '1px solid #E2E8F0',
+          background: 'var(--bg-subtle)',
+          border: '1px solid var(--border-subtle)',
           borderRadius: '8px',
           fontSize: '12px',
-          color: '#64748B',
+          color: 'var(--text-muted)',
         }}
       >
-        <div style={{ fontWeight: 700, color: '#0F172A', marginBottom: '6px', fontSize: '13px' }}>Circuit Breaker Parameters (ARCHITECTURE §10)</div>
+        <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px', fontSize: '13px' }}>Circuit Breaker Parameters (ARCHITECTURE §10)</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
           {[
             ['Failure Threshold', '3 failures → OPEN'],
@@ -451,9 +451,9 @@ export const FhirEndpointsTab: React.FC = () => {
             ['Max Delay', '10,000 ms'],
             ['Jitter', '±20%'],
           ].map(([label, value]) => (
-            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: '#FFFFFF', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-              <span style={{ color: '#64748B' }}>{label}</span>
-              <span style={{ fontWeight: 700, color: '#0F172A', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>{value}</span>
+            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: 'var(--bg-surface)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+              <span style={{ color: 'var(--text-muted)' }}>{label}</span>
+              <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>{value}</span>
             </div>
           ))}
         </div>
@@ -464,14 +464,14 @@ export const FhirEndpointsTab: React.FC = () => {
           style={{
             marginTop: '12px',
             padding: '12px 16px',
-            background: '#FEF3C7',
-            border: '1px solid #FCD34D',
+            background: 'var(--warning-subtle)',
+            border: '1px solid var(--warning-border)',
             borderRadius: '6px',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
             fontSize: '12px',
-            color: '#92400E',
+            color: 'var(--status-warning)',
           }}
         >
           <ShieldAlert size={14} />

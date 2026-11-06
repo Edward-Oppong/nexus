@@ -44,11 +44,11 @@ const TIMEZONES = [
 const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '9px 12px',
-  border: '1px solid #E2E8F0',
+  border: '1px solid var(--border-subtle)',
   borderRadius: '6px',
   fontSize: '13px',
-  color: '#0F172A',
-  background: '#FFFFFF',
+  color: 'var(--text-primary)',
+  background: 'var(--bg-surface)',
   outline: 'none',
   fontFamily: 'var(--font-body)',
   transition: 'border-color 0.15s',
@@ -61,7 +61,7 @@ const labelStyle: React.CSSProperties = {
   fontWeight: 600,
   textTransform: 'uppercase',
   letterSpacing: '0.05em',
-  color: '#64748B',
+  color: 'var(--text-muted)',
   marginBottom: '6px',
 };
 
@@ -116,7 +116,7 @@ export const OrgSettingsTab: React.FC = () => {
 
   if (!activeOrganization) {
     return (
-      <div style={{ padding: '32px', textAlign: 'center', color: '#64748B' }}>
+      <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
         No active organisation selected.
       </div>
     );
@@ -127,24 +127,24 @@ export const OrgSettingsTab: React.FC = () => {
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-          <Building2 size={18} style={{ color: '#0284C7' }} />
-          <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+          <Building2 size={18} style={{ color: 'var(--accent-primary)' }} />
+          <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
             Organisation Settings
           </h2>
           {activeOrganization.isActive ? (
-            <span style={{ padding: '2px 8px', borderRadius: '999px', background: '#D1FAE5', color: '#065F46', fontSize: '11px', fontWeight: 700 }}>
+            <span style={{ padding: '2px 8px', borderRadius: '999px', background: 'var(--success-subtle)', color: 'var(--status-success)', fontSize: '11px', fontWeight: 700 }}>
               ACTIVE
             </span>
           ) : (
-            <span style={{ padding: '2px 8px', borderRadius: '999px', background: '#FEE2E2', color: '#991B1B', fontSize: '11px', fontWeight: 700 }}>
+            <span style={{ padding: '2px 8px', borderRadius: '999px', background: 'var(--danger-subtle)', color: 'var(--status-danger)', fontSize: '11px', fontWeight: 700 }}>
               INACTIVE
             </span>
           )}
         </div>
-        <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>
+        <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>
           Organisation-level configuration. Changes apply to all members within this tenancy.
           {!canEdit && (
-            <span style={{ marginLeft: '6px', color: '#DC2626', fontWeight: 600 }}>
+            <span style={{ marginLeft: '6px', color: 'var(--status-danger)', fontWeight: 600 }}>
               — Read-only. Requires <code style={{ fontSize: '11px' }}>organization.manage</code> permission.
             </span>
           )}
@@ -154,8 +154,8 @@ export const OrgSettingsTab: React.FC = () => {
       {/* Organisation Identity Card */}
       <div
         style={{
-          background: '#F8FAFC',
-          border: '1px solid #E2E8F0',
+          background: 'var(--bg-subtle)',
+          border: '1px solid var(--border-subtle)',
           borderRadius: '8px',
           padding: '16px 20px',
           marginBottom: '24px',
@@ -169,23 +169,23 @@ export const OrgSettingsTab: React.FC = () => {
             width: '52px',
             height: '52px',
             borderRadius: '10px',
-            background: '#0F172A',
+            background: 'var(--bg-app)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
           }}
         >
-          <Building2 size={24} style={{ color: '#38BDF8' }} />
+          <Building2 size={24} style={{ color: 'var(--accent-primary)' }} />
         </div>
         <div>
-          <div style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>{activeOrganization.name}</div>
-          <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
+          <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>{activeOrganization.name}</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
             {ORG_TYPE_LABELS[activeOrganization.organizationType || ''] || activeOrganization.organizationType}
             {activeOrganization.countryCode ? ` · ${COUNTRY_CODES[activeOrganization.countryCode] || activeOrganization.countryCode}` : ''}
             {activeOrganization.timezone ? ` · ${activeOrganization.timezone}` : ''}
           </div>
-          <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
             id: {activeOrganization.id}
           </div>
         </div>
@@ -194,8 +194,8 @@ export const OrgSettingsTab: React.FC = () => {
       {/* Edit Form */}
       <div
         style={{
-          background: '#FFFFFF',
-          border: '1px solid #E2E8F0',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-subtle)',
           borderRadius: '8px',
           overflow: 'hidden',
           marginBottom: '16px',
@@ -204,11 +204,11 @@ export const OrgSettingsTab: React.FC = () => {
         <div
           style={{
             padding: '12px 16px',
-            borderBottom: '1px solid #E2E8F0',
+            borderBottom: '1px solid var(--border-subtle)',
             fontWeight: 700,
             fontSize: '13px',
-            color: '#0F172A',
-            background: '#F8FAFC',
+            color: 'var(--text-primary)',
+            background: 'var(--bg-subtle)',
           }}
         >
           Edit Details
@@ -222,7 +222,7 @@ export const OrgSettingsTab: React.FC = () => {
                   value={(form[key] as string) || ''}
                   onChange={(e) => handleChange(key, e.target.value)}
                   disabled={!canEdit}
-                  style={{ ...inputStyle, cursor: canEdit ? 'pointer' : 'not-allowed', background: canEdit ? '#FFFFFF' : '#F8FAFC' }}
+                  style={{ ...inputStyle, cursor: canEdit ? 'pointer' : 'not-allowed', background: canEdit ? 'var(--bg-surface)' : 'var(--bg-subtle)' }}
                 >
                   <option value="">— Select —</option>
                   {options?.map((opt) => (
@@ -235,7 +235,7 @@ export const OrgSettingsTab: React.FC = () => {
                   value={(form[key] as string) || ''}
                   onChange={(e) => handleChange(key, e.target.value)}
                   disabled={!canEdit}
-                  style={{ ...inputStyle, cursor: canEdit ? 'text' : 'not-allowed', background: canEdit ? '#FFFFFF' : '#F8FAFC' }}
+                  style={{ ...inputStyle, cursor: canEdit ? 'text' : 'not-allowed', background: canEdit ? 'var(--bg-surface)' : 'var(--bg-subtle)' }}
                 />
               )}
             </div>
@@ -247,8 +247,8 @@ export const OrgSettingsTab: React.FC = () => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
         <div
           style={{
-            background: '#F8FAFC',
-            border: '1px solid #E2E8F0',
+            background: 'var(--bg-subtle)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: '8px',
             padding: '16px',
             display: 'flex',
@@ -256,20 +256,20 @@ export const OrgSettingsTab: React.FC = () => {
             gap: '12px',
           }}
         >
-          <Globe size={16} style={{ color: '#64748B', flexShrink: 0 }} />
+          <Globe size={16} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
           <div>
-            <div style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B' }}>
+            <div style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>
               FHIR Tenancy Scope
             </div>
-            <div style={{ fontSize: '13px', color: '#0F172A', marginTop: '2px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--text-primary)', marginTop: '2px' }}>
               {activeOrganization.id}
             </div>
           </div>
         </div>
         <div
           style={{
-            background: '#F8FAFC',
-            border: '1px solid #E2E8F0',
+            background: 'var(--bg-subtle)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: '8px',
             padding: '16px',
             display: 'flex',
@@ -277,12 +277,12 @@ export const OrgSettingsTab: React.FC = () => {
             gap: '12px',
           }}
         >
-          <Clock size={16} style={{ color: '#64748B', flexShrink: 0 }} />
+          <Clock size={16} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
           <div>
-            <div style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B' }}>
+            <div style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>
               Clinical Time Reference
             </div>
-            <div style={{ fontSize: '13px', color: '#0F172A', marginTop: '2px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--text-primary)', marginTop: '2px' }}>
               {activeOrganization.timezone || 'UTC'}
             </div>
           </div>
@@ -300,8 +300,8 @@ export const OrgSettingsTab: React.FC = () => {
               gap: '6px',
               padding: '9px 18px',
               borderRadius: '6px',
-              background: '#0F172A',
-              color: '#FFFFFF',
+              background: 'var(--bg-app)',
+              color: 'var(--bg-surface)',
               border: 'none',
               fontSize: '13px',
               fontWeight: 600,
@@ -313,7 +313,7 @@ export const OrgSettingsTab: React.FC = () => {
             Save Changes
           </button>
           {saved && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#059669', fontSize: '13px', fontWeight: 600 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--status-success)', fontSize: '13px', fontWeight: 600 }}>
               <CheckCircle2 size={14} />
               Changes saved to demo session
             </div>
@@ -326,11 +326,11 @@ export const OrgSettingsTab: React.FC = () => {
         style={{
           marginTop: '24px',
           padding: '12px 16px',
-          background: '#F8FAFC',
-          border: '1px solid #E2E8F0',
+          background: 'var(--bg-subtle)',
+          border: '1px solid var(--border-subtle)',
           borderRadius: '6px',
           fontSize: '12px',
-          color: '#64748B',
+          color: 'var(--text-muted)',
         }}
       >
         <strong>Demo Mode:</strong> Changes update local session state only. Production deployments write to

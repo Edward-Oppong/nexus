@@ -134,15 +134,15 @@ export const AdministrationView: React.FC = () => {
       style={{
         flex: 1,
         overflowY: 'auto',
-        background: '#F8FAFC',
+        background: 'var(--bg-subtle)',
       }}
     >
       {/* Page Header */}
       <div
         style={{
           padding: '28px 40px 0',
-          background: '#FFFFFF',
-          borderBottom: '1px solid #E2E8F0',
+          background: 'var(--bg-surface)',
+          borderBottom: '1px solid var(--border-subtle)',
         }}
       >
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
@@ -152,7 +152,7 @@ export const AdministrationView: React.FC = () => {
               fontSize: '11px',
               fontFamily: 'var(--font-mono)',
               textTransform: 'uppercase',
-              color: '#64748B',
+              color: 'var(--text-muted)',
               letterSpacing: '0.06em',
               marginBottom: '4px',
             }}
@@ -163,13 +163,13 @@ export const AdministrationView: React.FC = () => {
           {/* Title row */}
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '20px' }}>
             <div>
-              <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#0F172A', letterSpacing: '-0.02em', margin: '0 0 4px 0' }}>
+              <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: '0 0 4px 0' }}>
                 Administration &amp; Governance
               </h1>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#64748B' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: 'var(--text-muted)' }}>
                 {activeOrganization ? (
                   <>
-                    <span style={{ fontWeight: 600, color: '#0F172A' }}>{activeOrganization.name}</span>
+                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{activeOrganization.name}</span>
                     <span>·</span>
                     <span>
                       Role: <span
@@ -179,8 +179,8 @@ export const AdministrationView: React.FC = () => {
                           fontWeight: 700,
                           padding: '2px 8px',
                           borderRadius: '4px',
-                          background: '#0F172A',
-                          color: '#F8FAFC',
+                          background: 'var(--bg-app)',
+                          color: 'var(--text-primary)',
                         }}
                       >
                         {role}
@@ -215,9 +215,9 @@ export const AdministrationView: React.FC = () => {
                     borderRadius: '6px 6px 0 0',
                     border: '1px solid',
                     borderBottom: 'none',
-                    borderColor: isActive ? '#E2E8F0' : 'transparent',
-                    background: isActive ? '#F8FAFC' : 'transparent',
-                    color: isActive ? '#0F172A' : hasAccess ? '#64748B' : '#CBD5E1',
+                    borderColor: isActive ? 'var(--border-subtle)' : 'transparent',
+                    background: isActive ? 'var(--bg-subtle)' : 'transparent',
+                    color: isActive ? 'var(--text-primary)' : hasAccess ? 'var(--text-muted)' : 'var(--border-medium)',
                     fontSize: '13px',
                     fontWeight: isActive ? 700 : 500,
                     cursor: 'pointer',
@@ -229,10 +229,10 @@ export const AdministrationView: React.FC = () => {
                   <span
                     style={{
                       color: isActive
-                        ? '#0F172A'
+                        ? 'var(--text-primary)'
                         : hasAccess
-                        ? '#64748B'
-                        : '#CBD5E1',
+                        ? 'var(--text-muted)'
+                        : 'var(--border-medium)',
                     }}
                   >
                     {tab.icon}
@@ -241,7 +241,7 @@ export const AdministrationView: React.FC = () => {
                   {!hasAccess && (
                     <Lock
                       size={10}
-                      style={{ color: '#CBD5E1', marginLeft: '2px' }}
+                      style={{ color: 'var(--border-medium)', marginLeft: '2px' }}
                       aria-label={`Requires ${tab.requiredPermission}`}
                     />
                   )}
@@ -253,7 +253,7 @@ export const AdministrationView: React.FC = () => {
                         left: 0,
                         right: 0,
                         height: '2px',
-                        background: '#0F172A',
+                        background: 'var(--bg-app)',
                         borderRadius: '2px 2px 0 0',
                       }}
                     />

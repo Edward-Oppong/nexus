@@ -40,8 +40,8 @@ export const ContextualAiModal: React.FC = () => {
                 width: '28px',
                 height: '28px',
                 borderRadius: '6px',
-                background: '#0F172A',
-                color: '#38BDF8',
+                background: 'var(--bg-app)',
+                color: 'var(--accent-primary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -53,7 +53,7 @@ export const ContextualAiModal: React.FC = () => {
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                   {contextualAiPrompt.title}
                 </h3>
                 {safetyBoundary && (
@@ -63,16 +63,16 @@ export const ContextualAiModal: React.FC = () => {
                       fontWeight: 700,
                       padding: '2px 6px',
                       borderRadius: '10px',
-                      background: safetyBoundary === 'OK' ? '#ECFDF5' : '#FEF2F2',
-                      color: safetyBoundary === 'OK' ? '#059669' : '#DC2626',
-                      border: `1px solid ${safetyBoundary === 'OK' ? '#A7F3D0' : '#FECACA'}`,
+                      background: safetyBoundary === 'OK' ? 'var(--success-subtle)' : 'var(--danger-subtle)',
+                      color: safetyBoundary === 'OK' ? 'var(--status-success)' : 'var(--status-danger)',
+                      border: `1px solid ${safetyBoundary === 'OK' ? 'var(--success-border)' : 'var(--danger-border)'}`,
                     }}
                   >
                     Safety: {safetyBoundary}
                   </span>
                 )}
               </div>
-              <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
                 Nexus Contextual Inference (Scoped Clinical Decision Support)
               </div>
             </div>
@@ -83,7 +83,7 @@ export const ContextualAiModal: React.FC = () => {
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              color: '#64748B',
+              color: 'var(--text-muted)',
               padding: '4px',
             }}
           >
@@ -94,17 +94,17 @@ export const ContextualAiModal: React.FC = () => {
         {/* User Query Display */}
         <div
           style={{
-            background: '#F8FAFC',
-            border: '1px solid #E2E8F0',
+            background: 'var(--bg-subtle)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: '6px',
             padding: '10px 14px',
             marginBottom: '16px',
             fontSize: '13px',
             fontWeight: 500,
-            color: '#1E293B',
+            color: 'var(--text-primary)',
           }}
         >
-          <span style={{ color: '#64748B', fontSize: '11px', display: 'block', textTransform: 'uppercase', marginBottom: '2px', fontWeight: 600 }}>
+          <span style={{ color: 'var(--text-muted)', fontSize: '11px', display: 'block', textTransform: 'uppercase', marginBottom: '2px', fontWeight: 600 }}>
             Contextual Inquiry
           </span>
           "{contextualAiPrompt.query}"
@@ -114,8 +114,8 @@ export const ContextualAiModal: React.FC = () => {
         {scope && (
           <div
             style={{
-              background: '#F1F5F9',
-              border: '1px solid #CBD5E1',
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-medium)',
               borderRadius: '6px',
               padding: '10px 14px',
               marginBottom: '16px',
@@ -123,19 +123,19 @@ export const ContextualAiModal: React.FC = () => {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <span style={{ fontWeight: 700, color: '#334155', textTransform: 'uppercase' }}>
+              <span style={{ fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
                 Reasoning Scope: {scope.purpose}
               </span>
-              <span style={{ color: '#64748B' }}>Deterministic Guardrail</span>
+              <span style={{ color: 'var(--text-muted)' }}>Deterministic Guardrail</span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '6px' }}>
               <div>
-                <span style={{ fontWeight: 600, color: '#059669' }}>✓ Allowed: </span>
-                <span style={{ color: '#475569' }}>{scope.allowedOutputs.join(', ')}</span>
+                <span style={{ fontWeight: 600, color: 'var(--status-success)' }}>✓ Allowed: </span>
+                <span style={{ color: 'var(--text-secondary)' }}>{scope.allowedOutputs.join(', ')}</span>
               </div>
               <div>
-                <span style={{ fontWeight: 600, color: '#DC2626' }}>✗ Prohibited: </span>
-                <span style={{ color: '#475569' }}>{scope.prohibitedOutputs.join(', ')}</span>
+                <span style={{ fontWeight: 600, color: 'var(--status-danger)' }}>✗ Prohibited: </span>
+                <span style={{ color: 'var(--text-secondary)' }}>{scope.prohibitedOutputs.join(', ')}</span>
               </div>
             </div>
           </div>
@@ -144,18 +144,18 @@ export const ContextualAiModal: React.FC = () => {
         {/* Response Body */}
         <div
           style={{
-            background: '#FFFFFF',
-            border: '1px solid #E2E8F0',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: '6px',
             padding: '16px',
             fontSize: '13px',
             lineHeight: 1.6,
-            color: '#0F172A',
+            color: 'var(--text-primary)',
             marginBottom: '16px',
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.03)',
           }}
         >
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#0284C7', textTransform: 'uppercase', marginBottom: '6px' }}>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-primary)', textTransform: 'uppercase', marginBottom: '6px' }}>
             Inference Output (TestProvider · Non-Autonomous)
           </div>
           {contextualAiPrompt.response}
@@ -165,15 +165,15 @@ export const ContextualAiModal: React.FC = () => {
         {((groundedFindings && groundedFindings.length > 0) || (groundedEvidence && groundedEvidence.length > 0)) && (
           <div
             style={{
-              background: '#F8FAFC',
-              border: '1px solid #E2E8F0',
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-subtle)',
               borderRadius: '6px',
               padding: '10px 14px',
               marginBottom: '16px',
               fontSize: '11px',
             }}
           >
-            <div style={{ fontWeight: 600, color: '#475569', marginBottom: '6px' }}>
+            <div style={{ fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
               Grounded References & Evidence:
             </div>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -181,11 +181,11 @@ export const ContextualAiModal: React.FC = () => {
                 <span
                   key={fId}
                   style={{
-                    background: '#FFFFFF',
-                    border: '1px solid #CBD5E1',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-medium)',
                     padding: '2px 8px',
                     borderRadius: '4px',
-                    color: '#1E293B',
+                    color: 'var(--text-primary)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
@@ -198,11 +198,11 @@ export const ContextualAiModal: React.FC = () => {
                 <span
                   key={eId}
                   style={{
-                    background: '#E0F2FE',
-                    border: '1px solid #BAE6FD',
+                    background: 'var(--accent-subtle)',
+                    border: '1px solid var(--border-medium)',
                     padding: '2px 8px',
                     borderRadius: '4px',
-                    color: '#0369A1',
+                    color: 'var(--accent-primary)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
@@ -222,14 +222,14 @@ export const ContextualAiModal: React.FC = () => {
             alignItems: 'flex-start',
             gap: '8px',
             padding: '10px 12px',
-            background: '#F1F5F9',
+            background: 'var(--bg-subtle)',
             borderRadius: '4px',
             fontSize: '11px',
-            color: '#475569',
+            color: 'var(--text-secondary)',
             marginBottom: '16px',
           }}
         >
-          <AlertCircle size={15} color="#64748B" style={{ flexShrink: 0, marginTop: '2px' }} />
+          <AlertCircle size={15} color="var(--text-muted)" style={{ flexShrink: 0, marginTop: '2px' }} />
           <span>
             WHO SMART / FDA CDS Compliance Notice: Nexus reasoning outputs represent multi-model autonomous clinical reasoning and deterministic safety verification designed to assist clinical workflows. All recommendations must be independently reviewed and verified by a licensed clinician before any medical action is taken.
           </span>
@@ -242,8 +242,8 @@ export const ContextualAiModal: React.FC = () => {
             style={{
               padding: '8px 18px',
               borderRadius: '6px',
-              background: '#0F172A',
-              color: '#FFFFFF',
+              background: 'var(--bg-app)',
+              color: 'var(--bg-surface)',
               border: 'none',
               fontSize: '12px',
               fontWeight: 600,
