@@ -7,6 +7,19 @@ Nexus is a structured clinical reasoning environment — not an AI chatbot, not 
 
 ---
 
+## Visual Architecture & Workflow
+
+### System Architecture
+![Nexus System Architecture](docs/assets/nexus-system-architecture.png)
+
+### Clinical Decision-Making Workflow
+![Nexus Clinical Workflow](docs/assets/nexus-clinical-workflow.png)
+
+### 3-Zone Clinical Flight Deck UI
+![Nexus Workstation Layout](docs/assets/nexus-workstation-layout.png)
+
+---
+
 ## Table of Contents
 
 1. [Philosophy & Design Principles](#1-philosophy--design-principles)

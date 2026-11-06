@@ -32,6 +32,15 @@ This document is the authoritative technical reference for the Nexus Clinical Wo
 
 ## 1. System Overview
 
+### High-Level Architectural Topology
+![Nexus System Architecture](docs/assets/nexus-system-architecture.png)
+
+### End-to-End Physician Flight Deck Workflow
+![Nexus Clinical Workflow](docs/assets/nexus-clinical-workflow.png)
+
+### 3-Zone Workstation Information Architecture & Layout
+![Nexus Workstation Layout](docs/assets/nexus-workstation-layout.png)
+
 ```
 +----------------------------------------------------------+
 |                    BROWSER / CLIENT                      |
